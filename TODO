@@ -1,3 +1,5 @@
 - Implement the Mixer API
-
+- Write documentation
+- Better example code (aplay workalike for instance)
 - Implement MIDI/sequencer support.
+

@@ -15,7 +15,7 @@ import sys
 import time
 
 # Open the device in playback mode. 
-out = alsaaudio.openpcm(alsaaudio.PCM_PLAYBACK)
+out = alsaaudio.PCM(alsaaudio.PCM_PLAYBACK)
 
 # Set attributes: Mono, 8000 Hz, 16 bit little endian frames
 out.setchannels(1)
