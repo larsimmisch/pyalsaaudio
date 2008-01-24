@@ -1,0 +1,166 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<link rel="STYLESHEET" href="pyalsaaudio.css" type='text/css'>
+<link rel="first" href="pyalsaaudio.html" title='PyAlsaAudio'>
+<link rel='contents' href='contents.html' title="Contents">
+<link rel='last' href='about.html' title='About this document...'>
+<link rel='help' href='about.html' title='About this document...'>
+<LINK REL="next" href="pcm-objects.html">
+<LINK REL="prev" href="module-alsaaudio.html">
+<LINK REL="parent" href="module-alsaaudio.html">
+<LINK REL="next" href="pcm-objects.html">
+<meta name='aesop' content='information'>
+<META NAME="description" CONTENT="PCM Terminology and Concepts">
+<META NAME="keywords" CONTENT="pyalsaaudio">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<title>4.1 PCM Terminology and Concepts</title>
+</head>
+<body>
+<DIV CLASS="navigation">
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><a rel="prev" title="4 alsaaudio" 
+  href="module-alsaaudio.html"><img src='previous.gif'
+  border='0' height='32'  alt='Previous Page' width='32'></A></td>
+<td><a rel="parent" title="4 alsaaudio" 
+  href="module-alsaaudio.html"><img src='up.gif'
+  border='0' height='32'  alt='Up One Level' width='32'></A></td>
+<td><a rel="next" title="4.2 PCM Objects" 
+  href="pcm-objects.html"><img src='next.gif'
+  border='0' height='32'  alt='Next Page' width='32'></A></td>
+<td align="center" width="100%">PyAlsaAudio</td>
+<td><a rel="contents" title="Table of Contents" 
+  href="contents.html"><img src='contents.gif'
+  border='0' height='32'  alt='Contents' width='32'></A></td>
+<td><img src='blank.gif'
+  border='0' height='32'  alt='' width='32'></td>
+</tr></table>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="module-alsaaudio.html">4 alsaaudio</A>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="module-alsaaudio.html">4 alsaaudio</A>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="pcm-objects.html">4.2 PCM Objects</A>
+<br><hr>
+</DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION002410000000000000000">
+4.1 PCM Terminology and Concepts</A>
+</H2>
+
+<P>
+In order to use PCM devices it is useful to be familiar with some concepts and
+terminology.
+
+<P>
+<DL>
+<DT><STRONG>Sample</STRONG></DT>
+<DD>PCM audio, whether it is input or output, consists at the lowest level
+of a number of single samples. A sample represents the sound in a single channel in
+a brief interval. If more than one channel is in use, more than one sample is required
+for each interval to describe the sound. Samples can be of many different sizes, ranging
+from 8 bit to 64 bit presition. The specific format of each sample can also vary - they 
+can be big endian byte order, little endian byte order, or even floats.
+
+<P>
+</DD>
+<DT><STRONG>Frame</STRONG></DT>
+<DD>A frame consists of exactly one sample per channel. If there is only one
+channel (Mono sound) a frame is simply a single sample. If the sound is stereo, each frame
+consists of two samples, etc.
+
+<P>
+</DD>
+<DT><STRONG>Frame size</STRONG></DT>
+<DD>This is the size in bytes of each frame. This can vary a lot: if each sample is
+8 bits, and we're handling mono sound, the frame size is one byte. Similarly in 6 channel audio with
+64 bit floating point samples, the frame size is 48 bytes
+
+<P>
+</DD>
+<DT><STRONG>Rate</STRONG></DT>
+<DD>PCM sound consists of a flow of sound frames. The sound rate controls how often
+the current frame is replaced. For example, a rate of 8000 Hz means that a new frame is played 
+or captured 8000 times per second.
+
+<P>
+</DD>
+<DT><STRONG>Data rate</STRONG></DT>
+<DD>This is the number of bytes, which must be recorded or provided per second
+at a certain frame size and rate. 
+
+<P>
+8000 Hz mono sound with 8 bit (1 byte) samples has a data rate of 8000 * 1 * 1 = 8 kb/s
+
+<P>
+At the other end of the scale, 96000 Hz, 6 channel sound with 64 bit (8 bytes) samples
+has a data rate of 96000 * 6 * 8 = 4608 kb/s (almost 5 Mb sound data per second)
+
+<P>
+</DD>
+<DT><STRONG>Period</STRONG></DT>
+<DD>When the hardware processes data this is done in chunks of frames. The time interval
+between each processing (A/D or D/A conversion) is known as the period. The size of the period has
+direct implication on the latency of the sound input or output. For low-latency the period size should
+be very small, while low CPU resource usage would usually demand larger period sizes. With ALSA, the
+CPU utilization is not impacted much by the period size, since the kernel layer buffers multiple
+periods internally, so each period generates an interrupt and a memory copy, but userspace can be
+slower and read or write multiple periods at the same time.
+
+<P>
+</DD>
+<DT><STRONG>Period size</STRONG></DT>
+<DD>This is the size of each period in Hz. <i>Not bytes, but Hz!.</i> In <tt class="module">alsaaudio</tt>
+the period size is set directly, and it is therefore important to understand the significance of this 
+number. If the period size is configured to for example 32, each write should contain exactly 32 frames
+of sound data, and each read will return either 32 frames of data or nothing at all.
+
+<P>
+</DD>
+</DL>
+
+<P>
+Once you understand these concepts, you will be ready to actually utilize PCM API. Read on.
+
+<P>
+
+<DIV CLASS="navigation">
+<p><hr>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><a rel="prev" title="4 alsaaudio" 
+  rel="prev" title="4 alsaaudio" 
+  href="module-alsaaudio.html"><img src='previous.gif'
+  border='0' height='32'  alt='Previous Page' width='32'></A></td>
+<td><a rel="parent" title="4 alsaaudio" 
+  rel="parent" title="4 alsaaudio" 
+  href="module-alsaaudio.html"><img src='up.gif'
+  border='0' height='32'  alt='Up One Level' width='32'></A></td>
+<td><a rel="next" title="4.2 PCM Objects" 
+  rel="next" title="4.2 PCM Objects" 
+  href="pcm-objects.html"><img src='next.gif'
+  border='0' height='32'  alt='Next Page' width='32'></A></td>
+<td align="center" width="100%">PyAlsaAudio</td>
+<td><a rel="contents" title="Table of Contents" 
+  rel="contents" title="Table of Contents" 
+  href="contents.html"><img src='contents.gif'
+  border='0' height='32'  alt='Contents' width='32'></A></td>
+<td><img src='blank.gif'
+  border='0' height='32'  alt='' width='32'></td>
+</tr></table>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="module-alsaaudio.html">4 alsaaudio</A>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="module-alsaaudio.html">4 alsaaudio</A>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="pcm-objects.html">4.2 PCM Objects</A>
+<hr>
+<span class="release-info">Release 0.1.</span>
+</DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

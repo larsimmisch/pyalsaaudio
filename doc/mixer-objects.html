@@ -1,0 +1,323 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<link rel="STYLESHEET" href="pyalsaaudio.css" type='text/css'>
+<link rel="first" href="pyalsaaudio.html" title='PyAlsaAudio'>
+<link rel='contents' href='contents.html' title="Contents">
+<link rel='last' href='about.html' title='About this document...'>
+<link rel='help' href='about.html' title='About this document...'>
+<LINK REL="next" href="pcm-example.html">
+<LINK REL="prev" href="pcm-objects.html">
+<LINK REL="parent" href="module-alsaaudio.html">
+<LINK REL="next" href="pcm-example.html">
+<meta name='aesop' content='information'>
+<META NAME="description" CONTENT="Mixer Objects">
+<META NAME="keywords" CONTENT="pyalsaaudio">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<title>4.3 Mixer Objects</title>
+</head>
+<body>
+<DIV CLASS="navigation">
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><a rel="prev" title="4.2 PCM Objects" 
+  href="pcm-objects.html"><img src='previous.gif'
+  border='0' height='32'  alt='Previous Page' width='32'></A></td>
+<td><a rel="parent" title="4 alsaaudio" 
+  href="module-alsaaudio.html"><img src='up.gif'
+  border='0' height='32'  alt='Up One Level' width='32'></A></td>
+<td><a rel="next" title="4.4 ALSA Examples" 
+  href="pcm-example.html"><img src='next.gif'
+  border='0' height='32'  alt='Next Page' width='32'></A></td>
+<td align="center" width="100%">PyAlsaAudio</td>
+<td><a rel="contents" title="Table of Contents" 
+  href="contents.html"><img src='contents.gif'
+  border='0' height='32'  alt='Contents' width='32'></A></td>
+<td><img src='blank.gif'
+  border='0' height='32'  alt='' width='32'></td>
+</tr></table>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="pcm-objects.html">4.2 PCM Objects</A>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="module-alsaaudio.html">4 alsaaudio</A>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="pcm-example.html">4.4 ALSA Examples</A>
+<br><hr>
+</DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION002430000000000000000">&nbsp;</A>
+<BR>
+4.3 Mixer Objects
+</H2>
+
+<P>
+Mixer objects provides access to the ALSA mixer API.
+
+<P>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><span class="typelabel">class</span>&nbsp;<a name="l2h-16"><tt class="class">Mixer</tt></a></b>(</nobr></td>
+  <td><big>[</big><var>control</var><big>]</big><var>, </var><big>[</big><var>id</var><big>]</big><var>, </var><big>[</big><var>cardname</var><big>]</big>)</td></tr></table>
+<dd>
+<var>control</var> - specifies which control to manipulate using this mixer object. The list
+of available controls can be found with the <tt class="module">alsaaudio</tt>.<tt class="function">mixers</tt> function.
+The default value is 'Master' - other common controls include 'Master Mono', 'PCM', 'Line', etc.
+
+<P>
+<var>id</var> - the id of the mixer control. Default is 0
+
+<P>
+<var>cardname</var> - specifies which card should be used (this is only relevant 
+if you have more than one sound card). Omit to use the default sound card
+</dl>
+
+<P>
+Mixer objects have the following methods:
+
+<P>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><a name="l2h-17"><tt class="method">cardname</tt></a></b>(</nobr></td>
+  <td>)</td></tr></table>
+<dd>
+Return the name of the sound card used by this Mixer object
+</dl>
+
+<P>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><a name="l2h-18"><tt class="method">mixer</tt></a></b>(</nobr></td>
+  <td>)</td></tr></table>
+<dd>
+Return the name of the specific mixer controlled by this object, For example 'Master'
+or 'PCM'
+</dl>
+
+<P>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><a name="l2h-19"><tt class="method">mixerid</tt></a></b>(</nobr></td>
+  <td>)</td></tr></table>
+<dd>
+Return the ID of the ALSA mixer controlled by this object.
+</dl>
+
+<P>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><a name="l2h-20"><tt class="method">switchcap</tt></a></b>(</nobr></td>
+  <td>)</td></tr></table>
+<dd>
+Returns a list of the switches which are defined by this specific mixer. Possible values in
+this list are:
+
+<P>
+<table border align="center" style="border-collapse: collapse">
+  <thead>
+    <tr class="tableheader">
+      <th align="left"><b>Switch</b>&nbsp;</th>
+      <th align="left"><b>Description</b>&nbsp;</th>
+      </tr>
+    </thead>
+  <tbody valign="baseline">
+    <tr><td align="left" valign="baseline"><Volume Capabilities>'Mute'</Volume></td>
+        <td align="left">This mixer can be muted</td>
+    <tr><td align="left" valign="baseline"><Volume Capabilities>'Joined Mute'</Volume></td>
+        <td align="left">This mixer can mute all channels at the same time</td>
+    <tr><td align="left" valign="baseline"><Volume Capabilities>'Playback Mute'</Volume></td>
+        <td align="left">This mixer can mute the playback output</td>
+    <tr><td align="left" valign="baseline"><Volume Capabilities>'Joined Playback Mute'</Volume></td>
+        <td align="left">Mute playback for all channels at the same time</td>
+    <tr><td align="left" valign="baseline"><Volume Capabilities>'Capture Mute'</Volume></td>
+        <td align="left">Mute sound capture</td>
+    <tr><td align="left" valign="baseline"><Volume Capabilities>'Joined Capture Mute'</Volume></td>
+        <td align="left">Mute sound capture for all channels at a time</td>
+    <tr><td align="left" valign="baseline"><Volume Capabilities>'Capture Exclusive'</Volume></td>
+        <td align="left">Not quite sure what this is</td></tbody>
+</table>
+
+<P>
+To manipulate these swithes use the <tt class="method">setrec</tt> or <tt class="method">setmute</tt> methods
+</dl>
+
+<P>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><a name="l2h-21"><tt class="method">volumecap</tt></a></b>(</nobr></td>
+  <td>)</td></tr></table>
+<dd>
+Returns a list of the volume control capabilities of this mixer. Possible values in
+the list are:
+
+<P>
+<table border align="center" style="border-collapse: collapse">
+  <thead>
+    <tr class="tableheader">
+      <th align="left"><b>Capability</b>&nbsp;</th>
+      <th align="left"><b>Description</b>&nbsp;</th>
+      </tr>
+    </thead>
+  <tbody valign="baseline">
+    <tr><td align="left" valign="baseline"><Volume Capabilities>'Volume'</Volume></td>
+        <td align="left">This mixer can control volume</td>
+    <tr><td align="left" valign="baseline"><Volume Capabilities>'Joined Volume'</Volume></td>
+        <td align="left">This mixer can control volume for all channels at the same time</td>
+    <tr><td align="left" valign="baseline"><Volume Capabilities>'Playback Volume'</Volume></td>
+        <td align="left">This mixer can manipulate the playback volume</td>
+    <tr><td align="left" valign="baseline"><Volume Capabilities>'Joined Playback Volume'</Volume></td>
+        <td align="left">Manipulate playback volumne for all channels at the same time</td>
+    <tr><td align="left" valign="baseline"><Volume Capabilities>'Capture Volume'</Volume></td>
+        <td align="left">Manipulate sound capture volume</td>
+    <tr><td align="left" valign="baseline"><Volume Capabilities>'Joined Capture Volume'</Volume></td>
+        <td align="left">Manipulate sound capture volume for all channels at a time</td></tbody>
+</table>
+
+<P>
+</dl>
+
+<P>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><a name="l2h-22"><tt class="method">getvolume</tt></a></b>(</nobr></td>
+  <td><big>[</big><var>direction</var><big>]</big>)</td></tr></table>
+<dd>
+Returns a list with the current volume settings for each channel. The list elements
+are integer percentages.
+
+<P>
+The optional <var>direction</var> argument can be either 'playback' or 'capture', which is relevant
+if the mixer can control both playback and capture volume. The default value is 'playback'
+if the mixer has this capability, otherwise 'capture'
+
+<P>
+</dl>
+
+<P>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><a name="l2h-23"><tt class="method">getmute</tt></a></b>(</nobr></td>
+  <td>)</td></tr></table>
+<dd>
+Return a list indicating the current mute setting for each channel. 0 means not muted, 1 means muted.
+
+<P>
+This method will fail if the mixer has no playback switch capabilities.
+</dl>
+
+<P>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><a name="l2h-24"><tt class="method">getrec</tt></a></b>(</nobr></td>
+  <td>)</td></tr></table>
+<dd>
+Return a list indicating the current record mute setting for each channel. 0 means not recording, 1 
+means not recording.
+
+<P>
+This method will fail if the mixer has no capture switch capabilities.
+</dl>
+
+<P>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><a name="l2h-25"><tt class="method">setvolume</tt></a></b>(</nobr></td>
+  <td><var>volume,</var><big>[</big><var>channel</var><big>]</big><var>,</var><big>[</big><var>direction</var><big>]</big>)</td></tr></table>
+<dd>
+Change the current volume settings for this mixer. The <var>volume</var> argument controls
+the new volume setting as an integer percentage.
+
+<P>
+If the optional argument <var>channel</var> is present, the volume is set only for this channel. This
+assumes that the mixer can control the volume for the channels independently.
+
+<P>
+The optional <var>direction</var> argument can be either 'playback' or 'capture' is relevant if the mixer
+has independent playback and capture volume capabilities, and controls which of the volumes
+if changed. The default is 'playback' if the mixer has this capability, otherwise 'capture'.
+</dl>
+
+<P>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><a name="l2h-26"><tt class="method">setmute</tt></a></b>(</nobr></td>
+  <td><var>mute, </var><big>[</big><var>channel</var><big>]</big>)</td></tr></table>
+<dd>
+Sets the mute flag to a new value. The <var>mute</var> argument is either 0 for not muted, or 1 for muted.
+
+<P>
+The optional <var>channel</var> argument controls which channel is muted. The default is to set the mute flag
+for all channels.
+
+<P>
+This method will fail if the mixer has no playback mute capabilities
+</dl>
+
+<P>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><a name="l2h-27"><tt class="method">setrec</tt></a></b>(</nobr></td>
+  <td><var>capture,</var><big>[</big><var>channel</var><big>]</big>)</td></tr></table>
+<dd>
+Sets the capture mute flag to a new value. The <var>capture</var> argument is either 0 for no capture, 
+or 1 for capture.
+
+<P>
+The optional <var>channel</var> argument controls which channel is changed. The default is to set the capture flag
+for all channels.
+
+<P>
+This method will fail if the mixer has no capture switch capabilities
+</dl>
+
+<P>
+<b>A Note on the ALSA Mixer API</b>
+
+<P>
+The ALSA mixer API is extremely complicated - and hardly documented at all. <tt class="module">alsaaudio</tt> implements
+a much simplified way to access this API. In designing the API I've had to make some choices which
+may limit what can and cannot be controlled through the API. However, If I had chosen to implement the
+full API, I would have reexposed the horrible complexity/documentation ratio of the underlying API.
+At least the <tt class="module">alsaaudio</tt> API is easy to understand and use.
+
+<P>
+If my design choises prevents you from doing something that the underlying API would have allowed,
+please let me know, so I can incorporate these need into future versions.
+
+<P>
+If the current state of affairs annoy you, the best you can do is to write a HOWTO on the API and
+make this available on the net. Until somebody does this, the availability of ALSA mixer capable
+devices will stay quite limited.
+
+<P>
+Unfortunately, I'm not able to create such a HOWTO myself, since I only understand half of the API,
+and that which I do understand has come from a painful trial and error process.
+
+<P>
+
+<DIV CLASS="navigation">
+<p><hr>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><a rel="prev" title="4.2 PCM Objects" 
+  rel="prev" title="4.2 PCM Objects" 
+  href="pcm-objects.html"><img src='previous.gif'
+  border='0' height='32'  alt='Previous Page' width='32'></A></td>
+<td><a rel="parent" title="4 alsaaudio" 
+  rel="parent" title="4 alsaaudio" 
+  href="module-alsaaudio.html"><img src='up.gif'
+  border='0' height='32'  alt='Up One Level' width='32'></A></td>
+<td><a rel="next" title="4.4 ALSA Examples" 
+  rel="next" title="4.4 ALSA Examples" 
+  href="pcm-example.html"><img src='next.gif'
+  border='0' height='32'  alt='Next Page' width='32'></A></td>
+<td align="center" width="100%">PyAlsaAudio</td>
+<td><a rel="contents" title="Table of Contents" 
+  rel="contents" title="Table of Contents" 
+  href="contents.html"><img src='contents.gif'
+  border='0' height='32'  alt='Contents' width='32'></A></td>
+<td><img src='blank.gif'
+  border='0' height='32'  alt='' width='32'></td>
+</tr></table>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" href="pcm-objects.html">4.2 PCM Objects</A>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="module-alsaaudio.html">4 alsaaudio</A>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" href="pcm-example.html">4.4 ALSA Examples</A>
+<hr>
+<span class="release-info">Release 0.1.</span>
+</DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

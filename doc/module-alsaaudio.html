@@ -1,0 +1,162 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<link rel="STYLESHEET" href="pyalsaaudio.css" type='text/css'>
+<link rel="first" href="pyalsaaudio.html" title='PyAlsaAudio'>
+<link rel='contents' href='contents.html' title="Contents">
+<link rel='last' href='about.html' title='About this document...'>
+<link rel='help' href='about.html' title='About this document...'>
+<LINK REL="prev" HREF="node5.html">
+<LINK REL="parent" href="contents.html">
+<LINK REL="next" HREF="node7.html">
+<meta name='aesop' content='information'>
+<META NAME="description" CONTENT="alsaaudio">
+<META NAME="keywords" CONTENT="pyalsaaudio">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<title>4 alsaaudio</title>
+</head>
+<body>
+<DIV CLASS="navigation">
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><a rel="prev" title="3 Installation" 
+  HREF="node5.html"><img src='previous.gif'
+  border='0' height='32'  alt='Previous Page' width='32'></A></td>
+<td><a rel="parent" title="Contents" 
+  href="contents.html"><img src='up.gif'
+  border='0' height='32'  alt='Up One Level' width='32'></A></td>
+<td><a rel="next" title="4.1 PCM Terminology and" 
+  HREF="node7.html"><img src='next.gif'
+  border='0' height='32'  alt='Next Page' width='32'></A></td>
+<td align="center" width="100%">PyAlsaAudio</td>
+<td><a rel="contents" title="Table of Contents" 
+  href="contents.html"><img src='contents.gif'
+  border='0' height='32'  alt='Contents' width='32'></A></td>
+<td><img src='blank.gif'
+  border='0' height='32'  alt='' width='32'></td>
+</tr></table>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" HREF="node5.html">3 Installation</A>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="contents.html">Contents</A>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" HREF="node7.html">4.1 PCM Terminology and</A>
+<br><hr>
+</DIV>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION002400000000000000000">
+4 <tt class="module">alsaaudio</tt></A>
+</H1>
+
+<P>
+	
+<P>
+
+<p class="availability">Availability: <span
+ class="platform">Linux</span>.</p>
+
+<P>
+ 
+<P>
+
+<P>
+The <tt class="module">alsaaudio</tt> module defines functions and classes for using
+ALSA.
+
+<P>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><a name="l2h-2"><tt class="function">mixers</tt></a></b>(</nobr></td>
+  <td><big>[</big><var>cardname</var><big>]</big>)</td></tr></table>
+<dd>
+List the available mixers. The optional <var>cardname</var> specifies which
+card should be queried (this is only relevant if you have more than one
+sound card). Omit to use the default sound card
+</dl>
+
+<P>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><span class="typelabel">class</span>&nbsp;<a name="l2h-3"><tt class="class">PCM</tt></a></b>(</nobr></td>
+  <td><big>[</big><var>type</var><big>]</big><var>, </var><big>[</big><var>mode</var><big>]</big><var>, </var><big>[</big><var>cardname</var><big>]</big>)</td></tr></table>
+<dd>
+This class is used to represent a PCM device (both playback and capture devices).
+The arguments are: 
+<BR><var>type</var> - can be either PCM_CAPTURE or PCM_PLAYBACK (default). 
+<BR><var>mode</var> - can be either PCM_NONBLOCK, PCM_ASYNC, or PCM_NORMAL (the default).
+<BR><var>cardname</var> - specifies which card should be used (this is only relevant 
+if you have more than one sound card). Omit to use the default sound card
+</dl>
+
+<P>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><span class="typelabel">class</span>&nbsp;<a name="l2h-4"><tt class="class">Mixer</tt></a></b>(</nobr></td>
+  <td><big>[</big><var>control</var><big>]</big><var>, </var><big>[</big><var>id</var><big>]</big><var>, </var><big>[</big><var>cardname</var><big>]</big>)</td></tr></table>
+<dd>
+This class is used to access a specific ALSA mixer.
+The arguments are: 
+<BR><var>control</var> - Name of the chosen mixed (default is Master). 
+<BR><var>id</var> - id of mixer (default is 0) - More explaniation needed here
+<BR><var>cardname</var> specifies which card should be used (this is only relevant 
+if you have more than one sound card). Omit to use the default sound card
+</dl>
+
+<P>
+<dl><dt><b><span class="typelabel">exception</span>&nbsp;<a name="l2h-5"><tt class="exception">ALSAAudioError</tt></a></b>
+<dd>
+Exception raised when an operation fails for a ALSA specific reason.
+The exception argument is a string describing the reason of the
+failure.
+</dl>
+
+<P>
+
+<p><hr>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></a>
+
+<UL CLASS="ChildLinks">
+<LI><A href="node7.html">4.1 PCM Terminology and Concepts</a>
+<LI><A href="pcm-objects.html">4.2 PCM Objects</a>
+<LI><A href="mixer-objects.html">4.3 Mixer Objects</a>
+<LI><A href="pcm-example.html">4.4 ALSA Examples</a>
+</ul>
+<!--End of Table of Child-Links-->
+
+<DIV CLASS="navigation">
+<p><hr>
+<table align="center" width="100%" cellpadding="0" cellspacing="2">
+<tr>
+<td><a rel="prev" title="3 Installation" 
+  rel="prev" title="3 Installation" 
+  HREF="node5.html"><img src='previous.gif'
+  border='0' height='32'  alt='Previous Page' width='32'></A></td>
+<td><a rel="parent" title="Contents" 
+  rel="parent" title="Contents" 
+  href="contents.html"><img src='up.gif'
+  border='0' height='32'  alt='Up One Level' width='32'></A></td>
+<td><a rel="next" title="4.1 PCM Terminology and" 
+  rel="next" title="4.1 PCM Terminology and" 
+  HREF="node7.html"><img src='next.gif'
+  border='0' height='32'  alt='Next Page' width='32'></A></td>
+<td align="center" width="100%">PyAlsaAudio</td>
+<td><a rel="contents" title="Table of Contents" 
+  rel="contents" title="Table of Contents" 
+  href="contents.html"><img src='contents.gif'
+  border='0' height='32'  alt='Contents' width='32'></A></td>
+<td><img src='blank.gif'
+  border='0' height='32'  alt='' width='32'></td>
+</tr></table>
+<b class="navlabel">Previous:</b>
+<a class="sectref" rel="prev" HREF="node5.html">3 Installation</A>
+<b class="navlabel">Up:</b>
+<a class="sectref" rel="parent" href="contents.html">Contents</A>
+<b class="navlabel">Next:</b>
+<a class="sectref" rel="next" HREF="node7.html">4.1 PCM Terminology and</A>
+<hr>
+<span class="release-info">Release 0.1.</span>
+</DIV>
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>
