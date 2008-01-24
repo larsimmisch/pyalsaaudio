@@ -13,6 +13,15 @@
 #include <alsa/asoundlib.h>
 #include <stdio.h>
 
+PyDoc_STRVAR(alsaaudio_module_doc,
+	     "This modules provides support for the ALSA audio API.\n"
+	     "\n"
+	     "To control the PCM device, use the PCM class, Mixers\n"
+	     "are controlled using the Mixer class.\n"
+	     "\n"
+	     "The following functions are also provided:\n"
+	     "mixers() -- Return a list of available mixer names\n"
+	     );
 
 typedef struct {
   PyObject_HEAD;
@@ -45,6 +54,11 @@ typedef struct {
   unsigned int pchannels;
   unsigned int cchannels;
 
+  /* min and max values for playback and capture volumes */
+  long pmin;
+  long pmax;
+  long cmin;
+  long cmax;
   snd_mixer_t *handle;
 
 } alsamixer_t;
@@ -60,9 +74,7 @@ static PyTypeObject ALSAPCMType;
 
 static int alsapcm_setup(alsapcm_t *self) {
   int res,dir;
-  unsigned int val;
   snd_pcm_hw_params_t *hwparams;
-  snd_pcm_uframes_t frames;
 
   if (self->handle) {
     snd_pcm_close(self->handle);
@@ -313,9 +325,7 @@ alsapcm_setperiodsize(alsapcm_t *self, PyObject *args) {
 static PyObject *
 alsapcm_read(alsapcm_t *self, PyObject *args) {
   int res;
-  int val,dir;
   char buffer[8000];
-  snd_pcm_hw_params_t *hwparams;
 
   if (self->framesize * self->periodsize > 8000) {
     PyErr_SetString(ALSAAudioError,"Capture data too large. Try decreasing period size");
@@ -578,6 +588,8 @@ alsamixer_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
       }
     }
   }
+  snd_mixer_selem_get_playback_volume_range(elem, &self->pmin, &self->pmax);
+  snd_mixer_selem_get_capture_volume_range(elem, &self->cmin, &self->cmax);
   return (PyObject *)self;
 }
 
@@ -651,6 +663,28 @@ alsamixer_switchcap(alsamixer_t *self, PyObject *args) {
   return result;
 }
 
+static int alsamixer_getpercentage(long min, long max, long value) {
+  /* Convert from number in range to percentage */
+  int range = max - min;
+  int tmp;
+
+  if (range == 0) return 0;
+  value -= min;
+  tmp = rint((double)value/(double)range * 100);
+  return tmp;
+
+}
+
+static long alsamixer_getphysvolume(long min, long max, int percentage) {
+  /* Convert from percentage to number in range */
+  int range = max - min;
+  int tmp;
+
+  if (range == 0) return 0;
+  tmp = rint((double)range * ((double)percentage*.01)) + min;
+  return tmp;
+}
+
 static PyObject *
 alsamixer_getvolume(alsamixer_t *self, PyObject *args) {
   snd_mixer_elem_t *elem;
@@ -678,12 +712,12 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args) {
   for (channel = 0; channel <= SND_MIXER_SCHN_LAST; channel++) {
     if (direction == 0 && snd_mixer_selem_has_playback_channel(elem, channel)) {
       snd_mixer_selem_get_playback_volume(elem, channel, &ival);
-      PyList_Append(result,PyInt_FromLong(ival));
+      PyList_Append(result,PyInt_FromLong(alsamixer_getpercentage(self->pmin,self->pmax,ival)));
     }
     else if (direction == 1 && snd_mixer_selem_has_capture_channel(elem, channel)
 	     && snd_mixer_selem_has_capture_volume(elem)) {
       snd_mixer_selem_get_capture_volume(elem, channel, &ival);
-      PyList_Append(result,PyInt_FromLong(ival));
+      PyList_Append(result,PyInt_FromLong(alsamixer_getpercentage(self->cmin,self->cmax,ival)));
     }
   }
   return result;
@@ -722,7 +756,7 @@ alsamixer_getrec(alsamixer_t *self, PyObject *args) {
 
   elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
   if (!snd_mixer_selem_has_capture_switch(elem)) {
-    PyErr_SetString(ALSAAudioError,"Mixer has no mute switch");
+    PyErr_SetString(ALSAAudioError,"Mixer has no record switch");
     return NULL;
   }    
   result = PyList_New(0);
@@ -740,13 +774,18 @@ alsamixer_setvolume(alsamixer_t *self, PyObject *args) {
   snd_mixer_elem_t *elem;
   int direction;
   int i;
-  int volume;
+  long volume;
+  int physvolume;
   char *dirstr = 0;
   int channel = MIXER_CHANNEL_ALL;
   int done = 0;
 
-  if (!PyArg_ParseTuple(args,"i|is",&volume,&channel,&dirstr)) return NULL;
-
+  if (!PyArg_ParseTuple(args,"l|is",&volume,&channel,&dirstr)) return NULL;
+  if (volume < 0 || volume > 100) {
+    PyErr_SetString(ALSAAudioError,"Volume must be between 0 and 100");
+    return NULL;
+  }
+  
   elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
 
   if (!dirstr) {
@@ -762,12 +801,14 @@ alsamixer_setvolume(alsamixer_t *self, PyObject *args) {
   for (i = 0; i <= SND_MIXER_SCHN_LAST; i++) {
     if (channel == -1 || channel == i) {
       if (direction == 0 && snd_mixer_selem_has_playback_channel(elem, i)) {
-	snd_mixer_selem_set_playback_volume(elem, i, volume);
+	physvolume = alsamixer_getphysvolume(self->pmin,self->pmax,volume);
+	snd_mixer_selem_set_playback_volume(elem, i, physvolume);
 	done++;
       }
       else if (direction == 1 && snd_mixer_selem_has_capture_channel(elem, channel)
 	       && snd_mixer_selem_has_capture_volume(elem)) {
-	snd_mixer_selem_set_capture_volume(elem, i, volume);
+	physvolume = alsamixer_getphysvolume(self->cmin,self->cmax,volume);
+	snd_mixer_selem_set_capture_volume(elem, i, physvolume);
 	done++;
       }
     }
@@ -904,7 +945,7 @@ void initalsaaudio(void) {
   PyObject *m;
   ALSAPCMType.tp_new = alsapcm_new;
   ALSAMixerType.tp_new = alsamixer_new;
-  m = Py_InitModule("alsaaudio",alsaaudio_methods);
+  m = Py_InitModule3("alsaaudio",alsaaudio_methods,alsaaudio_module_doc);
 
   ALSAAudioError = PyErr_NewException("alsaaudio.ALSAAudioError", NULL, NULL);
   if (ALSAAudioError) {
@@ -951,5 +992,8 @@ void initalsaaudio(void) {
   _EXPORT_INT(m,"PCM_FORMAT_IMA_ADPCM",SND_PCM_FORMAT_IMA_ADPCM);
   _EXPORT_INT(m,"PCM_FORMAT_MPEG",SND_PCM_FORMAT_MPEG);
   _EXPORT_INT(m,"PCM_FORMAT_GSM",SND_PCM_FORMAT_GSM);
+
+  /* Mixer stuff */
+  _EXPORT_INT(m,"MIXER_CHANNEL_ALL",MIXER_CHANNEL_ALL);
 
 }
