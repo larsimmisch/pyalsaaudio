@@ -5,7 +5,7 @@
 
 \platform{Linux}
 
-\moduleauthor{Casper Wilstrup}{cwi@unispeed.com} % Author of the module code;
+\moduleauthor{Casper Wilstrup} % {cwi@aves.dk} % Author of the module code;
 
 
 \modulesynopsis{ALSA sound support}
@@ -31,7 +31,7 @@ ALSA.
 \begin{funcdesc}{mixers}{\optional{cardname}}
 List the available mixers. The optional \var{cardname} specifies which
 card should be queried (this is only relevant if you have more than one
-sound card). Omit to use the default sound card
+sound card). Omit to use the default sound card.
 \end{funcdesc}
 
 \begin{classdesc}{PCM}{\optional{type}, \optional{mode}, \optional{cardname}}
@@ -247,7 +247,7 @@ periods by calling write a couple of times, and then use some timer method to wr
 the device every period. The purpose of the preloading is to avoid underrun clicks if the used timer
 doesn't expire exactly on time.
 
-Also note, that most timer API's that you can find for Python will cummulate time delays: If you set the timer
+Also note, that most timer APIs that you can find for Python will cummulate time delays: If you set the timer
 to expire after 1/10'th of a second, the actual timeout will happen slightly later, which will accumulate to
 quite a lot after a few seconds. Hint: use time.time() to check how much time has really passed, and add
 extra writes as nessecary.

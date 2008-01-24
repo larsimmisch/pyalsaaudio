@@ -5,7 +5,8 @@
 #
 # You also need a working latex installation, and the latex2html
 # tool installed.
-PYTHONSOURCE = /usr/src/Python-2.4.1/
+PYTHONSOURCE = /usr/local/src/Python-2.5.1/
+SFUSER = larsimmisch
 
 # Shouldn't need to change anything below here!
 
@@ -13,8 +14,10 @@ MKHOWTO = $(PYTHONSOURCE)/Doc/tools/mkhowto
 
 all:
 	$(MKHOWTO) --dir .. --html pyalsaaudio.tex
+	python sffixup.py ../index.html
 
 text:
 	$(MKHOWTO) --dir .. --text pyalsaaudio.tex
 
-
+install:
+	scp ../*.html ../*.gif ../*.png $(SFUSER)@shell.sourceforge.net:/home/groups/p/py/pyalsaaudio/htdocs

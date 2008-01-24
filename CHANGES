@@ -1,8 +1,12 @@
-VERSION 0.1
-- Initial version
+Version 0.3:
+- wrapped blocking calls with Py_BEGIN_ALLOW_THREADS/Py_END_ALLOW_THREADS
+- added pause
 
 
-VERSION 0.2
+Version 0.2:
 - Many bugfixes related to playback in particular
 - Module documentation in the doc subdirectory
 
+
+Version 0.1:
+- Initial version

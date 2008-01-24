@@ -10,27 +10,28 @@
 <link rel="prev" href="node7.html" />
 <link rel="parent" href="module-alsaaudio.html" />
 <link rel="next" href="mixer-objects.html" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name='aesop' content='information' />
 <title>4.2 PCM Objects</title>
 </head>
 <body>
-<DIV CLASS="navigation">
+<div class="navigation">
 <div id='top-navigation-panel' xml:id='top-navigation-panel'>
 <table align="center" width="100%" cellpadding="0" cellspacing="2">
 <tr>
-<td class='online-navigation'><a rel="prev" title="4.1 PCM Terminology and"
+<td class='online-navigation'><a rel="prev" title="4.1 pcm Terminology and"
   href="node7.html"><img src='previous.png'
-  border='0' height='32'  alt='Previous Page' width='32' /></A></td>
+  border='0' height='32'  alt='Previous Page' width='32' /></a></td>
 <td class='online-navigation'><a rel="parent" title="4 alsaaudio"
   href="module-alsaaudio.html"><img src='up.png'
-  border='0' height='32'  alt='Up One Level' width='32' /></A></td>
-<td class='online-navigation'><a rel="next" title="4.3 Mixer Objects"
+  border='0' height='32'  alt='Up one Level' width='32' /></a></td>
+<td class='online-navigation'><a rel="next" title="4.3 mixer Objects"
   href="mixer-objects.html"><img src='next.png'
-  border='0' height='32'  alt='Next Page' width='32' /></A></td>
+  border='0' height='32'  alt='Next Page' width='32' /></a></td>
 <td align="center" width="100%">PyAlsaAudio</td>
 <td class='online-navigation'><a rel="contents" title="Table of Contents"
   href="contents.html"><img src='contents.png'
-  border='0' height='32'  alt='Contents' width='32' /></A></td>
+  border='0' height='32'  alt='Contents' width='32' /></a></td>
 <td class='online-navigation'><img src='blank.png'
   border='0' height='32'  alt='' width='32' /></td>
 <td class='online-navigation'><img src='blank.png'
@@ -38,71 +39,71 @@
 </tr></table>
 <div class='online-navigation'>
 <b class="navlabel">Previous:</b>
-<a class="sectref" rel="prev" href="node7.html">4.1 PCM Terminology and</A>
+<a class="sectref" rel="prev" href="node7.html">4.1 PCM Terminology and</a>
 <b class="navlabel">Up:</b>
-<a class="sectref" rel="parent" href="module-alsaaudio.html">4 alsaaudio</A>
+<a class="sectref" rel="parent" href="module-alsaaudio.html">4 alsaaudio</a>
 <b class="navlabel">Next:</b>
-<a class="sectref" rel="next" href="mixer-objects.html">4.3 Mixer Objects</A>
+<a class="sectref" rel="next" href="mixer-objects.html">4.3 Mixer Objects</a>
 </div>
 <hr /></div>
-</DIV>
+</div>
 <!--End of Navigation Panel-->
 
-<H2><A NAME="SECTION002420000000000000000"></A>
-<A NAME="pcm-objects"></A>
-<BR>
+<h2><a name="SECTION002420000000000000000"></a>
+<a name="pcm-objects"></a>
+<br>
 4.2 PCM Objects
-</H2>
+</h2>
 
-<P>
+<p>
 The acronym PCM is short for Pulse Code Modulation and is the method used in ALSA
 and many other places to handle playback and capture of sampled sound data.
 
-<P>
+<p>
 PCM objects in <tt class="module">alsaaudio</tt> are used to do exactly that, either play sample based
 sound or capture sound from some input source (perhaps a microphone). The PCM object
 constructor takes the following arguments:
 
-<P>
+<p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
   <td><nobr><b><span class="typelabel">class</span>&nbsp;<tt id='l2h-6' xml:id='l2h-6' class="class">PCM</tt></b>(</nobr></td>
   <td><var></var><big>[</big><var>type</var><big>]</big><var>, </var><big>[</big><var>mode</var><big>]</big><var>, </var><big>[</big><var>cardname</var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
 
-<P>
+<p>
 <var>type</var> - can be either PCM_CAPTURE or PCM_PLAYBACK (default).
 
-<P>
+<p>
 <var>mode</var> - can be either PCM_NONBLOCK, PCM_ASYNC, or PCM_NORMAL (the default).
 In PCM_NONBLOCK mode, calls to read will return immediately independent of wether
 there is any actual data to read. Similarly, write calls will return immediately
 without actually writing anything to the playout buffer if the buffer is full.
 
-<P>
+<p>
 In the current version of <tt class="module">alsaaudio</tt> PCM_ASYNC is useless, since it relies
 on a callback procedure, which can't be specified from Python.
 
-<P>
+<p>
 <var>cardname</var> - specifies which card should be used (this is only relevant 
 if you have more than one sound card). Omit to use the default sound card
 
-<P>
+<p>
 This will construct a PCM object with default settings:
 
-<P>
+<p>
 Sample format: PCM_FORMAT_S16_LE 
-<BR>
+<br>
 Rate: 8000 Hz 
-<BR>
+<br>
 Channels: 2 
-<BR>
+<br>
 Period size: 32 frames 
-<BR></dl>
+<br></dl>
 
-<P>
+<p>
 PCM objects have the following methods:
 
-<P>
+<p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
   <td><nobr><b><tt id='l2h-7' xml:id='l2h-7' class="method">pcmtype</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
@@ -110,7 +111,7 @@ PCM objects have the following methods:
 Returns the type of PCM object. Either PCM_CAPTURE or PCM_PLAYBACK.
 </dl>
 
-<P>
+<p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
   <td><nobr><b><tt id='l2h-8' xml:id='l2h-8' class="method">pcmmode</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
@@ -118,7 +119,7 @@ Returns the type of PCM object. Either PCM_CAPTURE or PCM_PLAYBACK.
 Return the mode of the PCM object. One of PCM_NONBLOCK, PCM_ASYNC, or PCM_NORMAL
 </dl>
 
-<P>
+<p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
   <td><nobr><b><tt id='l2h-9' xml:id='l2h-9' class="method">cardname</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
@@ -126,7 +127,7 @@ Return the mode of the PCM object. One of PCM_NONBLOCK, PCM_ASYNC, or PCM_NORMAL
 Return the name of the sound card used by this PCM object.
 </dl>
 
-<P>
+<p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
   <td><nobr><b><tt id='l2h-10' xml:id='l2h-10' class="method">setchannels</tt></b>(</nobr></td>
   <td><var>nchannels</var>)</td></tr></table></dt>
@@ -135,7 +136,7 @@ Used to set the number of capture or playback channels. Common values are: 1 = m
 and 6 = full 6 channel audio. Few sound cards support more than 2 channels
 </dl>
 
-<P>
+<p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
   <td><nobr><b><tt id='l2h-11' xml:id='l2h-11' class="method">setrate</tt></b>(</nobr></td>
   <td><var>rate</var>)</td></tr></table></dt>
@@ -144,7 +145,7 @@ Set the sample rate in Hz for the device. Typical values are 8000 (poor sound), 
 and 96000
 </dl>
 
-<P>
+<p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
   <td><nobr><b><tt id='l2h-12' xml:id='l2h-12' class="method">setformat</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
@@ -152,7 +153,7 @@ and 96000
 The sound format of the device. Sound format controls how the PCM device interpret data for playback,
 and how data is encoded in captures.
 
-<P>
+<p>
 The following formats are provided by ALSA:
 <div class="center"><table class="realtable">
   <thead>
@@ -162,58 +163,58 @@ The following formats are provided by ALSA:
       </tr>
     </thead>
   <tbody>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_S8</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_S8</formats></td>
         <td class="left"  >Signed 8 bit samples for each channel</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_U8</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_U8</formats></td>
         <td class="left"  >Signed 8 bit samples for each channel</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_S16_LE</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_S16_LE</formats></td>
         <td class="left"  >Signed 16 bit samples for each channel (Little Endian byte order)</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_S16_BE</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_S16_BE</formats></td>
         <td class="left"  >Signed 16 bit samples for each channel (Big Endian byte order)</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_U16_LE</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_U16_LE</formats></td>
         <td class="left"  >Unsigned 16 bit samples for each channel (Little Endian byte order)</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_U16_BE</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_U16_BE</formats></td>
         <td class="left"  >Unsigned 16 bit samples for each channel (Big Endian byte order)</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_S24_LE</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_S24_LE</formats></td>
         <td class="left"  >Signed 24 bit samples for each channel (Little Endian byte order)</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_S24_BE</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_S24_BE</formats></td>
         <td class="left"  >Signed 24 bit samples for each channel (Big Endian byte order)</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_U24_LE</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_U24_LE</formats></td>
         <td class="left"  >Unsigned 24 bit samples for each channel (Little Endian byte order)</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_U24_BE</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_U24_BE</formats></td>
         <td class="left"  >Unsigned 24 bit samples for each channel (Big Endian byte order)</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_S32_LE</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_S32_LE</formats></td>
         <td class="left"  >Signed 32 bit samples for each channel (Little Endian byte order)</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_S32_BE</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_S32_BE</formats></td>
         <td class="left"  >Signed 32 bit samples for each channel (Big Endian byte order)</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_U32_LE</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_U32_LE</formats></td>
         <td class="left"  >Unsigned 32 bit samples for each channel (Little Endian byte order)</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_U32_BE</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_U32_BE</formats></td>
         <td class="left"  >Unsigned 32 bit samples for each channel (Big Endian byte order)</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_FLOAT_LE</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_FLOAT_LE</formats></td>
         <td class="left"  >32 bit samples encoded as float. (Little Endian byte order)</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_FLOAT_BE</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_FLOAT_BE</formats></td>
         <td class="left"  >32 bit samples encoded as float (Big Endian byte order)</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_FLOAT64_LE</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_FLOAT64_LE</formats></td>
         <td class="left"  >64 bit samples encoded as float. (Little Endian byte order)</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_FLOAT64_BE</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_FLOAT64_BE</formats></td>
         <td class="left"  >64 bit samples encoded as float. (Big Endian byte order)</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_MU_LAW</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_MU_LAW</formats></td>
         <td class="left"  >A logarithmic encoding (used by Sun .au files)</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_A_LAW</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_A_LAW</formats></td>
         <td class="left"  >Another logarithmic encoding</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_IMA_ADPCM</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_IMA_ADPCM</formats></td>
         <td class="left"  >a 4:1 compressed format defined by the Interactive Multimedia Association</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_MPEG</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_MPEG</formats></td>
         <td class="left"  >MPEG encoded audio?</td></tr>
-    <tr><td class="left"   valign="baseline"><Formats>PCM_FORMAT_GSM</Formats></td>
+    <tr><td class="left"   valign="baseline"><formats>PCM_FORMAT_GSM</formats></td>
         <td class="left"  >9600 constant rate encoding well suitet for speech</td></tr></tbody>
 </table></div>
 
-<P>
+<p>
 </dl>
 
-<P>
+<p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
   <td><nobr><b><tt id='l2h-13' xml:id='l2h-13' class="method">setperiodsize</tt></b>(</nobr></td>
   <td><var>period</var>)</td></tr></table></dt>
@@ -223,7 +224,7 @@ each read will return this number of frames (unless the device is in PCM_NONBLOC
 it may return nothing at all)
 </dl>
 
-<P>
+<p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
   <td><nobr><b><tt id='l2h-14' xml:id='l2h-14' class="method">read</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
@@ -233,12 +234,12 @@ tuple (length,data) where <em>length</em> is the size in bytes of the captured d
 is the captured sound frames as a string. The length of the returned data will be periodsize*framesize
 bytes.
 
-<P>
+<p>
 In PCM_NONBLOCK mode, the call will not block, but will return <code>(0,'')</code> if no new period
 has become available since the last call to read.
 </dl>
 
-<P>
+<p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
   <td><nobr><b><tt id='l2h-15' xml:id='l2h-15' class="method">write</tt></b>(</nobr></td>
   <td><var>data</var>)</td></tr></table></dt>
@@ -247,67 +248,67 @@ Writes (plays) the sound in data. The length of data <em>must</em> be a multiple
 <em>should</em> be exactly the size of a period. If less than 'period size' frames are provided, the actual
 playout will not happen until more data is written.
 
-<P>
+<p>
 If the device is not in PCM_NONBLOCK mode, this call will block if the kernel buffer is full, and
 until enough sound has been played to allow the sound data to be buffered. The call always returns
 the size of the data provided
 
-<P>
+<p>
 In PCM_NONBLOCK mode, the call will return immediately, with a return value of zero, if the buffer is
 full. In this case, the data should be written at a later time.
 
-<P>
+<p>
 </dl>
 
-<P>
+<p>
 <strong>A few hints on using PCM devices for playback</strong>
 
-<P>
+<p>
 The most common reason for problems with playback of PCM audio, is that the people don't properly understand
 that writes to PCM devices must match <em>exactly</em> the data rate of the device.
 
-<P>
+<p>
 If too little data is written to the device, it will underrun, and  ugly clicking sounds will occur. Conversely,
 of too much data is written to the device, the write function will either block (PCM_NORMAL mode) or return zero
 (PCM_NONBLOCK mode).
 
-<P>
+<p>
 If your program does nothing, but play sound, the easiest way is to put the device in PCM_NORMAL mode, and just
 write as much data to the device as possible. This strategy can also be achieved by using a separate thread
 with the sole task of playing out sound.
 
-<P>
+<p>
 In GUI programs, however, it may be a better strategy to setup the device, preload the buffer with a few
 periods by calling write a couple of times, and then use some timer method to write one period size of data to
 the device every period. The purpose of the preloading is to avoid underrun clicks if the used timer
 doesn't expire exactly on time.
 
-<P>
-Also note, that most timer API's that you can find for Python will cummulate time delays: If you set the timer
+<p>
+Also note, that most timer APIs that you can find for Python will cummulate time delays: If you set the timer
 to expire after 1/10'th of a second, the actual timeout will happen slightly later, which will accumulate to
 quite a lot after a few seconds. Hint: use time.time() to check how much time has really passed, and add
 extra writes as nessecary.
 
-<P>
+<p>
 
-<DIV CLASS="navigation">
+<div class="navigation">
 <div class='online-navigation'>
 <p></p><hr />
 <table align="center" width="100%" cellpadding="0" cellspacing="2">
 <tr>
-<td class='online-navigation'><a rel="prev" title="4.1 PCM Terminology and"
+<td class='online-navigation'><a rel="prev" title="4.1 pcm Terminology and"
   href="node7.html"><img src='previous.png'
-  border='0' height='32'  alt='Previous Page' width='32' /></A></td>
+  border='0' height='32'  alt='Previous Page' width='32' /></a></td>
 <td class='online-navigation'><a rel="parent" title="4 alsaaudio"
   href="module-alsaaudio.html"><img src='up.png'
-  border='0' height='32'  alt='Up One Level' width='32' /></A></td>
-<td class='online-navigation'><a rel="next" title="4.3 Mixer Objects"
+  border='0' height='32'  alt='Up one Level' width='32' /></a></td>
+<td class='online-navigation'><a rel="next" title="4.3 mixer Objects"
   href="mixer-objects.html"><img src='next.png'
-  border='0' height='32'  alt='Next Page' width='32' /></A></td>
+  border='0' height='32'  alt='Next Page' width='32' /></a></td>
 <td align="center" width="100%">PyAlsaAudio</td>
 <td class='online-navigation'><a rel="contents" title="Table of Contents"
   href="contents.html"><img src='contents.png'
-  border='0' height='32'  alt='Contents' width='32' /></A></td>
+  border='0' height='32'  alt='Contents' width='32' /></a></td>
 <td class='online-navigation'><img src='blank.png'
   border='0' height='32'  alt='' width='32' /></td>
 <td class='online-navigation'><img src='blank.png'
@@ -315,17 +316,17 @@ extra writes as nessecary.
 </tr></table>
 <div class='online-navigation'>
 <b class="navlabel">Previous:</b>
-<a class="sectref" rel="prev" href="node7.html">4.1 PCM Terminology and</A>
+<a class="sectref" rel="prev" href="node7.html">4.1 PCM Terminology and</a>
 <b class="navlabel">Up:</b>
-<a class="sectref" rel="parent" href="module-alsaaudio.html">4 alsaaudio</A>
+<a class="sectref" rel="parent" href="module-alsaaudio.html">4 alsaaudio</a>
 <b class="navlabel">Next:</b>
-<a class="sectref" rel="next" href="mixer-objects.html">4.3 Mixer Objects</A>
+<a class="sectref" rel="next" href="mixer-objects.html">4.3 Mixer Objects</a>
 </div>
 </div>
 <hr />
-<span class="release-info">Release 0.2.</span>
-</DIV>
+<span class="release-info">Release 0.3.</span>
+</div>
 <!--End of Navigation Panel-->
 
-</BODY>
-</HTML>
+</body>
+</html>
