@@ -74,6 +74,8 @@ static PyTypeObject ALSAPCMType;
 
 static int alsapcm_setup(alsapcm_t *self) {
   int res,dir;
+  unsigned int val;
+  snd_pcm_uframes_t frames;
   snd_pcm_hw_params_t *hwparams;
 
   if (self->handle) {
@@ -83,11 +85,10 @@ static int alsapcm_setup(alsapcm_t *self) {
   res = snd_pcm_open(&(self->handle),self->cardname,self->pcmtype,self->pcmmode);
   if (res < 0) return res;
 
+  /* Allocate a hwparam structure, and fill it in with configuration space */
   snd_pcm_hw_params_alloca(&hwparams);
   res = snd_pcm_hw_params_any(self->handle, hwparams);
   if (res < 0) return res;
-
-  snd_pcm_hw_params_alloca(&hwparams);
 
   /* Fill it in with default values. */
   snd_pcm_hw_params_any(self->handle, hwparams);
@@ -99,7 +100,18 @@ static int alsapcm_setup(alsapcm_t *self) {
   snd_pcm_hw_params_set_period_size(self->handle, hwparams, self->periodsize, dir);
   snd_pcm_hw_params_set_periods(self->handle,hwparams,4,0);
 
+  /* Write it to the device */
   res = snd_pcm_hw_params(self->handle, hwparams);
+  if (res) return res;
+
+  /* Query current settings. These may differ from the requested values,
+     which should therefore be sync'ed with actual values */
+  snd_pcm_hw_params_current(self->handle,hwparams);
+
+  snd_pcm_hw_params_get_format(hwparams,&val); self->format = val;
+  snd_pcm_hw_params_get_channels(hwparams,&val); self->channels = val;
+  snd_pcm_hw_params_get_rate(hwparams,&val,&dir); self->rate = val;
+  snd_pcm_hw_params_get_period_size(hwparams,&frames,&dir); self->periodsize = (int) frames;
 
   self->framesize = self->channels * snd_pcm_hw_params_get_sbits(hwparams)/8;
   return res;
@@ -270,23 +282,14 @@ static PyObject *
 alsapcm_setchannels(alsapcm_t *self, PyObject *args) {
   int channels;
   int res;
-  unsigned int val;
-  snd_pcm_hw_params_t *hwparams;
-  snd_pcm_hw_params_alloca(&hwparams);
-  snd_pcm_hw_params_current(self->handle,hwparams);
-
   if (!PyArg_ParseTuple(args,"i",&channels)) return NULL;
+  self->channels = channels;
   res = alsapcm_setup(self);
   if (res < 0) {
     PyErr_SetString(ALSAAudioError, snd_strerror(res));
     return NULL;    
   }
-
-  snd_pcm_hw_params_get_channels(hwparams, &val);
-
-  self->channels = val;
-
-  return PyInt_FromLong(val);
+  return PyInt_FromLong(self->channels);
 }
 
 static PyObject *
@@ -975,6 +978,7 @@ void initalsaaudio(void) {
   _EXPORT_INT(m,"PCM_PLAYBACK",SND_PCM_STREAM_PLAYBACK);
   _EXPORT_INT(m,"PCM_CAPTURE",SND_PCM_STREAM_CAPTURE);
 
+  _EXPORT_INT(m,"PCM_NORMAL",0);
   _EXPORT_INT(m,"PCM_NONBLOCK",SND_PCM_NONBLOCK);
   _EXPORT_INT(m,"PCM_ASYNC",SND_PCM_ASYNC);
 
