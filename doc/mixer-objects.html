@@ -176,7 +176,23 @@ the list are:
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-22' xml:id='l2h-22' class="method">getvolume</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-22' xml:id='l2h-22' class="method">getrange</tt></b>(</nobr></td>
+  <td><var></var><big>[</big><var>direction</var><big>]</big><var></var>)</td></tr></table></dt>
+<dd>
+Return the volume range of the ALSA mixer controlled by this object.
+
+<p>
+The optional <var>direction</var> argument can be either 'playback' or 'capture', 
+which is relevant if the mixer can control both playback and capture volume. 
+The default value is 'playback' if the mixer has this capability, otherwise 
+'capture'
+
+<p>
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-23' xml:id='l2h-23' class="method">getvolume</tt></b>(</nobr></td>
   <td><var></var><big>[</big><var>direction</var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
 Returns a list with the current volume settings for each channel. The list elements
@@ -192,7 +208,7 @@ if the mixer has this capability, otherwise 'capture'
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-23' xml:id='l2h-23' class="method">getmute</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-24' xml:id='l2h-24' class="method">getmute</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
 Return a list indicating the current mute setting for each channel. 0 means not muted, 1 means muted.
@@ -203,7 +219,7 @@ This method will fail if the mixer has no playback switch capabilities.
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-24' xml:id='l2h-24' class="method">getrec</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-25' xml:id='l2h-25' class="method">getrec</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
 Return a list indicating the current record mute setting for each channel. 0 means not recording, 1 
@@ -215,7 +231,7 @@ This method will fail if the mixer has no capture switch capabilities.
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-25' xml:id='l2h-25' class="method">setvolume</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-26' xml:id='l2h-26' class="method">setvolume</tt></b>(</nobr></td>
   <td><var>volume,</var><big>[</big><var>channel</var><big>]</big><var>,</var><big>[</big><var>direction</var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
 Change the current volume settings for this mixer. The <var>volume</var> argument controls
@@ -233,7 +249,7 @@ if changed. The default is 'playback' if the mixer has this capability, otherwis
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-26' xml:id='l2h-26' class="method">setmute</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-27' xml:id='l2h-27' class="method">setmute</tt></b>(</nobr></td>
   <td><var>mute, </var><big>[</big><var>channel</var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
 Sets the mute flag to a new value. The <var>mute</var> argument is either 0 for not muted, or 1 for muted.
@@ -248,7 +264,7 @@ This method will fail if the mixer has no playback mute capabilities
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-27' xml:id='l2h-27' class="method">setrec</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-28' xml:id='l2h-28' class="method">setrec</tt></b>(</nobr></td>
   <td><var>capture,</var><big>[</big><var>channel</var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
 Sets the capture mute flag to a new value. The <var>capture</var> argument is either 0 for no capture, 

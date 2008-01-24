@@ -1,3 +1,5 @@
+/* -*- Mode: C; c-basic-offset: 2; indent-tabs-mode: nil -*- */ 
+
 /*
  * alsaaudio -- Python interface to ALSA (Advanced Linux Sound Architecture).
  *              The standard audio API for Linux since kernel 2.6
@@ -5,7 +7,7 @@
  * Contributed by Unispeed A/S (http://www.unispeed.com)
  * Author: Casper Wilstup (cwi@unispeed.dk)
  *
- * Bug fixes by Lars Immisch <lars@ibp.de>
+ * Bug fixes and maintenance by Lars Immisch <lars@ibp.de>
  * 
  * License: Python Software Foundation License
  *
@@ -16,14 +18,14 @@
 #include <stdio.h>
 
 PyDoc_STRVAR(alsaaudio_module_doc,
-	     "This modules provides support for the ALSA audio API.\n"
-	     "\n"
-	     "To control the PCM device, use the PCM class, Mixers\n"
-	     "are controlled using the Mixer class.\n"
-	     "\n"
-	     "The following functions are also provided:\n"
-	     "mixers() -- Return a list of available mixer names\n"
-	     );
+             "This modules provides support for the ALSA audio API.\n"
+             "\n"
+             "To control the PCM device, use the PCM class, Mixers\n"
+             "are controlled using the Mixer class.\n"
+             "\n"
+             "The following functions are also provided:\n"
+             "mixers() -- Return a list of available mixer names\n"
+  );
 
 typedef struct {
   PyObject_HEAD;
@@ -85,7 +87,8 @@ static int alsapcm_setup(alsapcm_t *self) {
     snd_pcm_close(self->handle);
     self->handle = 0;
   }
-  res = snd_pcm_open(&(self->handle),self->cardname,self->pcmtype,self->pcmmode);
+  res = snd_pcm_open(&(self->handle),self->cardname,self->pcmtype,
+                     self->pcmmode);
   if (res < 0) return res;
 
   /* Allocate a hwparam structure, and fill it in with configuration space */
@@ -95,12 +98,14 @@ static int alsapcm_setup(alsapcm_t *self) {
 
   /* Fill it in with default values. */
   snd_pcm_hw_params_any(self->handle, hwparams);
-  snd_pcm_hw_params_set_access(self->handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED);
+  snd_pcm_hw_params_set_access(self->handle, hwparams, 
+                               SND_PCM_ACCESS_RW_INTERLEAVED);
   snd_pcm_hw_params_set_format(self->handle, hwparams, self->format);
   snd_pcm_hw_params_set_channels(self->handle, hwparams, self->channels);
   dir = 0;
   snd_pcm_hw_params_set_rate(self->handle, hwparams, self->rate, dir);
-  snd_pcm_hw_params_set_period_size(self->handle, hwparams, self->periodsize, dir);
+  snd_pcm_hw_params_set_period_size(self->handle, hwparams, self->periodsize, 
+                                    dir);
   snd_pcm_hw_params_set_periods(self->handle,hwparams,4,0);
 
   /* Write it to the device */
@@ -114,7 +119,8 @@ static int alsapcm_setup(alsapcm_t *self) {
   snd_pcm_hw_params_get_format(hwparams,&fmt); self->format = fmt;
   snd_pcm_hw_params_get_channels(hwparams,&val); self->channels = val;
   snd_pcm_hw_params_get_rate(hwparams,&val,&dir); self->rate = val;
-  snd_pcm_hw_params_get_period_size(hwparams,&frames,&dir); self->periodsize = (int) frames;
+  snd_pcm_hw_params_get_period_size(hwparams,&frames,&dir); 
+  self->periodsize = (int) frames;
 
   self->framesize = self->channels * snd_pcm_hw_params_get_sbits(hwparams)/8;
   return res;
@@ -127,11 +133,15 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
   int pcmtype=0;
   int pcmmode=0;
   char *cardname = "default";
-  if (!PyArg_ParseTuple(args,"|iis",&pcmtype,&pcmmode,&cardname)) return NULL;
-  if (!(self = (alsapcm_t *)PyObject_New(alsapcm_t, &ALSAPCMType))) return NULL;
+  if (!PyArg_ParseTuple(args,"|iis",&pcmtype,&pcmmode,&cardname)) 
+    return NULL;
+  if (!(self = (alsapcm_t *)PyObject_New(alsapcm_t, &ALSAPCMType))) 
+    return NULL;
 
-  if (pcmtype != SND_PCM_STREAM_PLAYBACK && pcmtype != SND_PCM_STREAM_CAPTURE) {
-    PyErr_SetString(ALSAAudioError, "PCM type must be PCM_PLAYBACK (0) or PCM_CAPTURE (1)");
+  if (pcmtype != SND_PCM_STREAM_PLAYBACK && pcmtype != SND_PCM_STREAM_CAPTURE) 
+  {
+    PyErr_SetString(ALSAAudioError, "PCM type must be PCM_PLAYBACK (0) "
+                    "or PCM_CAPTURE (1)");
     return NULL;
   }
   if (pcmmode < 0 || pcmmode > SND_PCM_ASYNC) {
@@ -191,13 +201,13 @@ alsapcm_dumpinfo(alsapcm_t *self, PyObject *args) {
 
   snd_pcm_hw_params_get_format(hwparams, &fmt);
   printf("format = '%s' (%s)\n", 
-	 snd_pcm_format_name(fmt),
-	 snd_pcm_format_description(fmt));
+     snd_pcm_format_name(fmt),
+     snd_pcm_format_description(fmt));
 
   snd_pcm_hw_params_get_subformat(hwparams, (snd_pcm_subformat_t *)&val);
   printf("subformat = '%s' (%s)\n",
-	 snd_pcm_subformat_name((snd_pcm_subformat_t)val),
-	 snd_pcm_subformat_description((snd_pcm_subformat_t)val));
+     snd_pcm_subformat_name((snd_pcm_subformat_t)val),
+     snd_pcm_subformat_description((snd_pcm_subformat_t)val));
 
   snd_pcm_hw_params_get_channels(hwparams, &val);
   printf("channels = %d\n", val);
@@ -345,7 +355,8 @@ alsapcm_read(alsapcm_t *self, PyObject *args) {
   char buffer[8000];
 
   if (self->framesize * self->periodsize > 8000) {
-    PyErr_SetString(ALSAAudioError,"Capture data too large. Try decreasing period size");
+    PyErr_SetString(ALSAAudioError,"Capture data too large. "
+                    "Try decreasing period size");
     return NULL;
   }
 
@@ -366,11 +377,11 @@ alsapcm_read(alsapcm_t *self, PyObject *args) {
   if (res != -EPIPE)
   {
     if (res == -EAGAIN) {
-	  res = 0;
-	}
-	else if (res < 0) {
-	  PyErr_SetString(ALSAAudioError,snd_strerror(res));
-	  return NULL;
+      res = 0;
+    }
+    else if (res < 0) {
+      PyErr_SetString(ALSAAudioError,snd_strerror(res));
+      return NULL;
     } 
   }
 
@@ -383,7 +394,8 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args) {
   int res;
   if (!PyArg_ParseTuple(args,"s#",&data,&datalen)) return NULL;
   if (datalen%self->framesize) {
-    PyErr_SetString(ALSAAudioError,"Data size must be a multiple of framesize");
+    PyErr_SetString(ALSAAudioError,
+                    "Data size must be a multiple of framesize");
     return NULL;
   }
 
@@ -392,8 +404,8 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args) {
   if (res == -EPIPE) {
     /* EPIPE means underrun */
     res = snd_pcm_recover(self->handle, res, 1);
-	if (res >= 0)
-		res = snd_pcm_writei(self->handle, data, datalen/self->framesize);
+    if (res >= 0)
+        res = snd_pcm_writei(self->handle, data, datalen/self->framesize);
   }
   Py_END_ALLOW_THREADS
   
@@ -520,7 +532,7 @@ alsamixer_list(PyObject *self, PyObject *args) {
   PyObject *result = PyList_New(0);
 
   if (!PyArg_ParseTuple(args,"|s",&cardname)) return NULL;
-	
+    
   snd_mixer_selem_id_alloca(&sid);
   err = alsamixer_gethandle(cardname,&handle);
   if (err < 0) {
@@ -528,7 +540,9 @@ alsamixer_list(PyObject *self, PyObject *args) {
     snd_mixer_close(handle);
     return NULL;
   }
-  for (elem = snd_mixer_first_elem(handle); elem; elem = snd_mixer_elem_next(elem)) {
+  for (elem = snd_mixer_first_elem(handle); elem; 
+       elem = snd_mixer_elem_next(elem)) 
+  {
     PyObject *mixer;
     snd_mixer_selem_get_id(elem, sid);
     mixer = PyString_FromString(snd_mixer_selem_id_get_name(sid));
@@ -560,8 +574,10 @@ alsamixer_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
   snd_mixer_elem_t *elem;
   int channel;
   
-  if (!PyArg_ParseTuple(args,"|sis",&control,&id,&cardname)) return NULL;
-  if (!(self = (alsamixer_t *)PyObject_New(alsamixer_t, &ALSAMixerType))) return NULL;
+  if (!PyArg_ParseTuple(args,"|sis",&control,&id,&cardname)) 
+    return NULL;
+  if (!(self = (alsamixer_t *)PyObject_New(alsamixer_t, &ALSAMixerType))) 
+    return NULL;
 
   err = alsamixer_gethandle(cardname,&self->handle);
   if (err<0) {
@@ -575,7 +591,8 @@ alsamixer_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
   elem = alsamixer_find_elem(self->handle,control,id);
   if (!elem) {
     char errtext[128];
-    sprintf(errtext,"Unable to find mixer control '%s',%i",self->controlname,self->controlid);
+    sprintf(errtext,"Unable to find mixer control '%s',%i",self->controlname,
+            self->controlid);
     snd_mixer_close(self->handle);
     PyErr_SetString(ALSAAudioError,errtext);
     return NULL;
@@ -584,51 +601,60 @@ alsamixer_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
   self->volume_cap = self->switch_cap = 0;
   if (snd_mixer_selem_has_common_volume(elem)) {
     self->volume_cap |= MIXER_CAP_VOLUME;
-    if (snd_mixer_selem_has_playback_volume_joined(elem)) self->volume_cap |= MIXER_CAP_VOLUME_JOINED;
+    if (snd_mixer_selem_has_playback_volume_joined(elem)) 
+      self->volume_cap |= MIXER_CAP_VOLUME_JOINED;
   }
   else {
     if (snd_mixer_selem_has_playback_volume(elem)) {
       self->volume_cap |= MIXER_CAP_PVOLUME;
-      if (snd_mixer_selem_has_playback_volume_joined(elem)) self->volume_cap |= MIXER_CAP_PVOLUME_JOINED;
+      if (snd_mixer_selem_has_playback_volume_joined(elem)) 
+        self->volume_cap |= MIXER_CAP_PVOLUME_JOINED;
     }
     if (snd_mixer_selem_has_capture_volume(elem)) {
       self->volume_cap |= MIXER_CAP_CVOLUME;
-      if (snd_mixer_selem_has_capture_volume_joined(elem)) self->volume_cap |= MIXER_CAP_CVOLUME_JOINED;
+      if (snd_mixer_selem_has_capture_volume_joined(elem)) 
+        self->volume_cap |= MIXER_CAP_CVOLUME_JOINED;
     }
   }
 
   if (snd_mixer_selem_has_common_switch(elem)) {
     self->switch_cap |= MIXER_CAP_SWITCH;
-    if (snd_mixer_selem_has_playback_switch_joined(elem)) self->switch_cap |= MIXER_CAP_SWITCH_JOINED;
+    if (snd_mixer_selem_has_playback_switch_joined(elem)) 
+      self->switch_cap |= MIXER_CAP_SWITCH_JOINED;
   }
   else {
     if (snd_mixer_selem_has_playback_switch(elem)) {
       self->switch_cap |= MIXER_CAP_PSWITCH;
-      if (snd_mixer_selem_has_playback_switch_joined(elem)) self->switch_cap |= MIXER_CAP_PSWITCH_JOINED;
+      if (snd_mixer_selem_has_playback_switch_joined(elem)) 
+        self->switch_cap |= MIXER_CAP_PSWITCH_JOINED;
     }
     if (snd_mixer_selem_has_capture_switch(elem)) {
       self->switch_cap |= MIXER_CAP_CSWITCH;
-      if (snd_mixer_selem_has_capture_switch_joined(elem)) self->switch_cap |= MIXER_CAP_CSWITCH_JOINED;
-      if (snd_mixer_selem_has_capture_switch_exclusive(elem)) self->switch_cap |= MIXER_CAP_CSWITCH_EXCLUSIVE;
+      if (snd_mixer_selem_has_capture_switch_joined(elem)) 
+        self->switch_cap |= MIXER_CAP_CSWITCH_JOINED;
+      if (snd_mixer_selem_has_capture_switch_exclusive(elem)) 
+        self->switch_cap |= MIXER_CAP_CSWITCH_EXCLUSIVE;
     }
   }
   self->pchannels = 0;
-  if (self->volume_cap | MIXER_CAP_PVOLUME || self->switch_cap | MIXER_CAP_PSWITCH) {
+  if (self->volume_cap | MIXER_CAP_PVOLUME || 
+      self->switch_cap | MIXER_CAP_PSWITCH) {
     if (snd_mixer_selem_is_playback_mono(elem)) self->pchannels = 1;
     else {
       for (channel=0; channel <= SND_MIXER_SCHN_LAST; channel++) {
-	if (snd_mixer_selem_has_playback_channel(elem, channel)) self->pchannels++;
-	else break;
+    if (snd_mixer_selem_has_playback_channel(elem, channel)) self->pchannels++;
+    else break;
       }
     }
   }
   self->cchannels = 0;
-  if (self->volume_cap | MIXER_CAP_CVOLUME || self->switch_cap | MIXER_CAP_CSWITCH) {
+  if (self->volume_cap | MIXER_CAP_CVOLUME || 
+      self->switch_cap | MIXER_CAP_CSWITCH) {
     if (snd_mixer_selem_is_capture_mono(elem)) self->cchannels = 1;
     else {
       for (channel=0; channel <= SND_MIXER_SCHN_LAST; channel++) {
-	if (snd_mixer_selem_has_capture_channel(elem, channel)) self->cchannels++;
-	else break;
+    if (snd_mixer_selem_has_capture_channel(elem, channel)) self->cchannels++;
+    else break;
       }
     }
   }
@@ -754,15 +780,87 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args) {
   }
   result = PyList_New(0);
   for (channel = 0; channel <= SND_MIXER_SCHN_LAST; channel++) {
-    if (direction == 0 && snd_mixer_selem_has_playback_channel(elem, channel)) {
+    if (direction == 0 && snd_mixer_selem_has_playback_channel(elem, channel)) 
+    {
       snd_mixer_selem_get_playback_volume(elem, channel, &ival);
-      PyList_Append(result,PyInt_FromLong(alsamixer_getpercentage(self->pmin,self->pmax,ival)));
+      PyList_Append(
+        result, PyInt_FromLong(alsamixer_getpercentage(self->pmin, 
+                                                       self->pmax, ival)));
     }
-    else if (direction == 1 && snd_mixer_selem_has_capture_channel(elem, channel)
-	     && snd_mixer_selem_has_capture_volume(elem)) {
+    else if (direction == 1
+             && snd_mixer_selem_has_capture_channel(elem, channel)
+             && snd_mixer_selem_has_capture_volume(elem)) {
       snd_mixer_selem_get_capture_volume(elem, channel, &ival);
-      PyList_Append(result,PyInt_FromLong(alsamixer_getpercentage(self->cmin,self->cmax,ival)));
+      PyList_Append(
+        result,PyInt_FromLong(alsamixer_getpercentage(self->cmin,
+                                                      self->cmax, ival)));
     }
+  }
+  return result;
+}
+
+static PyObject *
+alsamixer_getrange(alsamixer_t *self, PyObject *args) {
+  snd_mixer_elem_t *elem;
+  int direction;
+  char *dirstr = 0;
+  PyObject *result;
+
+  if (!PyArg_ParseTuple(args,"|s",&dirstr)) return NULL;
+
+  elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
+
+  if (!dirstr) {
+    if (self->pchannels) direction = 0;
+    else direction = 1;
+  }
+  else if (strcasecmp(dirstr,"playback")==0) direction = 0;
+  else if (strcasecmp(dirstr,"capture")==0) direction = 1;
+  else {
+    PyErr_SetString(ALSAAudioError,"Invalid direction argument for direction");
+    return NULL;
+  }
+  result = PyList_New(0);
+    if (direction == 0 && snd_mixer_selem_has_playback_channel(elem, 0)) {
+        PyList_Append(result,PyInt_FromLong(self->pmin));
+        PyList_Append(result,PyInt_FromLong(self->pmax));
+    }
+    else if (direction == 1 && snd_mixer_selem_has_capture_channel(elem, 0)
+            && snd_mixer_selem_has_capture_volume(elem)) {
+        PyList_Append(result,PyInt_FromLong(self->cmin));
+        PyList_Append(result,PyInt_FromLong(self->cmax));
+    }
+  return result;
+}
+
+static PyObject *
+alsamixer_getenum(alsamixer_t *self, PyObject *args) {
+  snd_mixer_elem_t *elem;
+  unsigned int index;
+  char name[32];
+  int res;
+
+  PyObject *result;
+  if (!PyArg_ParseTuple(args,"")) return NULL;
+
+  elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
+  if (!snd_mixer_selem_is_enumerated(elem)) {
+    PyErr_SetString(ALSAAudioError,"Mixer is no enumerated control");
+    return NULL;
+  }    
+
+  res=snd_mixer_selem_get_enum_item(elem, 0, &index);
+  if(res) {
+    PyErr_SetString(ALSAAudioError, snd_strerror(res));
+    return NULL;
+  }
+  res=snd_mixer_selem_get_enum_item_name(elem, index, sizeof(name)-1, name);
+  if(res) {
+    PyErr_SetString(ALSAAudioError, snd_strerror(res));
+    return NULL;
+  } else {
+    result = PyList_New(0);
+    PyList_Append(result,PyString_FromString(name));
   }
   return result;
 }
@@ -839,7 +937,8 @@ alsamixer_setvolume(alsamixer_t *self, PyObject *args) {
   else if (strcasecmp(dirstr,"playback")==0) direction = 0;
   else if (strcasecmp(dirstr,"capture")==0) direction = 1;
   else {
-    PyErr_SetString(ALSAAudioError,"Invalid direction argument. Use 'playback' or 'capture'");
+    PyErr_SetString(ALSAAudioError,"Invalid direction argument. Use "
+                    "'playback' or 'capture'");
     return NULL;
   }
   for (i = 0; i <= SND_MIXER_SCHN_LAST; i++) {
@@ -849,8 +948,9 @@ alsamixer_setvolume(alsamixer_t *self, PyObject *args) {
 	snd_mixer_selem_set_playback_volume(elem, i, physvolume);
 	done++;
       }
-      else if (direction == 1 && snd_mixer_selem_has_capture_channel(elem, channel)
-	       && snd_mixer_selem_has_capture_volume(elem)) {
+      else if (direction == 1
+               && snd_mixer_selem_has_capture_channel(elem, channel)
+               && snd_mixer_selem_has_capture_volume(elem)) {
 	physvolume = alsamixer_getphysvolume(self->cmin,self->cmax,volume);
 	snd_mixer_selem_set_capture_volume(elem, i, physvolume);
 	done++;
@@ -932,6 +1032,8 @@ static PyMethodDef alsamixer_methods[] = {
   {"switchcap", (PyCFunction)alsamixer_switchcap, METH_VARARGS},
   {"volumecap", (PyCFunction)alsamixer_volumecap, METH_VARARGS},
   {"getvolume", (PyCFunction)alsamixer_getvolume, METH_VARARGS},
+  {"getrange", (PyCFunction)alsamixer_getrange, METH_VARARGS},
+  {"getenum", (PyCFunction)alsamixer_getenum, METH_VARARGS},
   {"getmute", (PyCFunction)alsamixer_getmute, METH_VARARGS},
   {"getrec", (PyCFunction)alsamixer_getrec, METH_VARARGS},
   {"setvolume", (PyCFunction)alsamixer_setvolume, METH_VARARGS},

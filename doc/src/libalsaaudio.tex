@@ -315,6 +315,16 @@ the list are:
 
 \end{methoddesc}
 
+\begin{methoddesc}[Mixer]{getrange}{\optional{direction}}
+Return the volume range of the ALSA mixer controlled by this object.
+
+The optional \var{direction} argument can be either 'playback' or 'capture', 
+which is relevant if the mixer can control both playback and capture volume. 
+The default value is 'playback' if the mixer has this capability, otherwise 
+'capture'
+
+\end{methoddesc}
+
 \begin{methoddesc}[Mixer]{getvolume}{\optional{direction}}
 Returns a list with the current volume settings for each channel. The list elements
 are integer percentages.
