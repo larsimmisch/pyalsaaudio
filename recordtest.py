@@ -33,7 +33,7 @@ inp.setformat(alsaaudio.PCM_FORMAT_S16_LE)
 # mode.
 inp.setperiodsize(160)
 
-loops = 10000
+loops = 1000000
 while loops > 0:
   loops -= 1
   # Read data from device

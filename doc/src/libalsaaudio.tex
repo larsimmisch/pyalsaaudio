@@ -234,7 +234,7 @@ full. In this case, the data should be written at a later time.
 The most common reason for problems with playback of PCM audio, is that the people don't properly understand
 that writes to PCM devices must match \emph{exactly} the data rate of the device.
 
-If too little data is written to the device will an underrun, and  ugly clicking sounds will occur. Conversely,
+If too little data is written to the device, it will underrun, and  ugly clicking sounds will occur. Conversely,
 of too much data is written to the device, the write function will either block (PCM_NORMAL mode) or return zero
 (PCM_NONBLOCK mode).
 

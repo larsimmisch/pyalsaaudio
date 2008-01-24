@@ -373,7 +373,7 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args) {
   int res;
   if (!PyArg_ParseTuple(args,"s#",&data,&datalen)) return NULL;
   if (datalen%self->framesize) {
-    PyErr_SetString(ALSAAudioError,"Data size must be a multipla of framesize");
+    PyErr_SetString(ALSAAudioError,"Data size must be a multiple of framesize");
     return NULL;
   }
   res = snd_pcm_writei(self->handle, data, datalen/self->framesize);

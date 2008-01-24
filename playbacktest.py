@@ -9,7 +9,9 @@
 ## To test it out do the following:
 ## python recordtest.py > out.raw # talk to the microphone
 ## python playbacktest.py < out.raw
-
+##
+## If you have Gnome, you could also just test by doing something like:
+## python playbacktest.py < /usr/share/sounds/gnibbles/laughter.wav
 import alsaaudio
 import sys
 import time

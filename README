@@ -24,7 +24,10 @@ Installation
 
 Note: the wrappers link with the alsasound library alsa (from the alsa-lib
 package). Verify that this is installed by looking for /usr/lib/libasound.so
-before building. Naturally you also need to use a kernel with proper ALSA
+before building. The libasound development files are also neccesary. On debian
+and derivatives, this is achieved by installing the alsalib-dev package.
+
+Naturally you also need to use a kernel with proper ALSA
 support. This is the default in Linux kernel 2.6 and later. If you are using
 kernel version 2.4 you may need to install the ALSA patches yourself - although
 most distributions ship with ALSA kernels.
@@ -38,13 +41,15 @@ And then as root:
 
 Using the API
 =============
+There is a reasonably usefull API documentation included in the module
+documentation, which can be found in the doc subdirectory of the source
+distribution.
 
-There are two example programs included with the source:
+There are also three example programs included with the source:
 'playbacktest.py' which plays back raw sound data read from
 stdin
 
 'recordtest.py' which captures sound from the microphone at writes
 it raw to stdout.
 
-In a future version, I'll include documentation with the package, but
-for now, you're stuck with the examples.
+'mixertest.py' which can be used to manipulate the mixers
