@@ -30,14 +30,15 @@ whatsoever.
 % scope of the document.
 \begin{abstract}
 \noindent
-This package contains wrappers for accessing the ALSA API from Python. It
-is currently fairly complete for PCM devices and Mixer access. MIDI sequencer
-support is low on my priority list, but volunteers are welcome.
+This package contains wrappers for accessing the ALSA API from Python.
+It is currently fairly complete for PCM devices and Mixer access. MIDI
+sequencer support is low on my priority list, but volunteers are
+welcome.
 
-If you find bugs in the wrappers please use the SourceForge bug tracker. Please
-don't send bug reports regarding ALSA specifically. There are several
-bugs in this API, and those should be reported to the ALSA team - not
-me.
+If you find bugs in the wrappers please use the SourceForge bug
+tracker. Please don't send bug reports regarding ALSA specifically.
+There are several bugs in this API, and those should be reported to
+the ALSA team - not me.
 \end{abstract}
 
 \tableofcontents
@@ -45,7 +46,7 @@ me.
 \section{What is ALSA}
 
 The Advanced Linux Sound Architecture (ALSA) provides audio and MIDI
-functionality to the Linux operating system. 
+functionality to the Linux operating system.
 
 Logically ALSA consists of these components:
 \begin{itemize}
@@ -64,31 +65,38 @@ More information about ALSA may be found on the project homepage
 
 \section{ALSA and Python}
 
-The older Linux sound API (OSS) which is now deprecated is well supported 
-from the standard Python library, through the ossaudiodev module. No native
-ALSA support exists in the standard library (yet).
+The older Linux sound API (OSS) which is now deprecated is well
+supported from the standard Python library, through the ossaudiodev
+module. No native ALSA support exists in the standard library (yet).
 
-There are a few other ``ALSA for Python'' projects available, including at
-least two different projects called pyAlsa. Neither of these seem to be under
-active development at the time - and neither are very feature complete.
+There are a few other ``ALSA for Python'' projects available,
+including at least two different projects called pyAlsa. Neither of
+these seem to be under active development at the time - and neither
+are very feature complete.
 
-I wrote PyAlsaAudio to fill this gap. My long term goal is to have the module
-included in the standard Python library, but that is probably a while of yet.
+I wrote PyAlsaAudio to fill this gap. My long term goal is to have the
+module included in the standard Python library, but that is probably a
+while of yet.
 
-PyAlsaAudio hass full support for sound capture, playback of sound, as well as
-the ALSA Mixer API.
+PyAlsaAudio hass full support for sound capture, playback of sound, as
+well as the ALSA Mixer API.
 
-MIDI support is not available, and since I don't own any MIDI hardware, it's
-difficult for me to implement it. Volunteers to work on this would be greatly
-appreciated
+MIDI support is not available, and since I don't own any MIDI
+hardware, it's difficult for me to implement it. Volunteers to work on
+this would be greatly appreciated
 \section{Installation}
 
 Note: the wrappers link with the alsasound library (from the alsa-lib
-package). Verify that this is installed by looking for /usr/lib/libasound.so
-before building. Naturally you also need to use a kernel with proper ALSA
-support. This is the default in Linux kernel 2.6 and later. If you are using
-kernel version 2.4 you may need to install the ALSA patches yourself - although
-most distributions ship with ALSA kernels.
+package) and need the ALSA headers for compilation.  Verify that you
+have /usr/lib/libasound.so and /usr/include/alsa (or
+similar) before building.
+
+On Debian (and probably Ubuntu), make sure you have libasound2-dev installed.
+
+Naturally you also need to use a kernel with proper ALSA support. This
+is the default in Linux kernel 2.6 and later. If you are using kernel
+version 2.4 you may need to install the ALSA patches yourself -
+although most distributions ship with ALSA kernels.
 
 To install, execute the following: \\
 \begin{verbatim}
