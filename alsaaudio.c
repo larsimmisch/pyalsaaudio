@@ -377,7 +377,7 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args) {
     PyErr_SetString(ALSAAudioError,snd_strerror(res));
     return NULL;
   }  
-  return PyInt_FromLong(datalen);
+  return PyInt_FromLong(res);
 }
 
 
