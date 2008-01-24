@@ -134,6 +134,7 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 
   self->handle = 0;
   res = alsapcm_setup(self);
+
   if (res < 0) {
     if (self->handle) {
       snd_pcm_close(self->handle);
@@ -269,14 +270,23 @@ static PyObject *
 alsapcm_setchannels(alsapcm_t *self, PyObject *args) {
   int channels;
   int res;
+  unsigned int val;
+  snd_pcm_hw_params_t *hwparams;
+  snd_pcm_hw_params_alloca(&hwparams);
+  snd_pcm_hw_params_current(self->handle,hwparams);
+
   if (!PyArg_ParseTuple(args,"i",&channels)) return NULL;
-  self->channels = channels;
   res = alsapcm_setup(self);
   if (res < 0) {
     PyErr_SetString(ALSAAudioError, snd_strerror(res));
     return NULL;    
   }
-  return PyInt_FromLong(channels);
+
+  snd_pcm_hw_params_get_channels(hwparams, &val);
+
+  self->channels = val;
+
+  return PyInt_FromLong(val);
 }
 
 static PyObject *
