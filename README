@@ -3,7 +3,7 @@ PyAlsaAudio
 
 Author: Casper Wilstrup (cwi@unispeed.dk)
 
-This package contains wrappers for acessing the ALSA api from Python. It
+This package contains wrappers for accessing the ALSA api from Python. It
 is currently fairly complete for PCM devices. My next goal is to have
 complete mixer supports as well. MIDI sequencer support is low on my
 priority list, but volunteers are welcome.
@@ -26,7 +26,7 @@ Note: the wrappers link with the alsasound library alsa (from the alsa-lib
 package). Verify that this is installed by looking for /usr/lib/libasound.so
 before building. Naturally you also need to use a kernel with proper ALSA
 support. This is the default in Linux kernel 2.6 and later. If you are using
-kernel version 2.4 you may need to install the ALSA patches yourself - althoug
+kernel version 2.4 you may need to install the ALSA patches yourself - although
 most distributions ship with ALSA kernels.
 
 To install, execute the following:
