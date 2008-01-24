@@ -5,6 +5,8 @@
  * Contributed by Unispeed A/S (http://www.unispeed.com)
  * Author: Casper Wilstup (cwi@unispeed.dk)
  *
+ * Bug fixes by Lars Immisch <lars@ibp.de>
+ * 
  * License: Python Software Foundation License
  *
  */
@@ -75,6 +77,7 @@ static PyTypeObject ALSAPCMType;
 static int alsapcm_setup(alsapcm_t *self) {
   int res,dir;
   unsigned int val;
+  snd_pcm_format_t fmt;
   snd_pcm_uframes_t frames;
   snd_pcm_hw_params_t *hwparams;
 
@@ -108,7 +111,7 @@ static int alsapcm_setup(alsapcm_t *self) {
      which should therefore be sync'ed with actual values */
   snd_pcm_hw_params_current(self->handle,hwparams);
 
-  snd_pcm_hw_params_get_format(hwparams,&val); self->format = val;
+  snd_pcm_hw_params_get_format(hwparams,&fmt); self->format = fmt;
   snd_pcm_hw_params_get_channels(hwparams,&val); self->channels = val;
   snd_pcm_hw_params_get_rate(hwparams,&val,&dir); self->rate = val;
   snd_pcm_hw_params_get_period_size(hwparams,&frames,&dir); self->periodsize = (int) frames;
@@ -128,7 +131,7 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
   if (!(self = (alsapcm_t *)PyObject_New(alsapcm_t, &ALSAPCMType))) return NULL;
 
   if (pcmtype != SND_PCM_STREAM_PLAYBACK && pcmtype != SND_PCM_STREAM_CAPTURE) {
-    PyErr_SetString(ALSAAudioError, "PCM type must be PCM_PLAYBACK (0) or PCM_CAPTUPE (1)");
+    PyErr_SetString(ALSAAudioError, "PCM type must be PCM_PLAYBACK (0) or PCM_CAPTURE (1)");
     return NULL;
   }
   if (pcmmode < 0 || pcmmode > SND_PCM_ASYNC) {
@@ -170,6 +173,7 @@ static void alsapcm_dealloc(alsapcm_t *self) {
 static PyObject *
 alsapcm_dumpinfo(alsapcm_t *self, PyObject *args) {
   unsigned int val,val2;
+  snd_pcm_format_t fmt;
   int dir;
   snd_pcm_uframes_t frames;
   snd_pcm_hw_params_t *hwparams;
@@ -185,10 +189,10 @@ alsapcm_dumpinfo(alsapcm_t *self, PyObject *args) {
   snd_pcm_hw_params_get_access(hwparams, (snd_pcm_access_t *) &val);
   printf("access type = %s\n", snd_pcm_access_name((snd_pcm_access_t)val));
 
-  snd_pcm_hw_params_get_format(hwparams, &val);
+  snd_pcm_hw_params_get_format(hwparams, &fmt);
   printf("format = '%s' (%s)\n", 
-	 snd_pcm_format_name((snd_pcm_format_t)val),
-	 snd_pcm_format_description((snd_pcm_format_t)val));
+	 snd_pcm_format_name(fmt),
+	 snd_pcm_format_description(fmt));
 
   snd_pcm_hw_params_get_subformat(hwparams, (snd_pcm_subformat_t *)&val);
   printf("subformat = '%s' (%s)\n",
@@ -351,18 +355,24 @@ alsapcm_read(alsapcm_t *self, PyObject *args) {
     return NULL;
   }
 
+  Py_BEGIN_ALLOW_THREADS
   res = snd_pcm_readi(self->handle, buffer, self->periodsize);
   if (res == -EPIPE) {
     /* EPIPE means overrun */
     snd_pcm_prepare(self->handle);
   }
-  else if (res == -EAGAIN) {
-    res = 0;
+  Py_END_ALLOW_THREADS
+
+  if (res != -EPIPE)
+  {
+    if (res == -EAGAIN) {
+	  res = 0;
+	}
+	else if (res < 0) {
+	  PyErr_SetString(ALSAAudioError,snd_strerror(res));
+	  return NULL;
+    } 
   }
-  else if (res < 0) {
-    PyErr_SetString(ALSAAudioError,snd_strerror(res));
-    return NULL;
-  } 
 
   return Py_BuildValue("is#",res,buffer,res*self->framesize);
 }
@@ -376,20 +386,40 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args) {
     PyErr_SetString(ALSAAudioError,"Data size must be a multiple of framesize");
     return NULL;
   }
+
+  Py_BEGIN_ALLOW_THREADS
   res = snd_pcm_writei(self->handle, data, datalen/self->framesize);
   if (res == -EPIPE) {
     /* EPIPE means underrun */
-    snd_pcm_prepare(self->handle);
-    snd_pcm_writei(self->handle, data, datalen/self->framesize);
-    snd_pcm_writei(self->handle, data, datalen/self->framesize);
+    res = snd_pcm_recover(self->handle, res, 1);
+	if (res >= 0)
+		res = snd_pcm_writei(self->handle, data, datalen/self->framesize);
   }
-  else if (res == -EAGAIN) {
+  Py_END_ALLOW_THREADS
+  
+  if (res == -EAGAIN) {
     return PyInt_FromLong(0);
   }
   else if (res < 0) {
     PyErr_SetString(ALSAAudioError,snd_strerror(res));
     return NULL;
   }  
+
+  return PyInt_FromLong(res);
+}
+
+static PyObject *alsapcm_pause(alsapcm_t *self, PyObject *args) {
+  int enabled, res;
+  if (!PyArg_ParseTuple(args,"i",&enabled)) return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  res = snd_pcm_pause(self->handle, enabled);
+  Py_END_ALLOW_THREADS
+  
+  if (res < 0) {
+    PyErr_SetString(ALSAAudioError,snd_strerror(res));
+    return NULL;
+  }
   return PyInt_FromLong(res);
 }
 
@@ -409,6 +439,7 @@ static PyMethodDef alsapcm_methods[] = {
 
   {"read", (PyCFunction)alsapcm_read, METH_VARARGS},
   {"write", (PyCFunction)alsapcm_write, METH_VARARGS},
+  {"pause", (PyCFunction)alsapcm_pause, METH_VARARGS},
 
   {NULL, NULL}
 };
@@ -958,6 +989,9 @@ void initalsaaudio(void) {
   PyObject *m;
   ALSAPCMType.tp_new = alsapcm_new;
   ALSAMixerType.tp_new = alsamixer_new;
+
+  PyEval_InitThreads();
+
   m = Py_InitModule3("alsaaudio",alsaaudio_methods,alsaaudio_module_doc);
 
   ALSAAudioError = PyErr_NewException("alsaaudio.ALSAAudioError", NULL, NULL);
