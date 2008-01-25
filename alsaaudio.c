@@ -280,17 +280,38 @@ alsapcm_pcmtype(alsapcm_t *self, PyObject *args) {
   return PyInt_FromLong(self->pcmtype);
 }
 
+PyDoc_STRVAR(pcmtype_doc,
+"pcmtype() -> int\n\
+\n\
+Returns either PCM_CAPTURE or PCM_PLAYBACK.");
+
+
 static PyObject *
 alsapcm_pcmmode(alsapcm_t *self, PyObject *args) {
   if (!PyArg_ParseTuple(args,"")) return NULL;
   return PyInt_FromLong(self->pcmmode);
 }
 
+PyDoc_STRVAR(pcmmode_doc,
+"pcmmode() -> int\n\
+\n\
+Returns the mode of the PCM object. One of:\n\
+ - PCM_NONBLOCK\n\
+ - PCM_ASYNC\n\
+ - PCM_NORMAL.");
+
+
 static PyObject *
 alsapcm_cardname(alsapcm_t *self, PyObject *args) {
   if (!PyArg_ParseTuple(args,"")) return NULL;
   return PyString_FromString(self->cardname);
 }
+
+PyDoc_STRVAR(cardname_doc,
+"cardname() -> string\n\
+\n\
+Returns the name of the sound card used by this PCM object.");
+
 
 static PyObject *
 alsapcm_setchannels(alsapcm_t *self, PyObject *args) {
@@ -306,6 +327,15 @@ alsapcm_setchannels(alsapcm_t *self, PyObject *args) {
   return PyInt_FromLong(self->channels);
 }
 
+PyDoc_STRVAR(setchannels_doc,
+"setchannels(numchannels)\n\
+\n\
+Used to set the number of capture or playback channels. Common values\n\
+are: 1 = mono, 2 = stereo, and 6 = full 6 channel audio.\n\
+\n\
+Few sound cards support more than 2 channels.");
+
+
 static PyObject *
 alsapcm_setrate(alsapcm_t *self, PyObject *args) {
   int rate;
@@ -319,6 +349,13 @@ alsapcm_setrate(alsapcm_t *self, PyObject *args) {
   }
   return PyInt_FromLong(self->rate);
 }
+
+PyDoc_STRVAR(setrate_doc,
+"setrate(rate)\n\
+\n\
+Set the sample rate in Hz for the device. Typical values are\n\
+8000(telephony), 11025, 44100 (CD), 48000 (DVD audio) and 96000");
+
 
 static PyObject *
 alsapcm_setformat(alsapcm_t *self, PyObject *args) {
@@ -334,6 +371,10 @@ alsapcm_setformat(alsapcm_t *self, PyObject *args) {
   return PyInt_FromLong(self->format);
 }
 
+PyDoc_STRVAR(setformat_doc,
+"setformat(rate)\n");
+
+
 static PyObject *
 alsapcm_setperiodsize(alsapcm_t *self, PyObject *args) {
   int periodsize;
@@ -348,6 +389,13 @@ alsapcm_setperiodsize(alsapcm_t *self, PyObject *args) {
   return PyInt_FromLong(self->periodsize);
 }
 
+PyDoc_STRVAR(setperiodsize_doc,
+"setperiodsize(period)\n\
+\n\
+Sets the actual period size in frames. Each write should consist of\n\
+exactly this number of frames, and each read will return this number of\n\
+frames (unless the device is in PCM_NONBLOCK mode, in which case it\n\
+may return nothing at all)");
 
 static PyObject *
 alsapcm_read(alsapcm_t *self, PyObject *args) {
@@ -388,6 +436,19 @@ alsapcm_read(alsapcm_t *self, PyObject *args) {
   return Py_BuildValue("is#",res,buffer,res*self->framesize);
 }
 
+PyDoc_STRVAR(read_doc,
+"read() -> (size, data)\n\
+\n\
+In PCM_NORMAL mode, this function blocks until a full period is\n\
+available, and then returns a tuple (length,data) where length is\n\
+the size in bytes of the captured data, and data is the captured sound\n\
+frames as a string. The length of the returned data will be\n\
+periodsize*framesize bytes.\n\
+\n\
+In PCM_NONBLOCK mode, the call will not block, but will return (0,'')\n\
+if no new period has become available since the last call to read.");
+
+
 static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args) {
   char *data;
   int datalen;
@@ -420,9 +481,26 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args) {
   return PyInt_FromLong(res);
 }
 
+PyDoc_STRVAR(write_doc,
+"write(data) -> bytes written\n\
+\n\
+Writes (plays) the sound in data. The length of data must be a multiple\n\
+of the frame size, and should be exactly the size of a period. If less\n\
+than 'period size' frames are provided, the actual playout will not\n\
+happen until more data is written.\n\
+If the device is not in PCM_NONBLOCK mode, this call will block if the\n\
+kernel buffer is full, and until enough sound has been played to allow\n\
+the sound data to be buffered. The call always returns the size of the\n\
+data provided.\n\
+\n\
+In PCM_NONBLOCK mode, the call will return immediately, with a return\n\
+value of zero, if the buffer is full. In this case, the data should be\n\
+written at a later time.");
+
+
 static PyObject *alsapcm_pause(alsapcm_t *self, PyObject *args) {
-  int enabled, res;
-  if (!PyArg_ParseTuple(args,"i",&enabled)) return NULL;
+  int enabled=1, res;
+  if (!PyArg_ParseTuple(args,"|i",&enabled)) return NULL;
 
   Py_BEGIN_ALLOW_THREADS
   res = snd_pcm_pause(self->handle, enabled);
@@ -435,56 +513,64 @@ static PyObject *alsapcm_pause(alsapcm_t *self, PyObject *args) {
   return PyInt_FromLong(res);
 }
 
+PyDoc_STRVAR(pause_doc,
+"pause(enable=1)\n\
+\n\
+If enable is 1, playback or capture is paused. If enable is 0,\n\
+playback/capture is resumed.");
+
 
 /* ALSA PCM Object Bureaucracy */
 
 static PyMethodDef alsapcm_methods[] = {
-  {"pcmtype", (PyCFunction)alsapcm_pcmtype, METH_VARARGS},
-  {"pcmmode", (PyCFunction)alsapcm_pcmmode, METH_VARARGS},
-  {"cardname", (PyCFunction)alsapcm_cardname, METH_VARARGS},
-  {"setchannels", (PyCFunction)alsapcm_setchannels, METH_VARARGS},
-  {"setrate", (PyCFunction)alsapcm_setrate, METH_VARARGS},
-  {"setformat", (PyCFunction)alsapcm_setformat, METH_VARARGS},
-  {"setperiodsize", (PyCFunction)alsapcm_setperiodsize, METH_VARARGS},
-
+  {"pcmtype", (PyCFunction)alsapcm_pcmtype, METH_VARARGS, pcmtype_doc},
+  {"pcmmode", (PyCFunction)alsapcm_pcmmode, METH_VARARGS, pcmmode_doc},
+  {"cardname", (PyCFunction)alsapcm_cardname, METH_VARARGS, cardname_doc},
+  {"setchannels", (PyCFunction)alsapcm_setchannels, METH_VARARGS, 
+    setchannels_doc },
+  {"setrate", (PyCFunction)alsapcm_setrate, METH_VARARGS, setrate_doc},
+  {"setformat", (PyCFunction)alsapcm_setformat, METH_VARARGS, setformat_doc},
+  {"setperiodsize", (PyCFunction)alsapcm_setperiodsize, METH_VARARGS, 
+   setperiodsize_doc},
   {"dumpinfo", (PyCFunction)alsapcm_dumpinfo, METH_VARARGS},
-
-  {"read", (PyCFunction)alsapcm_read, METH_VARARGS},
-  {"write", (PyCFunction)alsapcm_write, METH_VARARGS},
-  {"pause", (PyCFunction)alsapcm_pause, METH_VARARGS},
-
+  {"read", (PyCFunction)alsapcm_read, METH_VARARGS, read_doc},
+  {"write", (PyCFunction)alsapcm_write, METH_VARARGS, write_doc},
+  {"pause", (PyCFunction)alsapcm_pause, METH_VARARGS, pause_doc},
   {NULL, NULL}
 };
 
-static PyObject *
-alsapcm_getattr(alsapcm_t *self, char *name) {
-  return Py_FindMethod(alsapcm_methods, (PyObject *)self, name);
-}
-
 static PyTypeObject ALSAPCMType = {
   PyObject_HEAD_INIT(&PyType_Type)
-  0,                              /*ob_size*/
-  "alsaaudio.pcm",                /*tp_name*/
-  sizeof(alsapcm_t),              /*tp_basicsize*/
-  0,                              /*tp_itemsize*/
+  0,                              /* ob_size */
+  "alsaaudio.PCM",                /* tp_name */
+  sizeof(alsapcm_t),              /* tp_basicsize */
+  0,                              /* tp_itemsize */
   /* methods */    
-  (destructor) alsapcm_dealloc,   /*tp_dealloc*/
-  0,                              /*print*/
-  (getattrfunc)alsapcm_getattr,   /*tp_getattr*/
-  0,                              /*tp_setattr*/
-  0,                              /*tp_compare*/ 
-  0,                              /*tp_repr*/
-  0,                              /*tp_as_number*/
-  0,                              /*tp_as_sequence*/
-  0,                              /*tp_as_mapping*/
-  0,                              /*tp_hash*/
-  0,                              /*tp_call*/
-  0,                              /*tp_str*/
-  0,                              /*tp_getattro*/
-  0,                              /*tp_setattro*/
-  0,                              /*tp_as_buffer*/
-  Py_TPFLAGS_DEFAULT,             /*tp_flags*/
-  "ALSA PCM device",              /*tp_doc*/
+  (destructor) alsapcm_dealloc,   /* tp_dealloc */
+  0,                              /* print */
+  0,                              /* tp_getattr */
+  0,                              /* tp_setattr */
+  0,                              /* tp_compare */ 
+  0,                              /* tp_repr */
+  0,                              /* tp_as_number */
+  0,                              /* tp_as_sequence */
+  0,                              /* tp_as_mapping */
+  0,                              /* tp_hash */
+  0,                              /* tp_call */
+  0,                              /* tp_str */
+  PyObject_GenericGetAttr,        /* tp_getattro */
+  0,                              /* tp_setattro */
+  0,                              /* tp_as_buffer */
+  Py_TPFLAGS_DEFAULT,             /* tp_flags */
+  "ALSA PCM device.",             /* tp_doc */
+  0,					          /* tp_traverse */
+  0,					          /* tp_clear */
+  0,					          /* tp_richcompare */
+  0,					          /* tp_weaklistoffset */
+  0,					          /* tp_iter */
+  0,					          /* tp_iternext */
+  alsapcm_methods,		          /* tp_methods */
+  0,			                  /* tp_members */
 };
 
 
@@ -553,6 +639,14 @@ alsamixer_list(PyObject *self, PyObject *args) {
 
   return result;
 }
+
+PyDoc_STRVAR(mixers_doc,
+"mixers([cardname])\n\
+\n\
+List the available mixers. The optional cardname specifies\n\
+which card should be queried (this is only relevant if you\n\
+have more than one sound card). Omit to use the default sound card.");
+
 
 static snd_mixer_elem_t *
 alsamixer_find_elem(snd_mixer_t *handle, char *control, int id) {
@@ -679,17 +773,36 @@ alsamixer_cardname(alsamixer_t *self, PyObject *args) {
   return PyString_FromString(self->cardname);
 }
 
+PyDoc_STRVAR(mixer_cardname_doc,
+"cardname() -> string\n\
+\n\
+Returns the name of the sound card used by this Mixer object.");
+
+
 static PyObject *
 alsamixer_mixer(alsamixer_t *self, PyObject *args) {
   if (!PyArg_ParseTuple(args,"")) return NULL;
   return PyString_FromString(self->controlname);
 }
 
+PyDoc_STRVAR(mixer_doc,
+"mixer() -> string\n\
+\n\
+Returns the name of the specific mixer controlled by this object,\n\
+for example 'Master' or 'PCM'");
+
+
 static PyObject *
 alsamixer_mixerid(alsamixer_t *self, PyObject *args) {
   if (!PyArg_ParseTuple(args,"")) return NULL;
   return PyInt_FromLong(self->controlid);
 }
+
+PyDoc_STRVAR(mixerid_doc,
+"mixerid() -> int\n\
+\n\
+Returns the ID of the ALSA mixer controlled by this object.");
+
 
 static PyObject *
 alsamixer_volumecap(alsamixer_t *self, PyObject *args) {
@@ -711,6 +824,20 @@ alsamixer_volumecap(alsamixer_t *self, PyObject *args) {
    
   return result;
 }
+
+PyDoc_STRVAR(volumecap_doc,
+"volumecap() -> List of volume capabilities (string)\n\
+\n\
+Returns a list of the volume control capabilities of this mixer.\n\
+Possible values in this list are:\n\
+ - 'Volume'\n\
+ - 'Joined Volume'\n\
+ - 'Playback Volume'\n\
+ - 'Joined Playback Mute'\n\
+ - 'Capture Volume'\n\
+ - 'Joined Capture Volume'");
+
+
 static PyObject *
 alsamixer_switchcap(alsamixer_t *self, PyObject *args) {
   PyObject *result;
@@ -733,6 +860,21 @@ alsamixer_switchcap(alsamixer_t *self, PyObject *args) {
   return result;
 }
 
+PyDoc_STRVAR(switchcap_doc,
+"switchcap() -> List of switch capabilities (string)\n\
+\n\
+Returns a list of the switches which are defined by this mixer.\n\
+\n\
+Possible values in this list are:\n\
+ - 'Mute'\n\
+ - 'Joined Mute'\n\
+ - 'Playback Mute'\n\
+ - 'Joined Playback Mute'\n\
+ - 'Capture Mute'\n\
+ - 'Joined Capture Mute'\n\
+ - 'Capture Exclusive'\n");
+
+
 static int alsamixer_getpercentage(long min, long max, long value) {
   /* Convert from number in range to percentage */
   int range = max - min;
@@ -742,7 +884,6 @@ static int alsamixer_getpercentage(long min, long max, long value) {
   value -= min;
   tmp = rint((double)value/(double)range * 100);
   return tmp;
-
 }
 
 static long alsamixer_getphysvolume(long min, long max, int percentage) {
@@ -799,6 +940,18 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args) {
   return result;
 }
 
+PyDoc_STRVAR(getvolume_doc,
+"getvolume([direction]) -> List of volume settings (int)\n\
+\n\
+Returns a list with the current volume settings for each channel.\n\
+The list elements are integer percentages.\n\
+\n\
+The optional 'direction' argument can be either 'playback' or\n\
+'capture', which is relevant if the mixer can control both\n\
+playback and capture volume. The default value is 'playback'\n\
+if the mixer has this capability, otherwise 'capture'");
+
+
 static PyObject *
 alsamixer_getrange(alsamixer_t *self, PyObject *args) {
   snd_mixer_elem_t *elem;
@@ -833,6 +986,17 @@ alsamixer_getrange(alsamixer_t *self, PyObject *args) {
   return result;
 }
 
+PyDoc_STRVAR(getrange_doc,
+"getrange([direction]) -> List of (min_volume, max_volume)\n\
+\n\
+Returns a list of tuples with the volume range (ints).\n\
+\n\
+The optional 'direction' argument can be either 'playback' or\n\
+'capture', which is relevant if the mixer can control both\n\
+playback and capture volume. The default value is 'playback'\n\
+if the mixer has this capability, otherwise 'capture'");
+
+
 static PyObject *
 alsamixer_getenum(alsamixer_t *self, PyObject *args) {
   snd_mixer_elem_t *elem;
@@ -865,6 +1029,12 @@ alsamixer_getenum(alsamixer_t *self, PyObject *args) {
   return result;
 }
 
+PyDoc_STRVAR(getenum_doc,
+"getenum([direction]) -> List of enumerated controls (string)\n\
+\n\
+Returns a list of strings with the enumerated controls.");
+
+
 static PyObject *
 alsamixer_getmute(alsamixer_t *self, PyObject *args) {
   snd_mixer_elem_t *elem;
@@ -888,6 +1058,15 @@ alsamixer_getmute(alsamixer_t *self, PyObject *args) {
   return result;
 }
 
+PyDoc_STRVAR(getmute_doc,
+"getmute() -> List of mute settings (int)\n\
+\n\
+Return a list indicating the current mute setting for each channel.\n\
+0 means not muted, 1 means muted.\n\
+\n\
+This method will fail if the mixer has no playback switch capabilities.");
+
+
 static PyObject *
 alsamixer_getrec(alsamixer_t *self, PyObject *args) {
   snd_mixer_elem_t *elem;
@@ -910,6 +1089,14 @@ alsamixer_getrec(alsamixer_t *self, PyObject *args) {
   }
   return result;
 }
+
+PyDoc_STRVAR(getrec_doc,
+"getrec() -> List of record mute settings (int)\n\
+\n\
+Return a list indicating the current record mute setting for each\n\
+channel. 0 means not recording, 1 means recording.\n\
+This method will fail if the mixer has no capture switch capabilities.");
+
 
 static PyObject *
 alsamixer_setvolume(alsamixer_t *self, PyObject *args) {
@@ -965,6 +1152,22 @@ alsamixer_setvolume(alsamixer_t *self, PyObject *args) {
   return Py_None;
 }
 
+PyDoc_STRVAR(setvolume_doc,
+"setvolume(volume[[, channel] [, direction]])\n\
+\n\
+Change the current volume settings for this mixer. The volume argument\n\
+controls the new volume setting as an integer percentage.\n\
+If the optional argument channel is present, the volume is set only for\n\
+this channel. This assumes that the mixer can control the volume for the\n\
+channels independently.\n\
+\n\
+The optional direction argument can be either 'playback' or 'capture'.\n\
+It is relevant if the mixer has independent playback and capture volume\n\
+capabilities, and controls which of the volumes will be changed.\n\
+The default is 'playback' if the mixer has this capability, otherwise\n\
+'capture'.");
+
+
 static PyObject *
 alsamixer_setmute(alsamixer_t *self, PyObject *args) {
   snd_mixer_elem_t *elem;
@@ -994,6 +1197,17 @@ alsamixer_setmute(alsamixer_t *self, PyObject *args) {
   Py_INCREF(Py_None);
   return Py_None;
 }
+
+PyDoc_STRVAR(setmute_doc,
+"setmute(mute [, channel])\n\
+\n\
+Sets the mute flag to a new value. The mute argument is either 0 for\n\
+not muted, or 1 for muted.\n\
+The optional channel argument controls which channel is muted.\n\
+If omitted, the mute flag is set for for all channels.\n\
+\n\
+This method will fail if the mixer has no playback mute capabilities");
+
 
 static PyObject *
 alsamixer_setrec(alsamixer_t *self, PyObject *args) {
@@ -1025,53 +1239,67 @@ alsamixer_setrec(alsamixer_t *self, PyObject *args) {
   return Py_None;
 }
 
+PyDoc_STRVAR(setrec_doc,
+"setrec(capture [, channel])\n\
+\n\
+Sets the capture mute flag to a new value. The capture argument is\n\
+either 0 for no capture, or 1 for capture.\n\
+The optional channel argument controls which channel is changed.\n\
+If omitted, the capture flag is set for all channels.\n\
+\n\
+This method will fail if the mixer has no capture switch capabilities");
+
+
 static PyMethodDef alsamixer_methods[] = {
-  {"cardname", (PyCFunction)alsamixer_cardname, METH_VARARGS},
-  {"mixer", (PyCFunction)alsamixer_mixer, METH_VARARGS},
-  {"mixerid", (PyCFunction)alsamixer_mixerid, METH_VARARGS},
-  {"switchcap", (PyCFunction)alsamixer_switchcap, METH_VARARGS},
-  {"volumecap", (PyCFunction)alsamixer_volumecap, METH_VARARGS},
-  {"getvolume", (PyCFunction)alsamixer_getvolume, METH_VARARGS},
-  {"getrange", (PyCFunction)alsamixer_getrange, METH_VARARGS},
-  {"getenum", (PyCFunction)alsamixer_getenum, METH_VARARGS},
-  {"getmute", (PyCFunction)alsamixer_getmute, METH_VARARGS},
-  {"getrec", (PyCFunction)alsamixer_getrec, METH_VARARGS},
-  {"setvolume", (PyCFunction)alsamixer_setvolume, METH_VARARGS},
-  {"setmute", (PyCFunction)alsamixer_setmute, METH_VARARGS},
-  {"setrec", (PyCFunction)alsamixer_setrec, METH_VARARGS},
+  {"cardname", (PyCFunction)alsamixer_cardname, METH_VARARGS, 
+   mixer_cardname_doc},
+  {"mixer", (PyCFunction)alsamixer_mixer, METH_VARARGS, mixer_doc},
+  {"mixerid", (PyCFunction)alsamixer_mixerid, METH_VARARGS, mixerid_doc},
+  {"switchcap", (PyCFunction)alsamixer_switchcap, METH_VARARGS, switchcap_doc},
+  {"volumecap", (PyCFunction)alsamixer_volumecap, METH_VARARGS, volumecap_doc},
+  {"getvolume", (PyCFunction)alsamixer_getvolume, METH_VARARGS, getvolume_doc},
+  {"getrange", (PyCFunction)alsamixer_getrange, METH_VARARGS, getrange_doc},
+  {"getenum", (PyCFunction)alsamixer_getenum, METH_VARARGS, getenum_doc},
+  {"getmute", (PyCFunction)alsamixer_getmute, METH_VARARGS, getmute_doc},
+  {"getrec", (PyCFunction)alsamixer_getrec, METH_VARARGS, getrec_doc},
+  {"setvolume", (PyCFunction)alsamixer_setvolume, METH_VARARGS, setvolume_doc},
+  {"setmute", (PyCFunction)alsamixer_setmute, METH_VARARGS, setmute_doc},
+  {"setrec", (PyCFunction)alsamixer_setrec, METH_VARARGS, setrec_doc},
   {NULL, NULL}
 };
 
-
-static PyObject *
-alsamixer_getattr(alsapcm_t *self, char *name) {
-  return Py_FindMethod(alsamixer_methods, (PyObject *)self, name);
-}
-
 static PyTypeObject ALSAMixerType = {
   PyObject_HEAD_INIT(&PyType_Type)
-  0,                              /*ob_size*/
-  "alsaaudio.mixer",              /*tp_name*/
-  sizeof(alsamixer_t),            /*tp_basicsize*/
-  0,                              /*tp_itemsize*/
+  0,                              /* ob_size */
+  "alsaaudio.Mixer",              /* tp_name */
+  sizeof(alsamixer_t),            /* tp_basicsize */
+  0,                              /* tp_itemsize */
   /* methods */    
-  (destructor) alsamixer_dealloc, /*tp_dealloc*/
-  0,                              /*print*/
-  (getattrfunc)alsamixer_getattr, /*tp_getattr*/
-  0,                              /*tp_setattr*/
-  0,                              /*tp_compare*/ 
-  0,                              /*tp_repr*/
-  0,                              /*tp_as_number*/
-  0,                              /*tp_as_sequence*/
-  0,                              /*tp_as_mapping*/
-  0,                              /*tp_hash*/
-  0,                              /*tp_call*/
-  0,                              /*tp_str*/
-  0,                              /*tp_getattro*/
-  0,                              /*tp_setattro*/
-  0,                              /*tp_as_buffer*/
-  Py_TPFLAGS_DEFAULT,             /*tp_flags*/
-  "ALSA Mixer Control",           /*tp_doc*/
+  (destructor) alsamixer_dealloc, /* tp_dealloc */
+  0,                              /* print */
+  0,                              /* tp_getattr */
+  0,                              /* tp_setattr */
+  0,                              /* tp_compare */ 
+  0,                              /* tp_repr */
+  0,                              /* tp_as_number */
+  0,                              /* tp_as_sequence */
+  0,                              /* tp_as_mapping */
+  0,                              /* tp_hash */
+  0,                              /* tp_call */
+  0,                              /* tp_str */
+  PyObject_GenericGetAttr,        /* tp_getattro*/
+  0,                              /* tp_setattro*/
+  0,                              /* tp_as_buffer*/
+  Py_TPFLAGS_DEFAULT,             /* tp_flags */
+  "ALSA Mixer Control.",          /* tp_doc */
+  0,					          /* tp_traverse */
+  0,					          /* tp_clear */
+  0,					          /* tp_richcompare */
+  0,					          /* tp_weaklistoffset */
+  0,					          /* tp_iter */
+  0,					          /* tp_iternext */
+  alsamixer_methods,		      /* tp_methods */
+  0,			                  /* tp_members */
 };
 
 
@@ -1080,7 +1308,7 @@ static PyTypeObject ALSAMixerType = {
 /******************************************/
 
 static PyMethodDef alsaaudio_methods[] = {
-  { "mixers", alsamixer_list, METH_VARARGS },
+  { "mixers", alsamixer_list, METH_VARARGS, mixers_doc},
   { 0, 0 },
 };
 
