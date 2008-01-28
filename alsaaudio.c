@@ -441,7 +441,7 @@ PyDoc_STRVAR(read_doc,
 \n\
 In PCM_NORMAL mode, this function blocks until a full period is\n\
 available, and then returns a tuple (length,data) where length is\n\
-the size in bytes of the captured data, and data is the captured sound\n\
+the number of frames of the captured data, and data is the captured sound\n\
 frames as a string. The length of the returned data will be\n\
 periodsize*framesize bytes.\n\
 \n\
@@ -539,6 +539,13 @@ static PyMethodDef alsapcm_methods[] = {
   {NULL, NULL}
 };
 
+#if PY_VERSION_HEX < 0x02020000 
+static PyObject *	 
+alsapcm_getattr(alsapcm_t *self, char *name) {	 
+  return Py_FindMethod(alsapcm_methods, (PyObject *)self, name);	 
+}
+#endif
+
 static PyTypeObject ALSAPCMType = {
   PyObject_HEAD_INIT(&PyType_Type)
   0,                              /* ob_size */
@@ -548,7 +555,11 @@ static PyTypeObject ALSAPCMType = {
   /* methods */    
   (destructor) alsapcm_dealloc,   /* tp_dealloc */
   0,                              /* print */
+#if PY_VERSION_HEX < 0x02020000
+  (getattrfunc)alsapcm_getattr,   /* tp_getattr */
+#else
   0,                              /* tp_getattr */
+#endif
   0,                              /* tp_setattr */
   0,                              /* tp_compare */ 
   0,                              /* tp_repr */
@@ -558,7 +569,11 @@ static PyTypeObject ALSAPCMType = {
   0,                              /* tp_hash */
   0,                              /* tp_call */
   0,                              /* tp_str */
+#if PY_VERSION_HEX >= 0x02020000 
   PyObject_GenericGetAttr,        /* tp_getattro */
+#else
+  0,                              /* tp_getattro */
+#endif
   0,                              /* tp_setattro */
   0,                              /* tp_as_buffer */
   Py_TPFLAGS_DEFAULT,             /* tp_flags */
@@ -1268,6 +1283,13 @@ static PyMethodDef alsamixer_methods[] = {
   {NULL, NULL}
 };
 
+#if PY_VERSION_HEX < 0x02020000 
+static PyObject *	 
+alsamixer_getattr(alsapcm_t *self, char *name) {	 
+  return Py_FindMethod(alsamixer_methods, (PyObject *)self, name);	 
+}
+#endif
+
 static PyTypeObject ALSAMixerType = {
   PyObject_HEAD_INIT(&PyType_Type)
   0,                              /* ob_size */
@@ -1277,7 +1299,11 @@ static PyTypeObject ALSAMixerType = {
   /* methods */    
   (destructor) alsamixer_dealloc, /* tp_dealloc */
   0,                              /* print */
+#if PY_VERSION_HEX < 0x02020000 
+  (getattrfunc)alsamixer_getattr, /* tp_getattr */
+#else
   0,                              /* tp_getattr */
+#endif
   0,                              /* tp_setattr */
   0,                              /* tp_compare */ 
   0,                              /* tp_repr */
@@ -1287,7 +1313,11 @@ static PyTypeObject ALSAMixerType = {
   0,                              /* tp_hash */
   0,                              /* tp_call */
   0,                              /* tp_str */
+#if PY_VERSION_HEX >= 0x02020000 
   PyObject_GenericGetAttr,        /* tp_getattro*/
+#else
+  0,                              /* tp_getattro*/
+#endif
   0,                              /* tp_setattro*/
   0,                              /* tp_as_buffer*/
   Py_TPFLAGS_DEFAULT,             /* tp_flags */
