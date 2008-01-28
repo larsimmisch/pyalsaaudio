@@ -5,7 +5,7 @@
 
 \platform{Linux}
 
-\moduleauthor{Casper Wilstrup}{} % {cwi@aves.dk} % Author of the module code;
+\moduleauthor{Casper Wilstrup}{cwi@aves.dk} % Author of the module code;
 
 
 \modulesynopsis{ALSA sound support}
@@ -35,19 +35,21 @@ sound card). Omit to use the default sound card.
 \end{funcdesc}
 
 \begin{classdesc}{PCM}{\optional{type}, \optional{mode}, \optional{cardname}}
-This class is used to represent a PCM device (both playback and capture devices).
-The arguments are: \\
-\var{type} - can be either PCM_CAPTURE or PCM_PLAYBACK (default). \\
-\var{mode} - can be either PCM_NONBLOCK, PCM_ASYNC, or PCM_NORMAL (the default).\\
-\var{cardname} - specifies which card should be used (this is only relevant 
-if you have more than one sound card). Omit to use the default sound card
+  This class is used to represent a PCM device (both playback and
+  capture devices).
+  The arguments are: \\
+  \var{type} - can be either PCM_CAPTURE or PCM_PLAYBACK (default). \\
+  \var{mode} - can be either PCM_NONBLOCK, PCM_ASYNC, or PCM_NORMAL (the default).\\
+  \var{cardname} - specifies which card should be used (this is only
+  relevant if you have more than one sound card). Omit to use the
+  default sound card
 \end{classdesc}
 
 \begin{classdesc}{Mixer}{\optional{control}, \optional{id}, \optional{cardname}}
 This class is used to access a specific ALSA mixer.
 The arguments are: \\
 \var{control} - Name of the chosen mixed (default is Master). \\
-\var{id} - id of mixer (default is 0) -- More explaniation needed here\\
+\var{id} - id of mixer (default is 0) -- More explanation needed here\\
 \var{cardname} specifies which card should be used (this is only relevant 
 if you have more than one sound card). Omit to use the default sound card
 \end{classdesc}
@@ -120,8 +122,8 @@ terminology.
 
 \end{description}
 
-Once you understand these concepts, you will be ready to actually
-utilize PCM API. Read on.
+Once you understand these concepts, you will be ready to use the PCM
+API. Read on.
 
 \subsection{PCM Objects}
 \label{pcm-objects}
@@ -132,7 +134,7 @@ sampled sound data.
 
 PCM objects in \module{alsaaudio} are used to do exactly that, either
 play sample based sound or capture sound from some input source
-(perhaps a microphone). The PCM object constructor takes the following
+(probably a microphone). The PCM object constructor takes the following
 arguments:
 
 \begin{classdesc}{PCM}{\optional{type}, \optional{mode}, \optional{cardname}}
@@ -146,8 +148,8 @@ write calls will return immediately without actually writing anything
 to the playout buffer if the buffer is full.
 
 In the current version of \module{alsaaudio} PCM_ASYNC is useless,
-since it relies on a callback procedure, which can't be specified from
-Python.
+since it relies on a callback procedure, which can't be specified through
+this API yet.
 
 \var{cardname} - specifies which card should be used (this is only
 relevant if you have more than one sound card). Omit to use the
@@ -187,8 +189,8 @@ PCM objects have the following methods:
   (poor sound), 16000, 44100 (cd quality), and 96000
 \end{methoddesc}
 
-\begin{methoddesc}[PCM]{setformat}{}
-  The sound format of the device. Sound format controls how the PCM
+\begin{methoddesc}[PCM]{setformat}{format}
+  The sound \var{format} of the device. Sound format controls how the PCM
   device interpret data for playback, and how data is encoded in
   captures.
 
@@ -234,7 +236,7 @@ The following formats are provided by ALSA:
   \lineii{PCM_FORMAT_IMA_ADPCM}{a 4:1 compressed format defined by the
     Interactive Multimedia Association} \lineii{PCM_FORMAT_MPEG}{MPEG
     encoded audio?}  
-  \lineii{PCM_FORMAT_GSM}{9600 constant rate encoding well suited for speech}
+  \lineii{PCM_FORMAT_GSM}{9600 bits/s constant rate encoding for speech}
 \end{tableii}
 
 \end{methoddesc}
@@ -249,7 +251,7 @@ The following formats are provided by ALSA:
 \begin{methoddesc}[PCM]{read}{}
   In PCM_NORMAL mode, this function blocks until a full period is
   available, and then returns a tuple (length,data) where
-  \emph{length} is the size in bytes of the captured data, and
+  \emph{length} is the number of frames of captured data, and
   \emph{data} is the captured sound frames as a string. The length of
   the returned data will be periodsize*framesize bytes.
 
@@ -272,7 +274,11 @@ The following formats are provided by ALSA:
   In PCM_NONBLOCK mode, the call will return immediately, with a
   return value of zero, if the buffer is full. In this case, the data
   should be written at a later time.
+\end{methoddesc}
 
+\begin{methoddesc}[PCM]{pause}{\optional{enable=1}}
+  If \var{enable} is 1, playback or capture is paused. If \var{enable} is 0, 
+  playback/capture is resumed.
 \end{methoddesc}
 
 \strong{A few hints on using PCM devices for playback}
@@ -408,7 +414,7 @@ To manipulate these swithes use the \method{setrec} or
 
 \begin{methoddesc}[Mixer]{getrec}{}
   Return a list indicating the current record mute setting for each
-  channel. 0 means not recording, 1 means not recording.
+  channel. 0 means not recording, 1 means recording.
 
   This method will fail if the mixer has no capture switch
   capabilities.
