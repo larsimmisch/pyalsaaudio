@@ -60,72 +60,86 @@ terminology.
 <p>
 <dl>
 <dt><strong>Sample</strong></dt>
-<dd>PCM audio, whether it is input or output, consists at the lowest level
-of a number of single samples. A sample represents the sound in a single channel in
-a brief interval. If more than one channel is in use, more than one sample is required
-for each interval to describe the sound. Samples can be of many different sizes, ranging
-from 8 bit to 64 bit presition. The specific format of each sample can also vary - they 
-can be big endian byte order, little endian byte order, or even floats.
+<dd>PCM audio, whether it is input or output, consists at
+  the lowest level of a number of single samples. A sample represents
+  the sound in a single channel in a brief interval. If more than one
+  channel is in use, more than one sample is required for each
+  interval to describe the sound. Samples can be of many different
+  sizes, ranging from 8 bit to 64 bit presition. The specific format
+  of each sample can also vary - they can be big endian byte order,
+  little endian byte order, or even floats.
 
 <p>
 </dd>
 <dt><strong>Frame</strong></dt>
-<dd>A frame consists of exactly one sample per channel. If there is only one
-channel (Mono sound) a frame is simply a single sample. If the sound is stereo, each frame
-consists of two samples, etc.
+<dd>A frame consists of exactly one sample per channel. If
+  there is only one channel (Mono sound) a frame is simply a single
+  sample. If the sound is stereo, each frame consists of two samples,
+  etc.
 
 <p>
 </dd>
 <dt><strong>Frame size</strong></dt>
-<dd>This is the size in bytes of each frame. This can vary a lot: if each sample is
-8 bits, and we're handling mono sound, the frame size is one byte. Similarly in 6 channel audio with
-64 bit floating point samples, the frame size is 48 bytes
+<dd>This is the size in bytes of each frame. This can
+  vary a lot: if each sample is 8 bits, and we're handling mono sound,
+  the frame size is one byte. Similarly in 6 channel audio with 64 bit
+  floating point samples, the frame size is 48 bytes
 
 <p>
 </dd>
 <dt><strong>Rate</strong></dt>
-<dd>PCM sound consists of a flow of sound frames. The sound rate controls how often
-the current frame is replaced. For example, a rate of 8000 Hz means that a new frame is played 
-or captured 8000 times per second.
+<dd>PCM sound consists of a flow of sound frames. The sound
+  rate controls how often the current frame is replaced. For example,
+  a rate of 8000 Hz means that a new frame is played or captured 8000
+  times per second.
 
 <p>
 </dd>
 <dt><strong>Data rate</strong></dt>
-<dd>This is the number of bytes, which must be recorded or provided per second
-at a certain frame size and rate. 
+<dd>This is the number of bytes, which must be recorded
+  or provided per second at a certain frame size and rate.
 
 <p>
-8000 Hz mono sound with 8 bit (1 byte) samples has a data rate of 8000 * 1 * 1 = 8 kb/s
+8000 Hz mono sound with 8 bit (1 byte) samples has a data rate of
+  8000 * 1 * 1 = 8 kb/s
 
 <p>
-At the other end of the scale, 96000 Hz, 6 channel sound with 64 bit (8 bytes) samples
-has a data rate of 96000 * 6 * 8 = 4608 kb/s (almost 5 Mb sound data per second)
+At the other end of the scale, 96000 Hz, 6 channel sound with 64 bit
+  (8 bytes) samples has a data rate of 96000 * 6 * 8 = 4608 kb/s
+  (almost 5 Mb sound data per second)
 
 <p>
 </dd>
 <dt><strong>Period</strong></dt>
-<dd>When the hardware processes data this is done in chunks of frames. The time interval
-between each processing (A/D or D/A conversion) is known as the period. The size of the period has
-direct implication on the latency of the sound input or output. For low-latency the period size should
-be very small, while low CPU resource usage would usually demand larger period sizes. With ALSA, the
-CPU utilization is not impacted much by the period size, since the kernel layer buffers multiple
-periods internally, so each period generates an interrupt and a memory copy, but userspace can be
-slower and read or write multiple periods at the same time.
+<dd>When the hardware processes data this is done in chunks
+  of frames. The time interval between each processing (A/D or D/A
+  conversion) is known as the period. The size of the period has
+  direct implication on the latency of the sound input or output. For
+  low-latency the period size should be very small, while low CPU
+  resource usage would usually demand larger period sizes. With ALSA,
+  the CPU utilization is not impacted much by the period size, since
+  the kernel layer buffers multiple periods internally, so each period
+  generates an interrupt and a memory copy, but userspace can be
+  slower and read or write multiple periods at the same time.
 
 <p>
 </dd>
 <dt><strong>Period size</strong></dt>
-<dd>This is the size of each period in Hz. <em>Not bytes, but Hz!.</em> In <tt class="module">alsaaudio</tt>
-the period size is set directly, and it is therefore important to understand the significance of this 
-number. If the period size is configured to for example 32, each write should contain exactly 32 frames
-of sound data, and each read will return either 32 frames of data or nothing at all.
+<dd>This is the size of each period in Hz. <em>Not
+    bytes, but Hz!.</em> In <tt class="module">alsaaudio</tt> the period size is set
+  directly, and it is therefore important to understand the
+  significance of this number. If the period size is configured to for
+  example 32, each write should contain exactly 32 frames of sound
+  data, and each read will return either 32 frames of data or nothing
+  at all.
 
 <p>
 </dd>
 </dl>
 
 <p>
-Once you understand these concepts, you will be ready to actually utilize PCM API. Read on.
+Once you understand these concepts, you will be ready to use the PCM
+API. Read on.
 
 <p>
 
@@ -162,7 +176,7 @@ Once you understand these concepts, you will be ready to actually utilize PCM AP
 </div>
 </div>
 <hr />
-<span class="release-info">Release 0.3.</span>
+<span class="release-info">Release 0.4.</span>
 </div>
 <!--End of Navigation Panel-->
 

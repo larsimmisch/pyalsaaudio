@@ -60,8 +60,7 @@
  class="platform">Linux</span>.</p>
 
 <p>
-tex2html_comment_mark>15
-
+ 
 <p>
 
 <p>
@@ -83,12 +82,14 @@ sound card). Omit to use the default sound card.
   <td><nobr><b><span class="typelabel">class</span>&nbsp;<tt id='l2h-3' xml:id='l2h-3' class="class">PCM</tt></b>(</nobr></td>
   <td><var></var><big>[</big><var>type</var><big>]</big><var>, </var><big>[</big><var>mode</var><big>]</big><var>, </var><big>[</big><var>cardname</var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
-This class is used to represent a PCM device (both playback and capture devices).
-The arguments are: 
-<br><var>type</var> - can be either PCM_CAPTURE or PCM_PLAYBACK (default). 
-<br><var>mode</var> - can be either PCM_NONBLOCK, PCM_ASYNC, or PCM_NORMAL (the default).
-<br><var>cardname</var> - specifies which card should be used (this is only relevant 
-if you have more than one sound card). Omit to use the default sound card
+  This class is used to represent a PCM device (both playback and
+  capture devices).
+  The arguments are: 
+<br>  <var>type</var> - can be either PCM_CAPTURE or PCM_PLAYBACK (default). 
+<br>  <var>mode</var> - can be either PCM_NONBLOCK, PCM_ASYNC, or PCM_NORMAL (the default).
+<br>  <var>cardname</var> - specifies which card should be used (this is only
+  relevant if you have more than one sound card). Omit to use the
+  default sound card
 </dl>
 
 <p>
@@ -99,7 +100,7 @@ if you have more than one sound card). Omit to use the default sound card
 This class is used to access a specific ALSA mixer.
 The arguments are: 
 <br><var>control</var> - Name of the chosen mixed (default is Master). 
-<br><var>id</var> - id of mixer (default is 0) - More explaniation needed here
+<br><var>id</var> - id of mixer (default is 0) - More explanation needed here
 <br><var>cardname</var> specifies which card should be used (this is only relevant 
 if you have more than one sound card). Omit to use the default sound card
 </dl>
@@ -107,9 +108,9 @@ if you have more than one sound card). Omit to use the default sound card
 <p>
 <dl><dt><b><span class="typelabel">exception</span>&nbsp;<tt id='l2h-5' xml:id='l2h-5' class="exception">ALSAAudioError</tt></b></dt>
 <dd>
-Exception raised when an operation fails for a ALSA specific reason.
-The exception argument is a string describing the reason of the
-failure.
+  Exception raised when an operation fails for a ALSA specific reason.
+  The exception argument is a string describing the reason of the
+  failure.
 </dd></dl>
 
 <p>
@@ -161,7 +162,7 @@ failure.
 </div>
 </div>
 <hr />
-<span class="release-info">Release 0.3.</span>
+<span class="release-info">Release 0.4.</span>
 </div>
 <!--End of Navigation Panel-->
 

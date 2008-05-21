@@ -191,7 +191,7 @@ alsapcm_dumpinfo(alsapcm_t *self, PyObject *args) {
   snd_pcm_hw_params_current(self->handle,hwparams);
 
 
-  if (!PyArg_ParseTuple(args,"")) return NULL;
+  if (!PyArg_ParseTuple(args,":dumpinfo")) return NULL;
 
   printf("PCM handle name = '%s'\n", snd_pcm_name(self->handle));
   printf("PCM state = %s\n", snd_pcm_state_name(snd_pcm_state(self->handle)));
@@ -276,7 +276,7 @@ alsapcm_dumpinfo(alsapcm_t *self, PyObject *args) {
 
 static PyObject *
 alsapcm_pcmtype(alsapcm_t *self, PyObject *args) {
-  if (!PyArg_ParseTuple(args,"")) return NULL;
+  if (!PyArg_ParseTuple(args,":pcmtype")) return NULL;
   return PyInt_FromLong(self->pcmtype);
 }
 
@@ -288,7 +288,7 @@ Returns either PCM_CAPTURE or PCM_PLAYBACK.");
 
 static PyObject *
 alsapcm_pcmmode(alsapcm_t *self, PyObject *args) {
-  if (!PyArg_ParseTuple(args,"")) return NULL;
+  if (!PyArg_ParseTuple(args,"pcmmode")) return NULL;
   return PyInt_FromLong(self->pcmmode);
 }
 
@@ -303,7 +303,7 @@ Returns the mode of the PCM object. One of:\n\
 
 static PyObject *
 alsapcm_cardname(alsapcm_t *self, PyObject *args) {
-  if (!PyArg_ParseTuple(args,"")) return NULL;
+  if (!PyArg_ParseTuple(args,":cardname")) return NULL;
   return PyString_FromString(self->cardname);
 }
 
@@ -317,7 +317,7 @@ static PyObject *
 alsapcm_setchannels(alsapcm_t *self, PyObject *args) {
   int channels;
   int res;
-  if (!PyArg_ParseTuple(args,"i",&channels)) return NULL;
+  if (!PyArg_ParseTuple(args,"i:setchannels",&channels)) return NULL;
   self->channels = channels;
   res = alsapcm_setup(self);
   if (res < 0) {
@@ -340,7 +340,7 @@ static PyObject *
 alsapcm_setrate(alsapcm_t *self, PyObject *args) {
   int rate;
   int res;
-  if (!PyArg_ParseTuple(args,"i",&rate)) return NULL;
+  if (!PyArg_ParseTuple(args,"i:setrate",&rate)) return NULL;
   self->rate = rate;
   res = alsapcm_setup(self);
   if (res < 0) {
@@ -361,7 +361,7 @@ static PyObject *
 alsapcm_setformat(alsapcm_t *self, PyObject *args) {
   int format;
   int res;
-  if (!PyArg_ParseTuple(args,"i",&format)) return NULL;
+  if (!PyArg_ParseTuple(args,"i:setformat",&format)) return NULL;
   self->format = format;
   res = alsapcm_setup(self);
   if (res < 0) {
@@ -379,7 +379,7 @@ static PyObject *
 alsapcm_setperiodsize(alsapcm_t *self, PyObject *args) {
   int periodsize;
   int res;
-  if (!PyArg_ParseTuple(args,"i",&periodsize)) return NULL;
+  if (!PyArg_ParseTuple(args,"i:setperiodsize",&periodsize)) return NULL;
   self->periodsize = periodsize;
   res = alsapcm_setup(self);
   if (res < 0) {
@@ -408,7 +408,7 @@ alsapcm_read(alsapcm_t *self, PyObject *args) {
     return NULL;
   }
 
-  if (!PyArg_ParseTuple(args,"")) return NULL;
+  if (!PyArg_ParseTuple(args,":read")) return NULL;
   if (self->pcmtype != SND_PCM_STREAM_CAPTURE) {
     PyErr_SetString(ALSAAudioError,"Cannot read from playback PCM");
     return NULL;
@@ -453,7 +453,7 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args) {
   char *data;
   int datalen;
   int res;
-  if (!PyArg_ParseTuple(args,"s#",&data,&datalen)) return NULL;
+  if (!PyArg_ParseTuple(args,"s#:write",&data,&datalen)) return NULL;
   if (datalen%self->framesize) {
     PyErr_SetString(ALSAAudioError,
                     "Data size must be a multiple of framesize");
@@ -500,7 +500,7 @@ written at a later time.");
 
 static PyObject *alsapcm_pause(alsapcm_t *self, PyObject *args) {
   int enabled=1, res;
-  if (!PyArg_ParseTuple(args,"|i",&enabled)) return NULL;
+  if (!PyArg_ParseTuple(args,"|i:pause",&enabled)) return NULL;
 
   Py_BEGIN_ALLOW_THREADS
   res = snd_pcm_pause(self->handle, enabled);
@@ -632,7 +632,7 @@ alsamixer_list(PyObject *self, PyObject *args) {
   char *cardname = "default";
   PyObject *result = PyList_New(0);
 
-  if (!PyArg_ParseTuple(args,"|s",&cardname)) return NULL;
+  if (!PyArg_ParseTuple(args,"|s:mixers",&cardname)) return NULL;
     
   snd_mixer_selem_id_alloca(&sid);
   err = alsamixer_gethandle(cardname,&handle);
@@ -751,8 +751,9 @@ alsamixer_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
     if (snd_mixer_selem_is_playback_mono(elem)) self->pchannels = 1;
     else {
       for (channel=0; channel <= SND_MIXER_SCHN_LAST; channel++) {
-    if (snd_mixer_selem_has_playback_channel(elem, channel)) self->pchannels++;
-    else break;
+        if (snd_mixer_selem_has_playback_channel(elem, channel)) 
+          self->pchannels++;
+        else break;
       }
     }
   }
@@ -762,8 +763,9 @@ alsamixer_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
     if (snd_mixer_selem_is_capture_mono(elem)) self->cchannels = 1;
     else {
       for (channel=0; channel <= SND_MIXER_SCHN_LAST; channel++) {
-    if (snd_mixer_selem_has_capture_channel(elem, channel)) self->cchannels++;
-    else break;
+        if (snd_mixer_selem_has_capture_channel(elem, channel)) 
+          self->cchannels++;
+        else break;
       }
     }
   }
@@ -784,7 +786,7 @@ static void alsamixer_dealloc(alsamixer_t *self) {
 
 static PyObject *
 alsamixer_cardname(alsamixer_t *self, PyObject *args) {
-  if (!PyArg_ParseTuple(args,"")) return NULL;
+  if (!PyArg_ParseTuple(args,":cardname")) return NULL;
   return PyString_FromString(self->cardname);
 }
 
@@ -796,7 +798,7 @@ Returns the name of the sound card used by this Mixer object.");
 
 static PyObject *
 alsamixer_mixer(alsamixer_t *self, PyObject *args) {
-  if (!PyArg_ParseTuple(args,"")) return NULL;
+  if (!PyArg_ParseTuple(args,":mixer")) return NULL;
   return PyString_FromString(self->controlname);
 }
 
@@ -809,7 +811,7 @@ for example 'Master' or 'PCM'");
 
 static PyObject *
 alsamixer_mixerid(alsamixer_t *self, PyObject *args) {
-  if (!PyArg_ParseTuple(args,"")) return NULL;
+  if (!PyArg_ParseTuple(args,":mixerid")) return NULL;
   return PyInt_FromLong(self->controlid);
 }
 
@@ -822,7 +824,7 @@ Returns the ID of the ALSA mixer controlled by this object.");
 static PyObject *
 alsamixer_volumecap(alsamixer_t *self, PyObject *args) {
   PyObject *result;
-  if (!PyArg_ParseTuple(args,"")) return NULL;
+  if (!PyArg_ParseTuple(args,":volumecap")) return NULL;
   result = PyList_New(0);
   if (self->volume_cap&MIXER_CAP_VOLUME) 
     PyList_Append(result,PyString_FromString("Volume"));
@@ -856,7 +858,7 @@ Possible values in this list are:\n\
 static PyObject *
 alsamixer_switchcap(alsamixer_t *self, PyObject *args) {
   PyObject *result;
-  if (!PyArg_ParseTuple(args,"")) return NULL;
+  if (!PyArg_ParseTuple(args,":switchcap")) return NULL;
   result = PyList_New(0);
   if (self->volume_cap&MIXER_CAP_SWITCH) 
     PyList_Append(result,PyString_FromString("Mute"));
@@ -920,7 +922,7 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args) {
   char *dirstr = 0;
   PyObject *result;
 
-  if (!PyArg_ParseTuple(args,"|s",&dirstr)) return NULL;
+  if (!PyArg_ParseTuple(args,"|s:getvolume",&dirstr)) return NULL;
 
   elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
 
@@ -948,8 +950,8 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args) {
              && snd_mixer_selem_has_capture_volume(elem)) {
       snd_mixer_selem_get_capture_volume(elem, channel, &ival);
       PyList_Append(
-        result,PyInt_FromLong(alsamixer_getpercentage(self->cmin,
-                                                      self->cmax, ival)));
+        result, PyInt_FromLong(alsamixer_getpercentage(self->cmin,
+                                                       self->cmax, ival)));
     }
   }
   return result;
@@ -972,9 +974,8 @@ alsamixer_getrange(alsamixer_t *self, PyObject *args) {
   snd_mixer_elem_t *elem;
   int direction;
   char *dirstr = 0;
-  PyObject *result;
 
-  if (!PyArg_ParseTuple(args,"|s",&dirstr)) return NULL;
+  if (!PyArg_ParseTuple(args,"|s:getrange",&dirstr)) return NULL;
 
   elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
 
@@ -985,20 +986,31 @@ alsamixer_getrange(alsamixer_t *self, PyObject *args) {
   else if (strcasecmp(dirstr,"playback")==0) direction = 0;
   else if (strcasecmp(dirstr,"capture")==0) direction = 1;
   else {
-    PyErr_SetString(ALSAAudioError,"Invalid direction argument for direction");
+    PyErr_SetString(ALSAAudioError,"Invalid argument for direction");
     return NULL;
   }
-  result = PyList_New(0);
-    if (direction == 0 && snd_mixer_selem_has_playback_channel(elem, 0)) {
-        PyList_Append(result,PyInt_FromLong(self->pmin));
-        PyList_Append(result,PyInt_FromLong(self->pmax));
+  if (direction == 0) {
+    if (snd_mixer_selem_has_playback_channel(elem, 0)) {
+      return Py_BuildValue("[ii]", self->pmin, self->pmax);
     }
-    else if (direction == 1 && snd_mixer_selem_has_capture_channel(elem, 0)
-            && snd_mixer_selem_has_capture_volume(elem)) {
-        PyList_Append(result,PyInt_FromLong(self->cmin));
-        PyList_Append(result,PyInt_FromLong(self->cmax));
+
+    PyErr_SetString(ALSAAudioError, "Mixer has no playback channel");
+    return NULL;
+  }
+  else if (direction == 1) { 
+    if (snd_mixer_selem_has_capture_channel(elem, 0)
+        && snd_mixer_selem_has_capture_volume(elem)) {
+      return Py_BuildValue("[ii]", self->cmin, self->cmax);
     }
-  return result;
+
+    PyErr_SetString(ALSAAudioError, "Mixer has no capture channel "
+                    "or capture volume");
+    return NULL;    
+  }
+  
+  // Unreached statement
+  PyErr_SetString(ALSAAudioError,"Huh?");
+  return NULL;
 }
 
 PyDoc_STRVAR(getrange_doc,
@@ -1015,40 +1027,73 @@ if the mixer has this capability, otherwise 'capture'");
 static PyObject *
 alsamixer_getenum(alsamixer_t *self, PyObject *args) {
   snd_mixer_elem_t *elem;
+  PyObject *elems;
+  int i, count, rc;
   unsigned int index;
   char name[32];
-  int res;
 
   PyObject *result;
-  if (!PyArg_ParseTuple(args,"")) return NULL;
+  if (!PyArg_ParseTuple(args, ":getenum")) return NULL;
 
   elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
   if (!snd_mixer_selem_is_enumerated(elem)) {
-    PyErr_SetString(ALSAAudioError,"Mixer is no enumerated control");
-    return NULL;
-  }    
+    // Not an enumerated control, return an empty tuple
+    return PyTuple_New(0);
+  }
 
-  res=snd_mixer_selem_get_enum_item(elem, 0, &index);
-  if(res) {
-    PyErr_SetString(ALSAAudioError, snd_strerror(res));
+  count = snd_mixer_selem_get_enum_items(elem);
+  if (count < 0) {
+    PyErr_SetString(ALSAAudioError, snd_strerror(count));
     return NULL;
   }
-  res=snd_mixer_selem_get_enum_item_name(elem, index, sizeof(name)-1, name);
-  if(res) {
-    PyErr_SetString(ALSAAudioError, snd_strerror(res));
+
+  result = PyTuple_New(2);
+  if (!result)
     return NULL;
-  } else {
-    result = PyList_New(0);
-    PyList_Append(result,PyString_FromString(name));
+
+  rc = snd_mixer_selem_get_enum_item(elem, 0, &index);
+  if(rc) {
+    PyErr_SetString(ALSAAudioError, snd_strerror(rc));
+    return NULL;
   }
+  rc = snd_mixer_selem_get_enum_item_name(elem, index, sizeof(name)-1, name);
+  if (rc) {
+    Py_DECREF(result);
+    PyErr_SetString(ALSAAudioError, snd_strerror(rc));
+    return NULL;
+  }  
+  
+  PyTuple_SetItem(result, 0, PyString_FromString(name));
+
+  elems = PyList_New(count);
+  if (!elems)
+  {
+    Py_DECREF(result);
+    return NULL;
+  }
+
+  for (i = 0; i < count; ++i) {
+    rc = snd_mixer_selem_get_enum_item_name(elem, i, sizeof(name)-1, name);
+    if (rc) {
+      Py_DECREF(elems);
+      Py_DECREF(result);
+      PyErr_SetString(ALSAAudioError, snd_strerror(rc));
+      return NULL;
+    }
+
+    PyList_SetItem(elems, i, PyString_FromString(name));
+  }
+
+  PyTuple_SetItem(result, 1, elems);
+
   return result;
 }
 
 PyDoc_STRVAR(getenum_doc,
-"getenum([direction]) -> List of enumerated controls (string)\n\
+"getenum() -> Tuple of (string, list of strings)\n\
 \n\
-Returns a list of strings with the enumerated controls.");
-
+Returns a a tuple. The first element is name of the active enumerated item, \n\
+the second a list available enumerated items.");
 
 static PyObject *
 alsamixer_getmute(alsamixer_t *self, PyObject *args) {
@@ -1056,7 +1101,7 @@ alsamixer_getmute(alsamixer_t *self, PyObject *args) {
   int i;
   int ival;
   PyObject *result;
-  if (!PyArg_ParseTuple(args,"")) return NULL;
+  if (!PyArg_ParseTuple(args,":getmute")) return NULL;
 
   elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
   if (!snd_mixer_selem_has_playback_switch(elem)) {
@@ -1088,7 +1133,7 @@ alsamixer_getrec(alsamixer_t *self, PyObject *args) {
   int i;
   int ival;
   PyObject *result;
-  if (!PyArg_ParseTuple(args,"")) return NULL;
+  if (!PyArg_ParseTuple(args,":getrec")) return NULL;
 
   elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
   if (!snd_mixer_selem_has_capture_switch(elem)) {
@@ -1124,7 +1169,9 @@ alsamixer_setvolume(alsamixer_t *self, PyObject *args) {
   int channel = MIXER_CHANNEL_ALL;
   int done = 0;
 
-  if (!PyArg_ParseTuple(args,"l|is",&volume,&channel,&dirstr)) return NULL;
+  if (!PyArg_ParseTuple(args,"l|is:setvolume",&volume,&channel,&dirstr)) 
+    return NULL;
+
   if (volume < 0 || volume > 100) {
     PyErr_SetString(ALSAAudioError,"Volume must be between 0 and 100");
     return NULL;
@@ -1146,16 +1193,16 @@ alsamixer_setvolume(alsamixer_t *self, PyObject *args) {
   for (i = 0; i <= SND_MIXER_SCHN_LAST; i++) {
     if (channel == -1 || channel == i) {
       if (direction == 0 && snd_mixer_selem_has_playback_channel(elem, i)) {
-	physvolume = alsamixer_getphysvolume(self->pmin,self->pmax,volume);
-	snd_mixer_selem_set_playback_volume(elem, i, physvolume);
-	done++;
+        physvolume = alsamixer_getphysvolume(self->pmin,self->pmax,volume);
+        snd_mixer_selem_set_playback_volume(elem, i, physvolume);
+        done++;
       }
       else if (direction == 1
                && snd_mixer_selem_has_capture_channel(elem, channel)
                && snd_mixer_selem_has_capture_volume(elem)) {
-	physvolume = alsamixer_getphysvolume(self->cmin,self->cmax,volume);
-	snd_mixer_selem_set_capture_volume(elem, i, physvolume);
-	done++;
+        physvolume = alsamixer_getphysvolume(self->cmin,self->cmax,volume);
+        snd_mixer_selem_set_capture_volume(elem, i, physvolume);
+        done++;
       }
     }
   }
@@ -1190,7 +1237,7 @@ alsamixer_setmute(alsamixer_t *self, PyObject *args) {
   int mute = 0;
   int done = 0;
   int channel = MIXER_CHANNEL_ALL;
-  if (!PyArg_ParseTuple(args,"i|i",&mute,&channel)) return NULL;
+  if (!PyArg_ParseTuple(args,"i|i:setmute",&mute,&channel)) return NULL;
 
   elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
   if (!snd_mixer_selem_has_playback_switch(elem)) {
@@ -1200,8 +1247,8 @@ alsamixer_setmute(alsamixer_t *self, PyObject *args) {
   for (i = 0; i <= SND_MIXER_SCHN_LAST; i++) {
     if (channel == MIXER_CHANNEL_ALL || channel == i) {
       if (snd_mixer_selem_has_playback_channel(elem, i)) {
-	snd_mixer_selem_set_playback_switch(elem, i, !mute);
-	done++;
+        snd_mixer_selem_set_playback_switch(elem, i, !mute);
+        done++;
       }
     }
   }
@@ -1231,7 +1278,7 @@ alsamixer_setrec(alsamixer_t *self, PyObject *args) {
   int rec = 0;
   int done = 0;
   int channel = MIXER_CHANNEL_ALL;
-  if (!PyArg_ParseTuple(args,"i|i",&rec,&channel)) return NULL;
+  if (!PyArg_ParseTuple(args,"i|i:setrec",&rec,&channel)) return NULL;
 
   elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
   if (!snd_mixer_selem_has_capture_switch(elem)) {
@@ -1369,39 +1416,52 @@ void initalsaaudio(void) {
   }
 
 
-  _EXPORT_INT(m,"PCM_PLAYBACK",SND_PCM_STREAM_PLAYBACK);
-  _EXPORT_INT(m,"PCM_CAPTURE",SND_PCM_STREAM_CAPTURE);
+  _EXPORT_INT(m, "PCM_PLAYBACK",SND_PCM_STREAM_PLAYBACK);
+  _EXPORT_INT(m, "PCM_CAPTURE",SND_PCM_STREAM_CAPTURE);
 
-  _EXPORT_INT(m,"PCM_NORMAL",0);
-  _EXPORT_INT(m,"PCM_NONBLOCK",SND_PCM_NONBLOCK);
-  _EXPORT_INT(m,"PCM_ASYNC",SND_PCM_ASYNC);
+  _EXPORT_INT(m, "PCM_NORMAL",0);
+  _EXPORT_INT(m, "PCM_NONBLOCK",SND_PCM_NONBLOCK);
+  _EXPORT_INT(m, "PCM_ASYNC",SND_PCM_ASYNC);
 
   /* PCM Formats */
-  _EXPORT_INT(m,"PCM_FORMAT_S8",SND_PCM_FORMAT_S8);
-  _EXPORT_INT(m,"PCM_FORMAT_U8",SND_PCM_FORMAT_U8);
-  _EXPORT_INT(m,"PCM_FORMAT_S16_LE",SND_PCM_FORMAT_S16_LE);
-  _EXPORT_INT(m,"PCM_FORMAT_S16_BE",SND_PCM_FORMAT_S16_BE);
-  _EXPORT_INT(m,"PCM_FORMAT_U16_LE",SND_PCM_FORMAT_U16_LE);
-  _EXPORT_INT(m,"PCM_FORMAT_U16_BE",SND_PCM_FORMAT_U16_BE);
-  _EXPORT_INT(m,"PCM_FORMAT_S24_LE",SND_PCM_FORMAT_S24_LE);
-  _EXPORT_INT(m,"PCM_FORMAT_S24_BE",SND_PCM_FORMAT_S24_BE);
-  _EXPORT_INT(m,"PCM_FORMAT_U24_LE",SND_PCM_FORMAT_U24_LE);
-  _EXPORT_INT(m,"PCM_FORMAT_U24_BE",SND_PCM_FORMAT_U24_BE);
-  _EXPORT_INT(m,"PCM_FORMAT_S32_LE",SND_PCM_FORMAT_S32_LE);
-  _EXPORT_INT(m,"PCM_FORMAT_S32_BE",SND_PCM_FORMAT_S32_BE);
-  _EXPORT_INT(m,"PCM_FORMAT_U32_LE",SND_PCM_FORMAT_U32_LE);
-  _EXPORT_INT(m,"PCM_FORMAT_U32_BE",SND_PCM_FORMAT_U32_BE);
-  _EXPORT_INT(m,"PCM_FORMAT_FLOAT_LE",SND_PCM_FORMAT_FLOAT_LE);
-  _EXPORT_INT(m,"PCM_FORMAT_FLOAT_BE",SND_PCM_FORMAT_FLOAT_BE);
-  _EXPORT_INT(m,"PCM_FORMAT_FLOAT64_LE",SND_PCM_FORMAT_FLOAT64_LE);
-  _EXPORT_INT(m,"PCM_FORMAT_FLOAT64_BE",SND_PCM_FORMAT_FLOAT64_BE);
-  _EXPORT_INT(m,"PCM_FORMAT_MU_LAW",SND_PCM_FORMAT_MU_LAW);
-  _EXPORT_INT(m,"PCM_FORMAT_A_LAW",SND_PCM_FORMAT_A_LAW);
-  _EXPORT_INT(m,"PCM_FORMAT_IMA_ADPCM",SND_PCM_FORMAT_IMA_ADPCM);
-  _EXPORT_INT(m,"PCM_FORMAT_MPEG",SND_PCM_FORMAT_MPEG);
-  _EXPORT_INT(m,"PCM_FORMAT_GSM",SND_PCM_FORMAT_GSM);
+  _EXPORT_INT(m, "PCM_FORMAT_S8",SND_PCM_FORMAT_S8);
+  _EXPORT_INT(m, "PCM_FORMAT_U8",SND_PCM_FORMAT_U8);
+  _EXPORT_INT(m, "PCM_FORMAT_S16_LE",SND_PCM_FORMAT_S16_LE);
+  _EXPORT_INT(m, "PCM_FORMAT_S16_BE",SND_PCM_FORMAT_S16_BE);
+  _EXPORT_INT(m, "PCM_FORMAT_U16_LE",SND_PCM_FORMAT_U16_LE);
+  _EXPORT_INT(m, "PCM_FORMAT_U16_BE",SND_PCM_FORMAT_U16_BE);
+  _EXPORT_INT(m, "PCM_FORMAT_S24_LE",SND_PCM_FORMAT_S24_LE);
+  _EXPORT_INT(m, "PCM_FORMAT_S24_BE",SND_PCM_FORMAT_S24_BE);
+  _EXPORT_INT(m, "PCM_FORMAT_U24_LE",SND_PCM_FORMAT_U24_LE);
+  _EXPORT_INT(m, "PCM_FORMAT_U24_BE",SND_PCM_FORMAT_U24_BE);
+  _EXPORT_INT(m, "PCM_FORMAT_S32_LE",SND_PCM_FORMAT_S32_LE);
+  _EXPORT_INT(m, "PCM_FORMAT_S32_BE",SND_PCM_FORMAT_S32_BE);
+  _EXPORT_INT(m, "PCM_FORMAT_U32_LE",SND_PCM_FORMAT_U32_LE);
+  _EXPORT_INT(m, "PCM_FORMAT_U32_BE",SND_PCM_FORMAT_U32_BE);
+  _EXPORT_INT(m, "PCM_FORMAT_FLOAT_LE",SND_PCM_FORMAT_FLOAT_LE);
+  _EXPORT_INT(m, "PCM_FORMAT_FLOAT_BE",SND_PCM_FORMAT_FLOAT_BE);
+  _EXPORT_INT(m, "PCM_FORMAT_FLOAT64_LE",SND_PCM_FORMAT_FLOAT64_LE);
+  _EXPORT_INT(m, "PCM_FORMAT_FLOAT64_BE",SND_PCM_FORMAT_FLOAT64_BE);
+  _EXPORT_INT(m, "PCM_FORMAT_MU_LAW",SND_PCM_FORMAT_MU_LAW);
+  _EXPORT_INT(m, "PCM_FORMAT_A_LAW",SND_PCM_FORMAT_A_LAW);
+  _EXPORT_INT(m, "PCM_FORMAT_IMA_ADPCM",SND_PCM_FORMAT_IMA_ADPCM);
+  _EXPORT_INT(m, "PCM_FORMAT_MPEG",SND_PCM_FORMAT_MPEG);
+  _EXPORT_INT(m, "PCM_FORMAT_GSM",SND_PCM_FORMAT_GSM);
 
   /* Mixer stuff */
-  _EXPORT_INT(m,"MIXER_CHANNEL_ALL",MIXER_CHANNEL_ALL);
+  _EXPORT_INT(m, "MIXER_CHANNEL_ALL", MIXER_CHANNEL_ALL);
 
+#if 0 // Omit for now - use case unknown
+  _EXPORT_INT(m, "MIXER_SCHN_UNKNOWN", SND_MIXER_SCHN_UNKNOWN);
+  _EXPORT_INT(m, "MIXER_SCHN_FRONT_LEFT", SND_MIXER_SCHN_FRONT_LEFT);
+  _EXPORT_INT(m, "MIXER_SCHN_FRONT_RIGHT", SND_MIXER_SCHN_FRONT_RIGHT);
+  _EXPORT_INT(m, "MIXER_SCHN_REAR_LEFT", SND_MIXER_SCHN_REAR_LEFT);
+  _EXPORT_INT(m, "MIXER_SCHN_REAR_RIGHT", SND_MIXER_SCHN_REAR_RIGHT);
+  _EXPORT_INT(m, "MIXER_SCHN_FRONT_CENTER", SND_MIXER_SCHN_FRONT_CENTER);
+  _EXPORT_INT(m, "MIXER_SCHN_WOOFER", SND_MIXER_SCHN_WOOFER);
+  _EXPORT_INT(m, "MIXER_SCHN_SIDE_LEFT", SND_MIXER_SCHN_SIDE_LEFT);
+  _EXPORT_INT(m, "MIXER_SCHN_SIDE_RIGHT", SND_MIXER_SCHN_SIDE_RIGHT);
+  _EXPORT_INT(m, "MIXER_SCHN_REAR_CENTER", SND_MIXER_SCHN_REAR_CENTER);
+  _EXPORT_INT(m, "MIXER_SCHN_MONO", SND_MIXER_SCHN_MONO);
+#endif
 }

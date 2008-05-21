@@ -60,19 +60,23 @@ Mixer objects provides access to the ALSA mixer API.
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><span class="typelabel">class</span>&nbsp;<tt id='l2h-16' xml:id='l2h-16' class="class">Mixer</tt></b>(</nobr></td>
-  <td><var></var><big>[</big><var>control</var><big>]</big><var>, </var><big>[</big><var>id</var><big>]</big><var>, </var><big>[</big><var>cardname</var><big>]</big><var></var>)</td></tr></table></dt>
+  <td><nobr><b><span class="typelabel">class</span>&nbsp;<tt id='l2h-17' xml:id='l2h-17' class="class">Mixer</tt></b>(</nobr></td>
+  <td><var></var><big>[</big><var>control</var><big>]</big><var>, </var><big>[</big><var>id</var><big>]</big><var>, 
+    </var><big>[</big><var>cardname</var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
-<var>control</var> - specifies which control to manipulate using this mixer object. The list
-of available controls can be found with the <tt class="module">alsaaudio</tt>.<tt class="function">mixers</tt> function.
-The default value is 'Master' - other common controls include 'Master Mono', 'PCM', 'Line', etc.
+  <var>control</var> - specifies which control to manipulate using this
+  mixer object. The list of available controls can be found with the
+  <tt class="module">alsaaudio</tt>.<tt class="function">mixers</tt> function.  The default value is
+  'Master' - other common controls include 'Master Mono', 'PCM',
+  'Line', etc.
 
 <p>
 <var>id</var> - the id of the mixer control. Default is 0
 
 <p>
-<var>cardname</var> - specifies which card should be used (this is only relevant 
-if you have more than one sound card). Omit to use the default sound card
+<var>cardname</var> - specifies which card should be used (this is only
+  relevant if you have more than one sound card). Omit to use the
+  default sound card
 </dl>
 
 <p>
@@ -80,36 +84,36 @@ Mixer objects have the following methods:
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-17' xml:id='l2h-17' class="method">cardname</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-18' xml:id='l2h-18' class="method">cardname</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
-Return the name of the sound card used by this Mixer object
+  Return the name of the sound card used by this Mixer object
 </dl>
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-18' xml:id='l2h-18' class="method">mixer</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-19' xml:id='l2h-19' class="method">mixer</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
-Return the name of the specific mixer controlled by this object, For example 'Master'
-or 'PCM'
+  Return the name of the specific mixer controlled by this object, For
+  example 'Master' or 'PCM'
 </dl>
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-19' xml:id='l2h-19' class="method">mixerid</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-20' xml:id='l2h-20' class="method">mixerid</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
-Return the ID of the ALSA mixer controlled by this object.
+  Return the ID of the ALSA mixer controlled by this object.
 </dl>
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-20' xml:id='l2h-20' class="method">switchcap</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-21' xml:id='l2h-21' class="method">switchcap</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
-Returns a list of the switches which are defined by this specific mixer. Possible values in
-this list are:
+  Returns a list of the switches which are defined by this specific
+  mixer. Possible values in this list are:
 
 <p>
 <div class="center"><table class="realtable">
@@ -137,16 +141,17 @@ this list are:
 </table></div>
 
 <p>
-To manipulate these swithes use the <tt class="method">setrec</tt> or <tt class="method">setmute</tt> methods
+To manipulate these swithes use the <tt class="method">setrec</tt> or
+<tt class="method">setmute</tt> methods
 </dl>
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-21' xml:id='l2h-21' class="method">volumecap</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-22' xml:id='l2h-22' class="method">volumecap</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
-Returns a list of the volume control capabilities of this mixer. Possible values in
-the list are:
+  Returns a list of the volume control capabilities of this mixer.
+  Possible values in the list are:
 
 <p>
 <div class="center"><table class="realtable">
@@ -160,15 +165,18 @@ the list are:
     <tr><td class="left"   valign="baseline"><volume capabilities>'Volume'</volume></td>
         <td class="left"  >This mixer can control volume</td></tr>
     <tr><td class="left"   valign="baseline"><volume capabilities>'Joined Volume'</volume></td>
-        <td class="left"  >This mixer can control volume for all channels at the same time</td></tr>
+        <td class="left"  >This mixer can control volume for all channels at 
+    the same time</td></tr>
     <tr><td class="left"   valign="baseline"><volume capabilities>'Playback Volume'</volume></td>
         <td class="left"  >This mixer can manipulate the playback volume</td></tr>
     <tr><td class="left"   valign="baseline"><volume capabilities>'Joined Playback Volume'</volume></td>
-        <td class="left"  >Manipulate playback volumne for all channels at the same time</td></tr>
+        <td class="left"  >Manipulate playback volumne for all 
+    channels at the same time</td></tr>
     <tr><td class="left"   valign="baseline"><volume capabilities>'Capture Volume'</volume></td>
         <td class="left"  >Manipulate sound capture volume</td></tr>
     <tr><td class="left"   valign="baseline"><volume capabilities>'Joined Capture Volume'</volume></td>
-        <td class="left"  >Manipulate sound capture volume for all channels at a time</td></tr></tbody>
+        <td class="left"  >Manipulate sound capture volume for all 
+    channels at a time</td></tr></tbody>
 </table></div>
 
 <p>
@@ -176,34 +184,40 @@ the list are:
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-22' xml:id='l2h-22' class="method">getrange</tt></b>(</nobr></td>
-  <td><var></var><big>[</big><var>direction</var><big>]</big><var></var>)</td></tr></table></dt>
+  <td><nobr><b><tt id='l2h-23' xml:id='l2h-23' class="method">getenum</tt></b>(</nobr></td>
+  <td><var></var>)</td></tr></table></dt>
 <dd>
-Return the volume range of the ALSA mixer controlled by this object.
+  For enumerated controls, return the currently selected item and 
+  the list of items available.
 
 <p>
-The optional <var>direction</var> argument can be either 'playback' or 'capture', 
-which is relevant if the mixer can control both playback and capture volume. 
-The default value is 'playback' if the mixer has this capability, otherwise 
-'capture'
+Returns a tuple <i>(string, list of strings)</i>. 
 
 <p>
-</dl>
+For example, my soundcard has a Mixer called <i>Mono Output Select</i>.
+  Using <i>amixer</i>, I get:
 
 <p>
-<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-23' xml:id='l2h-23' class="method">getvolume</tt></b>(</nobr></td>
-  <td><var></var><big>[</big><var>direction</var><big>]</big><var></var>)</td></tr></table></dt>
-<dd>
-Returns a list with the current volume settings for each channel. The list elements
-are integer percentages.
+<div class="verbatim"><pre>
+$ amixer get "Mono Output Select"
+Simple mixer control 'Mono Output Select',0
+  Capabilities: enum
+  Items: 'Mix' 'Mic'
+  Item0: 'Mix'
+</pre></div>
 
 <p>
-The optional <var>direction</var> argument can be either 'playback' or 'capture', which is relevant
-if the mixer can control both playback and capture volume. The default value is 'playback'
-if the mixer has this capability, otherwise 'capture'
+Using <tt class="module">alsaaudio</tt>, one could do:
+<div class="verbatim"><pre>
+&gt;&gt;&gt; import alsaaudio
+&gt;&gt;&gt; m = alsaaudio.Mixer('Mono Output Select')
+&gt;&gt;&gt; m.getenum()
+('Mix', ['Mix', 'Mic'])
+</pre></div>
 
 <p>
+This method will return an empty tuple if the mixer is not an 
+  enumerated control.
 </dl>
 
 <p>
@@ -211,52 +225,95 @@ if the mixer has this capability, otherwise 'capture'
   <td><nobr><b><tt id='l2h-24' xml:id='l2h-24' class="method">getmute</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
-Return a list indicating the current mute setting for each channel. 0 means not muted, 1 means muted.
+  Return a list indicating the current mute setting for each channel.
+  0 means not muted, 1 means muted.
 
 <p>
-This method will fail if the mixer has no playback switch capabilities.
+This method will fail if the mixer has no playback switch
+  capabilities.
 </dl>
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-25' xml:id='l2h-25' class="method">getrec</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-25' xml:id='l2h-25' class="method">getrange</tt></b>(</nobr></td>
+  <td><var></var><big>[</big><var>direction</var><big>]</big><var></var>)</td></tr></table></dt>
+<dd>
+  Return the volume range of the ALSA mixer controlled by this object.
+
+<p>
+The optional <var>direction</var> argument can be either 'playback' or
+  'capture', which is relevant if the mixer can control both playback
+  and capture volume.  The default value is 'playback' if the mixer
+  has this capability, otherwise 'capture'
+
+<p>
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-26' xml:id='l2h-26' class="method">getrec</tt></b>(</nobr></td>
   <td><var></var>)</td></tr></table></dt>
 <dd>
-Return a list indicating the current record mute setting for each channel. 0 means not recording, 1 
-means not recording.
+  Return a list indicating the current record mute setting for each
+  channel. 0 means not recording, 1 means recording.
 
 <p>
-This method will fail if the mixer has no capture switch capabilities.
+This method will fail if the mixer has no capture switch
+  capabilities.
 </dl>
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-26' xml:id='l2h-26' class="method">setvolume</tt></b>(</nobr></td>
-  <td><var>volume,</var><big>[</big><var>channel</var><big>]</big><var>,</var><big>[</big><var>direction</var><big>]</big><var></var>)</td></tr></table></dt>
+  <td><nobr><b><tt id='l2h-27' xml:id='l2h-27' class="method">getvolume</tt></b>(</nobr></td>
+  <td><var></var><big>[</big><var>direction</var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
-Change the current volume settings for this mixer. The <var>volume</var> argument controls
-the new volume setting as an integer percentage.
+  Returns a list with the current volume settings for each channel.
+  The list elements are integer percentages.
 
 <p>
-If the optional argument <var>channel</var> is present, the volume is set only for this channel. This
-assumes that the mixer can control the volume for the channels independently.
+The optional <var>direction</var> argument can be either 'playback' or
+  'capture', which is relevant if the mixer can control both playback
+  and capture volume. The default value is 'playback' if the mixer has
+  this capability, otherwise 'capture'
 
 <p>
-The optional <var>direction</var> argument can be either 'playback' or 'capture' is relevant if the mixer
-has independent playback and capture volume capabilities, and controls which of the volumes
-if changed. The default is 'playback' if the mixer has this capability, otherwise 'capture'.
 </dl>
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-27' xml:id='l2h-27' class="method">setmute</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-28' xml:id='l2h-28' class="method">setvolume</tt></b>(</nobr></td>
+  <td><var>volume,</var><big>[</big><var>channel</var><big>]</big><var>,
+    </var><big>[</big><var>direction</var><big>]</big><var></var>)</td></tr></table></dt>
+<dd>
+
+<p>
+Change the current volume settings for this mixer. The <var>volume</var>
+  argument controls the new volume setting as an integer percentage.
+
+<p>
+If the optional argument <var>channel</var> is present, the volume is set
+  only for this channel. This assumes that the mixer can control the
+  volume for the channels independently.
+
+<p>
+The optional <var>direction</var> argument can be either 'playback' or
+  'capture' is relevant if the mixer has independent playback and
+  capture volume capabilities, and controls which of the volumes if
+  changed. The default is 'playback' if the mixer has this capability,
+  otherwise 'capture'.
+</dl>
+
+<p>
+<dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
+  <td><nobr><b><tt id='l2h-29' xml:id='l2h-29' class="method">setmute</tt></b>(</nobr></td>
   <td><var>mute, </var><big>[</big><var>channel</var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
-Sets the mute flag to a new value. The <var>mute</var> argument is either 0 for not muted, or 1 for muted.
+  Sets the mute flag to a new value. The <var>mute</var> argument is either
+  0 for not muted, or 1 for muted.
 
 <p>
-The optional <var>channel</var> argument controls which channel is muted. The default is to set the mute flag
-for all channels.
+The optional <var>channel</var> argument controls which channel is muted.
+  The default is to set the mute flag for all channels.
 
 <p>
 This method will fail if the mixer has no playback mute capabilities
@@ -264,42 +321,48 @@ This method will fail if the mixer has no playback mute capabilities
 
 <p>
 <dl><dt><table cellpadding="0" cellspacing="0"><tr valign="baseline">
-  <td><nobr><b><tt id='l2h-28' xml:id='l2h-28' class="method">setrec</tt></b>(</nobr></td>
+  <td><nobr><b><tt id='l2h-30' xml:id='l2h-30' class="method">setrec</tt></b>(</nobr></td>
   <td><var>capture,</var><big>[</big><var>channel</var><big>]</big><var></var>)</td></tr></table></dt>
 <dd>
-Sets the capture mute flag to a new value. The <var>capture</var> argument is either 0 for no capture, 
-or 1 for capture.
+  Sets the capture mute flag to a new value. The <var>capture</var>
+  argument is either 0 for no capture, or 1 for capture.
 
 <p>
-The optional <var>channel</var> argument controls which channel is changed. The default is to set the capture flag
-for all channels.
+The optional <var>channel</var> argument controls which channel is
+  changed. The default is to set the capture flag for all channels.
 
 <p>
-This method will fail if the mixer has no capture switch capabilities
+This method will fail if the mixer has no capture switch
+  capabilities.
 </dl>
 
 <p>
 <b>A Note on the ALSA Mixer API</b>
 
 <p>
-The ALSA mixer API is extremely complicated - and hardly documented at all. <tt class="module">alsaaudio</tt> implements
-a much simplified way to access this API. In designing the API I've had to make some choices which
-may limit what can and cannot be controlled through the API. However, If I had chosen to implement the
-full API, I would have reexposed the horrible complexity/documentation ratio of the underlying API.
-At least the <tt class="module">alsaaudio</tt> API is easy to understand and use.
+The ALSA mixer API is extremely complicated - and hardly documented at
+all. <tt class="module">alsaaudio</tt> implements a much simplified way to access
+this API. In designing the API I've had to make some choices which may
+limit what can and cannot be controlled through the API. However, If I
+had chosen to implement the full API, I would have reexposed the
+horrible complexity/documentation ratio of the underlying API.  At
+least the <tt class="module">alsaaudio</tt> API is easy to understand and use.
 
 <p>
-If my design choises prevents you from doing something that the underlying API would have allowed,
-please let me know, so I can incorporate these need into future versions.
+If my design choises prevents you from doing something that the
+underlying API would have allowed, please let me know, so I can
+incorporate these need into future versions.
 
 <p>
-If the current state of affairs annoy you, the best you can do is to write a HOWTO on the API and
-make this available on the net. Until somebody does this, the availability of ALSA mixer capable
-devices will stay quite limited.
+If the current state of affairs annoy you, the best you can do is to
+write a HOWTO on the API and make this available on the net. Until
+somebody does this, the availability of ALSA mixer capable devices
+will stay quite limited.
 
 <p>
-Unfortunately, I'm not able to create such a HOWTO myself, since I only understand half of the API,
-and that which I do understand has come from a painful trial and error process.
+Unfortunately, I'm not able to create such a HOWTO myself, since I
+only understand half of the API, and that which I do understand has
+come from a painful trial and error process.
 
 <p>
 
@@ -336,7 +399,7 @@ and that which I do understand has come from a painful trial and error process.
 </div>
 </div>
 <hr />
-<span class="release-info">Release 0.3.</span>
+<span class="release-info">Release 0.4.</span>
 </div>
 <!--End of Navigation Panel-->
 

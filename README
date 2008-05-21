@@ -1,7 +1,7 @@
 PyAlsaAudio
 ===========
 
-Author: Casper Wilstrup (cwi@unispeed.dk)
+Author: Casper Wilstrup (cwi@aves.dk)
 
 This package contains wrappers for accessing the ALSA api from Python. It
 is currently fairly complete for PCM devices. My next goal is to have
@@ -52,4 +52,4 @@ stdin
 'recordtest.py' which captures sound from the microphone at writes
 it raw to stdout.
 
-'mixertest.py' which can be used to manipulate the mixers
+'mixertest.py' which can be used to manipulate the mixers.

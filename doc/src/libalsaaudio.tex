@@ -383,6 +383,43 @@ To manipulate these swithes use the \method{setrec} or
 
 \end{methoddesc}
 
+\begin{methoddesc}[Mixer]{getenum}{}
+  For enumerated controls, return the currently selected item and 
+  the list of items available.
+
+  Returns a tuple \textit{(string, list of strings)}. 
+  
+  For example, my soundcard has a Mixer called \textit{Mono Output Select}.
+  Using \textit{amixer}, I get:
+
+\begin{verbatim}
+$ amixer get "Mono Output Select"
+Simple mixer control 'Mono Output Select',0
+  Capabilities: enum
+  Items: 'Mix' 'Mic'
+  Item0: 'Mix'
+\end{verbatim}
+
+  Using \module{alsaaudio}, one could do:
+\begin{verbatim}
+>>> import alsaaudio
+>>> m = alsaaudio.Mixer('Mono Output Select')
+>>> m.getenum()
+('Mix', ['Mix', 'Mic'])
+\end{verbatim}
+
+  This method will return an empty tuple if the mixer is not an 
+  enumerated control.
+\end{methoddesc}
+
+\begin{methoddesc}[Mixer]{getmute}{}
+  Return a list indicating the current mute setting for each channel.
+  0 means not muted, 1 means muted.
+
+  This method will fail if the mixer has no playback switch
+  capabilities.
+\end{methoddesc}
+
 \begin{methoddesc}[Mixer]{getrange}{\optional{direction}}
   Return the volume range of the ALSA mixer controlled by this object.
 
@@ -391,6 +428,14 @@ To manipulate these swithes use the \method{setrec} or
   and capture volume.  The default value is 'playback' if the mixer
   has this capability, otherwise 'capture'
 
+\end{methoddesc}
+
+\begin{methoddesc}[Mixer]{getrec}{}
+  Return a list indicating the current record mute setting for each
+  channel. 0 means not recording, 1 means recording.
+
+  This method will fail if the mixer has no capture switch
+  capabilities.
 \end{methoddesc}
 
 \begin{methoddesc}[Mixer]{getvolume}{\optional{direction}}
@@ -402,22 +447,6 @@ To manipulate these swithes use the \method{setrec} or
   and capture volume. The default value is 'playback' if the mixer has
   this capability, otherwise 'capture'
 
-\end{methoddesc}
-
-\begin{methoddesc}[Mixer]{getmute}{}
-  Return a list indicating the current mute setting for each channel.
-  0 means not muted, 1 means muted.
-
-  This method will fail if the mixer has no playback switch
-  capabilities.
-\end{methoddesc}
-
-\begin{methoddesc}[Mixer]{getrec}{}
-  Return a list indicating the current record mute setting for each
-  channel. 0 means not recording, 1 means recording.
-
-  This method will fail if the mixer has no capture switch
-  capabilities.
 \end{methoddesc}
 
 \begin{methoddesc}[Mixer]{setvolume}{volume,\optional{channel},

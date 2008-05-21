@@ -55,11 +55,18 @@
 
 <p>
 Note: the wrappers link with the alsasound library (from the alsa-lib
-package). Verify that this is installed by looking for /usr/lib/libasound.so
-before building. Naturally you also need to use a kernel with proper ALSA
-support. This is the default in Linux kernel 2.6 and later. If you are using
-kernel version 2.4 you may need to install the ALSA patches yourself - although
-most distributions ship with ALSA kernels.
+package) and need the ALSA headers for compilation.  Verify that you
+have /usr/lib/libasound.so and /usr/include/alsa (or
+similar paths) before building.
+
+<p>
+On Debian (and probably Ubuntu), make sure you have libasound2-dev installed.
+
+<p>
+Naturally you also need to use a kernel with proper ALSA support. This
+is the default in Linux kernel 2.6 and later. If you are using kernel
+version 2.4 you may need to install the ALSA patches yourself -
+although most distributions ship with ALSA kernels.
 
 <p>
 To install, execute the following: 
@@ -108,7 +115,7 @@ And then as root:
 </div>
 </div>
 <hr />
-<span class="release-info">Release 0.3.</span>
+<span class="release-info">Release 0.4.</span>
 </div>
 <!--End of Navigation Panel-->
 
