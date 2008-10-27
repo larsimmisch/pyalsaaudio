@@ -14,6 +14,7 @@
  */
 
 #include "Python.h"
+#include "stringobject.h"
 #include <alsa/asoundlib.h>
 #include <stdio.h>
 
@@ -277,7 +278,7 @@ alsapcm_dumpinfo(alsapcm_t *self, PyObject *args) {
 static PyObject *
 alsapcm_pcmtype(alsapcm_t *self, PyObject *args) {
   if (!PyArg_ParseTuple(args,":pcmtype")) return NULL;
-  return PyInt_FromLong(self->pcmtype);
+  return PyLong_FromLong(self->pcmtype);
 }
 
 PyDoc_STRVAR(pcmtype_doc,
@@ -289,7 +290,7 @@ Returns either PCM_CAPTURE or PCM_PLAYBACK.");
 static PyObject *
 alsapcm_pcmmode(alsapcm_t *self, PyObject *args) {
   if (!PyArg_ParseTuple(args,"pcmmode")) return NULL;
-  return PyInt_FromLong(self->pcmmode);
+  return PyLong_FromLong(self->pcmmode);
 }
 
 PyDoc_STRVAR(pcmmode_doc,
@@ -324,7 +325,7 @@ alsapcm_setchannels(alsapcm_t *self, PyObject *args) {
     PyErr_SetString(ALSAAudioError, snd_strerror(res));
     return NULL;    
   }
-  return PyInt_FromLong(self->channels);
+  return PyLong_FromLong(self->channels);
 }
 
 PyDoc_STRVAR(setchannels_doc,
@@ -347,7 +348,7 @@ alsapcm_setrate(alsapcm_t *self, PyObject *args) {
     PyErr_SetString(ALSAAudioError, snd_strerror(res));
     return NULL;    
   }
-  return PyInt_FromLong(self->rate);
+  return PyLong_FromLong(self->rate);
 }
 
 PyDoc_STRVAR(setrate_doc,
@@ -368,7 +369,7 @@ alsapcm_setformat(alsapcm_t *self, PyObject *args) {
     PyErr_SetString(ALSAAudioError, snd_strerror(res));
     return NULL;    
   }
-  return PyInt_FromLong(self->format);
+  return PyLong_FromLong(self->format);
 }
 
 PyDoc_STRVAR(setformat_doc,
@@ -386,7 +387,7 @@ alsapcm_setperiodsize(alsapcm_t *self, PyObject *args) {
     PyErr_SetString(ALSAAudioError, snd_strerror(res));
     return NULL;    
   }
-  return PyInt_FromLong(self->periodsize);
+  return PyLong_FromLong(self->periodsize);
 }
 
 PyDoc_STRVAR(setperiodsize_doc,
@@ -471,14 +472,14 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args) {
   Py_END_ALLOW_THREADS
   
   if (res == -EAGAIN) {
-    return PyInt_FromLong(0);
+    return PyLong_FromLong(0);
   }
   else if (res < 0) {
     PyErr_SetString(ALSAAudioError,snd_strerror(res));
     return NULL;
   }  
 
-  return PyInt_FromLong(res);
+  return PyLong_FromLong(res);
 }
 
 PyDoc_STRVAR(write_doc,
@@ -510,7 +511,7 @@ static PyObject *alsapcm_pause(alsapcm_t *self, PyObject *args) {
     PyErr_SetString(ALSAAudioError,snd_strerror(res));
     return NULL;
   }
-  return PyInt_FromLong(res);
+  return PyLong_FromLong(res);
 }
 
 PyDoc_STRVAR(pause_doc,
@@ -812,7 +813,7 @@ for example 'Master' or 'PCM'");
 static PyObject *
 alsamixer_mixerid(alsamixer_t *self, PyObject *args) {
   if (!PyArg_ParseTuple(args,":mixerid")) return NULL;
-  return PyInt_FromLong(self->controlid);
+  return PyLong_FromLong(self->controlid);
 }
 
 PyDoc_STRVAR(mixerid_doc,
@@ -942,7 +943,7 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args) {
     {
       snd_mixer_selem_get_playback_volume(elem, channel, &ival);
       PyList_Append(
-        result, PyInt_FromLong(alsamixer_getpercentage(self->pmin, 
+        result, PyLong_FromLong(alsamixer_getpercentage(self->pmin, 
                                                        self->pmax, ival)));
     }
     else if (direction == 1
@@ -950,7 +951,7 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args) {
              && snd_mixer_selem_has_capture_volume(elem)) {
       snd_mixer_selem_get_capture_volume(elem, channel, &ival);
       PyList_Append(
-        result, PyInt_FromLong(alsamixer_getpercentage(self->cmin,
+        result, PyLong_FromLong(alsamixer_getpercentage(self->cmin,
                                                        self->cmax, ival)));
     }
   }
@@ -1112,7 +1113,7 @@ alsamixer_getmute(alsamixer_t *self, PyObject *args) {
   for (i = 0; i <= SND_MIXER_SCHN_LAST; i++) {
     if (snd_mixer_selem_has_playback_channel(elem, i)) {
       snd_mixer_selem_get_playback_switch(elem, i, &ival);
-      PyList_Append(result,PyInt_FromLong(!ival));
+      PyList_Append(result,PyLong_FromLong(!ival));
     }
   }
   return result;
@@ -1144,7 +1145,7 @@ alsamixer_getrec(alsamixer_t *self, PyObject *args) {
   for (i = 0; i <= SND_MIXER_SCHN_LAST; i++) {
     if (snd_mixer_selem_has_capture_channel(elem, i)) {
       snd_mixer_selem_get_capture_switch(elem, i, &ival);
-      PyList_Append(result,PyInt_FromLong(!ival));
+      PyList_Append(result,PyLong_FromLong(!ival));
     }
   }
   return result;
