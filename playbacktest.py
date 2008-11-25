@@ -1,4 +1,4 @@
-## recordtest.py
+## playbacktest.py
 ##
 ## This is an example of a simple sound playback script.
 ##

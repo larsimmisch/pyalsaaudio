@@ -5,7 +5,7 @@
  *              The standard audio API for Linux since kernel 2.6
  *
  * Contributed by Unispeed A/S (http://www.unispeed.com)
- * Author: Casper Wilstup (cwi@unispeed.dk)
+ * Author: Casper Wilstup (cwi@aves.dk)
  *
  * Bug fixes and maintenance by Lars Immisch <lars@ibp.de>
  * 
@@ -14,7 +14,10 @@
  */
 
 #include "Python.h"
+#if PY_MAJOR_VERSION < 3
 #include "stringobject.h"
+#define PyUnicode_FromString PyString_FromString
+#endif
 #include <alsa/asoundlib.h>
 #include <stdio.h>
 
@@ -237,8 +240,8 @@ alsapcm_dumpinfo(alsapcm_t *self, PyObject *args) {
   val = snd_pcm_hw_params_get_sbits(hwparams);
   printf("significant bits = %d\n", val);
 
-  snd_pcm_hw_params_get_tick_time(hwparams, &val, &dir);
-  printf("tick time = %d us\n", val);
+  snd_pcm_hw_params_get_period_time(hwparams, &val, &dir);
+  printf("period time = %d us\n", val);
 
   val = snd_pcm_hw_params_is_batch(hwparams);
   printf("is batch = %d\n", val);
@@ -305,7 +308,7 @@ Returns the mode of the PCM object. One of:\n\
 static PyObject *
 alsapcm_cardname(alsapcm_t *self, PyObject *args) {
   if (!PyArg_ParseTuple(args,":cardname")) return NULL;
-  return PyString_FromString(self->cardname);
+  return PyUnicode_FromString(self->cardname);
 }
 
 PyDoc_STRVAR(cardname_doc,
@@ -429,12 +432,16 @@ alsapcm_read(alsapcm_t *self, PyObject *args) {
       res = 0;
     }
     else if (res < 0) {
-      PyErr_SetString(ALSAAudioError,snd_strerror(res));
+      PyErr_SetString(ALSAAudioError, snd_strerror(res));
       return NULL;
     } 
   }
 
-  return Py_BuildValue("is#",res,buffer,res*self->framesize);
+#if PY_MAJOR_VERSION < 3
+  return Py_BuildValue("is#", res, buffer, res*self->framesize);
+#else
+  return Py_BuildValue("iy#", res, buffer, res*self->framesize);
+#endif
 }
 
 PyDoc_STRVAR(read_doc,
@@ -443,19 +450,33 @@ PyDoc_STRVAR(read_doc,
 In PCM_NORMAL mode, this function blocks until a full period is\n\
 available, and then returns a tuple (length,data) where length is\n\
 the number of frames of the captured data, and data is the captured sound\n\
-frames as a string. The length of the returned data will be\n\
-periodsize*framesize bytes.\n\
+frames as bytes (or a string in Python 2.x). The length of the returned data\n\
+ will be periodsize*framesize bytes.\n\
 \n\
 In PCM_NONBLOCK mode, the call will not block, but will return (0,'')\n\
 if no new period has become available since the last call to read.");
 
 
 static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args) {
-  char *data;
-  int datalen;
+
   int res;
-  if (!PyArg_ParseTuple(args,"s#:write",&data,&datalen)) return NULL;
-  if (datalen%self->framesize) {
+  int datalen;
+  char *data;
+
+#if PY_MAJOR_VERSION < 3
+  if (!PyArg_ParseTuple(args,"s#:write",&data,&datalen)) 
+    return NULL;
+#else
+  Py_buffer buf;
+
+  if (!PyArg_ParseTuple(args,"y*:write",&buf)) 
+    return NULL;
+
+  data = buf.buf;
+  datalen = buf.len;
+#endif
+
+  if (datalen % self->framesize) {
     PyErr_SetString(ALSAAudioError,
                     "Data size must be a multiple of framesize");
     return NULL;
@@ -548,8 +569,12 @@ alsapcm_getattr(alsapcm_t *self, char *name) {
 #endif
 
 static PyTypeObject ALSAPCMType = {
+#if PY_MAJOR_VERSION < 3
   PyObject_HEAD_INIT(&PyType_Type)
   0,                              /* ob_size */
+#else
+  PyVarObject_HEAD_INIT(&PyType_Type, 0)
+#endif
   "alsaaudio.PCM",                /* tp_name */
   sizeof(alsapcm_t),              /* tp_basicsize */
   0,                              /* tp_itemsize */
@@ -647,7 +672,7 @@ alsamixer_list(PyObject *self, PyObject *args) {
   {
     PyObject *mixer;
     snd_mixer_selem_get_id(elem, sid);
-    mixer = PyString_FromString(snd_mixer_selem_id_get_name(sid));
+    mixer = PyUnicode_FromString(snd_mixer_selem_id_get_name(sid));
     PyList_Append(result,mixer);
     Py_DECREF(mixer);
   }
@@ -788,7 +813,7 @@ static void alsamixer_dealloc(alsamixer_t *self) {
 static PyObject *
 alsamixer_cardname(alsamixer_t *self, PyObject *args) {
   if (!PyArg_ParseTuple(args,":cardname")) return NULL;
-  return PyString_FromString(self->cardname);
+  return PyUnicode_FromString(self->cardname);
 }
 
 PyDoc_STRVAR(mixer_cardname_doc,
@@ -800,7 +825,7 @@ Returns the name of the sound card used by this Mixer object.");
 static PyObject *
 alsamixer_mixer(alsamixer_t *self, PyObject *args) {
   if (!PyArg_ParseTuple(args,":mixer")) return NULL;
-  return PyString_FromString(self->controlname);
+  return PyUnicode_FromString(self->controlname);
 }
 
 PyDoc_STRVAR(mixer_doc,
@@ -828,17 +853,17 @@ alsamixer_volumecap(alsamixer_t *self, PyObject *args) {
   if (!PyArg_ParseTuple(args,":volumecap")) return NULL;
   result = PyList_New(0);
   if (self->volume_cap&MIXER_CAP_VOLUME) 
-    PyList_Append(result,PyString_FromString("Volume"));
+    PyList_Append(result,PyUnicode_FromString("Volume"));
   if (self->volume_cap&MIXER_CAP_VOLUME_JOINED) 
-    PyList_Append(result,PyString_FromString("Joined Volume"));
+    PyList_Append(result,PyUnicode_FromString("Joined Volume"));
   if (self->volume_cap&MIXER_CAP_PVOLUME) 
-    PyList_Append(result,PyString_FromString("Playback Volume"));
+    PyList_Append(result,PyUnicode_FromString("Playback Volume"));
   if (self->volume_cap&MIXER_CAP_PVOLUME_JOINED) 
-    PyList_Append(result,PyString_FromString("Joined Playback Volume"));
+    PyList_Append(result,PyUnicode_FromString("Joined Playback Volume"));
   if (self->volume_cap&MIXER_CAP_CVOLUME) 
-    PyList_Append(result,PyString_FromString("Capture Volume"));
+    PyList_Append(result,PyUnicode_FromString("Capture Volume"));
   if (self->volume_cap&MIXER_CAP_CVOLUME_JOINED) 
-    PyList_Append(result,PyString_FromString("Joined Capture Volume"));
+    PyList_Append(result,PyUnicode_FromString("Joined Capture Volume"));
    
   return result;
 }
@@ -862,19 +887,19 @@ alsamixer_switchcap(alsamixer_t *self, PyObject *args) {
   if (!PyArg_ParseTuple(args,":switchcap")) return NULL;
   result = PyList_New(0);
   if (self->volume_cap&MIXER_CAP_SWITCH) 
-    PyList_Append(result,PyString_FromString("Mute"));
+    PyList_Append(result,PyUnicode_FromString("Mute"));
   if (self->volume_cap&MIXER_CAP_SWITCH_JOINED) 
-    PyList_Append(result,PyString_FromString("Joined Mute"));
+    PyList_Append(result,PyUnicode_FromString("Joined Mute"));
   if (self->volume_cap&MIXER_CAP_PSWITCH) 
-    PyList_Append(result,PyString_FromString("Playback Mute"));
+    PyList_Append(result,PyUnicode_FromString("Playback Mute"));
   if (self->volume_cap&MIXER_CAP_PSWITCH_JOINED) 
-    PyList_Append(result,PyString_FromString("Joined Playback Mute"));
+    PyList_Append(result,PyUnicode_FromString("Joined Playback Mute"));
   if (self->volume_cap&MIXER_CAP_CSWITCH) 
-    PyList_Append(result,PyString_FromString("Capture Mute"));
+    PyList_Append(result,PyUnicode_FromString("Capture Mute"));
   if (self->volume_cap&MIXER_CAP_CSWITCH_JOINED) 
-    PyList_Append(result,PyString_FromString("Joined Capture Mute"));
+    PyList_Append(result,PyUnicode_FromString("Joined Capture Mute"));
   if (self->volume_cap&MIXER_CAP_CSWITCH_EXCLUSIVE) 
-    PyList_Append(result,PyString_FromString("Capture Exclusive"));
+    PyList_Append(result,PyUnicode_FromString("Capture Exclusive"));
   return result;
 }
 
@@ -1064,7 +1089,7 @@ alsamixer_getenum(alsamixer_t *self, PyObject *args) {
     return NULL;
   }  
   
-  PyTuple_SetItem(result, 0, PyString_FromString(name));
+  PyTuple_SetItem(result, 0, PyUnicode_FromString(name));
 
   elems = PyList_New(count);
   if (!elems)
@@ -1082,7 +1107,7 @@ alsamixer_getenum(alsamixer_t *self, PyObject *args) {
       return NULL;
     }
 
-    PyList_SetItem(elems, i, PyString_FromString(name));
+    PyList_SetItem(elems, i, PyUnicode_FromString(name));
   }
 
   PyTuple_SetItem(result, 1, elems);
@@ -1339,8 +1364,12 @@ alsamixer_getattr(alsapcm_t *self, char *name) {
 #endif
 
 static PyTypeObject ALSAMixerType = {
+#if PY_MAJOR_VERSION < 3
   PyObject_HEAD_INIT(&PyType_Type)
   0,                              /* ob_size */
+#else
+  PyVarObject_HEAD_INIT(&PyType_Type, 0)
+#endif
   "alsaaudio.Mixer",              /* tp_name */
   sizeof(alsamixer_t),            /* tp_basicsize */
   0,                              /* tp_itemsize */
@@ -1390,32 +1419,73 @@ static PyMethodDef alsaaudio_methods[] = {
   { 0, 0 },
 };
 
+
+#if PY_MAJOR_VERSION >= 3
+
+#define _EXPORT_INT(mod, name, value) \
+  if (PyModule_AddIntConstant(mod, name, (long) value) == -1) return NULL;
+
+static struct PyModuleDef alsaaudio_module = {
+  PyModuleDef_HEAD_INIT,
+  "alsaaudio",
+  alsaaudio_module_doc,
+  -1,
+  alsaaudio_methods,
+  0,  /* m_reload */
+  0,  /* m_traverse */
+  0,  /* m_clear */
+  0,  /* m_free */
+};
+
+#else
+
 #define _EXPORT_INT(mod, name, value) \
   if (PyModule_AddIntConstant(mod, name, (long) value) == -1) return;
 
-void initalsaaudio(void) {
+#endif // 3.0
+
+#if PY_MAJOR_VERSION < 3
+void initalsaaudio(void) 
+#else
+PyObject *PyInit_alsaaudio(void)
+#endif
+{
   PyObject *m;
   ALSAPCMType.tp_new = alsapcm_new;
   ALSAMixerType.tp_new = alsamixer_new;
 
   PyEval_InitThreads();
 
-  m = Py_InitModule3("alsaaudio",alsaaudio_methods,alsaaudio_module_doc);
+#if PY_MAJOR_VERSION < 3
+  m = Py_InitModule3("alsaaudio", alsaaudio_methods, alsaaudio_module_doc);
+  if (!m) 
+    return;
+#else
+
+  m = PyModule_Create(&alsaaudio_module);
+  if (!m) 
+    return NULL;
+
+#endif
 
   ALSAAudioError = PyErr_NewException("alsaaudio.ALSAAudioError", NULL, NULL);
-  if (ALSAAudioError) {
-    /* Each call to PyModule_AddObject decrefs it; compensate: */
+  if (!ALSAAudioError)
+#if PY_MAJOR_VERSION < 3
+    return;
+#else
+    return NULL;
+#endif
 
-    Py_INCREF(&ALSAPCMType);
-    PyModule_AddObject(m,"PCM",(PyObject *)&ALSAPCMType);
+  /* Each call to PyModule_AddObject decrefs it; compensate: */
 
-    Py_INCREF(&ALSAMixerType);
-    PyModule_AddObject(m,"Mixer",(PyObject *)&ALSAMixerType);
+  Py_INCREF(&ALSAPCMType);
+  PyModule_AddObject(m, "PCM", (PyObject *)&ALSAPCMType);
+  
+  Py_INCREF(&ALSAMixerType);
+  PyModule_AddObject(m, "Mixer", (PyObject *)&ALSAMixerType);
 
-    Py_INCREF(ALSAAudioError);
-    PyModule_AddObject(m, "ALSAAudioError", ALSAAudioError);
-  }
-
+  Py_INCREF(ALSAAudioError);
+  PyModule_AddObject(m, "ALSAAudioError", ALSAAudioError);
 
   _EXPORT_INT(m, "PCM_PLAYBACK",SND_PCM_STREAM_PLAYBACK);
   _EXPORT_INT(m, "PCM_CAPTURE",SND_PCM_STREAM_CAPTURE);
@@ -1464,5 +1534,9 @@ void initalsaaudio(void) {
   _EXPORT_INT(m, "MIXER_SCHN_SIDE_RIGHT", SND_MIXER_SCHN_SIDE_RIGHT);
   _EXPORT_INT(m, "MIXER_SCHN_REAR_CENTER", SND_MIXER_SCHN_REAR_CENTER);
   _EXPORT_INT(m, "MIXER_SCHN_MONO", SND_MIXER_SCHN_MONO);
+#endif
+
+#if PY_MAJOR_VERSION >= 3
+  return m;
 #endif
 }
