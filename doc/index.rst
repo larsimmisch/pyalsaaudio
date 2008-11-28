@@ -5,6 +5,7 @@ alsaaudio documentation
    :maxdepth: 2
 
    pyalsaaudio
+   terminology
    libalsaaudio
 
 

@@ -9,7 +9,7 @@ PAPER         =
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
-ALLSPHINXOPTS   = -d .build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
+ALLSPHINXOPTS   = -d doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
 SFUSER = larsimmisch
 
@@ -27,51 +27,51 @@ help:
 	@echo "  linkcheck to check all external links for integrity"
 
 clean:
-	-rm -rf .build/*
+	-rm -rf html doctrees pickle htmlhelp latex changes linkcheck
 
 html:
-	mkdir -p .build/html .build/doctrees
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) .build/html
+	mkdir -p html doctrees
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) html
 	@echo
-	@echo "Build finished. The HTML pages are in .build/html."
+	@echo "Build finished. The HTML pages are in html."
 
 pickle:
-	mkdir -p .build/pickle .build/doctrees
-	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) .build/pickle
+	mkdir -p pickle doctrees
+	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) pickle
 	@echo
 	@echo "Build finished; now you can process the pickle files or run"
-	@echo "  sphinx-web .build/pickle"
+	@echo "  sphinx-web pickle"
 	@echo "to start the sphinx-web server."
 
 web: pickle
 
 htmlhelp:
-	mkdir -p .build/htmlhelp .build/doctrees
-	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) .build/htmlhelp
+	mkdir -p htmlhelp doctrees
+	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) htmlhelp
 	@echo
 	@echo "Build finished; now you can run HTML Help Workshop with the" \
-	      ".hhp project file in .build/htmlhelp."
+	      ".hhp project file in htmlhelp."
 
 latex:
-	mkdir -p .build/latex .build/doctrees
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) .build/latex
+	mkdir -p latex doctrees
+	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) latex
 	@echo
 	@echo "Build finished; the LaTeX files are in .build/latex."
 	@echo "Run \`make all-pdf' or \`make all-ps' in that directory to" \
 	      "run these through (pdf)latex."
 
 changes:
-	mkdir -p .build/changes .build/doctrees
-	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) .build/changes
+	mkdir -p changes doctrees
+	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) changes
 	@echo
-	@echo "The overview file is in .build/changes."
+	@echo "The overview file is in changes."
 
 linkcheck:
-	mkdir -p .build/linkcheck .build/doctrees
-	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) .build/linkcheck
+	mkdir -p linkcheck doctrees
+	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) linkcheck
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \
-	      "or in .build/linkcheck/output.txt."
+	      "or in linkcheck/output.txt."
 
 install:
-	scp -r .build/html/* $(SFUSER),pyalsaaudio@web.sourceforge.net:htdocs
+	scp -r ./html/* $(SFUSER),pyalsaaudio@web.sourceforge.net:htdocs

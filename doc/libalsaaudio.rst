@@ -1,84 +1,6 @@
-****************************
-PCM Terminology and Concepts
-****************************
-
-In order to use PCM devices it is useful to be familiar with some concepts and
-terminology.
-
-Sample
-   PCM audio, whether it is input or output, consists of *samples*. 
-   A single sample represents the amplitude of one channel of sound
-   at a certain point in time. A lot of individual samples are
-   necessary to represent actual sound; for CD audio, 44100 samples
-   are taken every second.
-
-   Samples can be of many different sizes, ranging from 8 bit to 64
-   bit precision. The specific format of each sample can also vary -
-   they can be big endian byte integers, little endian byte integers, or
-   floating point numbers.
-
-   Musically, the sample size determines the dynamic range. The
-   dynamic range is the difference between the quietest and the
-   loudest signal that can be resproduced.
-
-Frame
-   A frame consists of exactly one sample per channel. If there is only one 
-   channel (Mono sound) a frame is simply a single sample. If the sound is 
-   stereo, each frame consists of two samples, etc.
-
-Frame size
-   This is the size in bytes of each frame. This can vary a lot: if each sample
-    is 8 bits, and we're handling mono sound, the frame size is one byte. 
-	Similarly in 6 channel audio with 64 bit floating point samples, the frame 
-	size is 48 bytes
-
-Rate
-   PCM sound consists of a flow of sound frames. The sound rate controls how 
-   often the current frame is replaced. For example, a rate of 8000 Hz
-   means that a new frame is played or captured 8000 times per second.
-
-Data rate
-   This is the number of bytes, which must be recorded or provided per
-   second at a certain frame size and rate.
-
-   8000 Hz mono sound with 8 bit (1 byte) samples has a data rate of
-   8000  \* 1 \* 1 = 8 kb/s or 64kbit/s. This is typically used for telephony.
-
-   At the other end of the scale, 96000 Hz, 6 channel sound with 64
-   bit (8 bytes) samples has a data rate of 96000 \* 6 \* 8 = 4608
-   kb/s (almost 5 Mb sound data per second)
-
-Period
-   When the hardware processes data this is done in chunks of frames. The time
-   interval between each processing (A/D or D/A conversion) is known
-   as the period.
-   The size of the period has direct implication on the latency of the
-   sound input or output. For low-latency the period size should be
-   very small, while low CPU resource usage would usually demand
-   larger period sizes. With ALSA, the CPU utilization is not impacted
-   much by the period size, since the kernel layer buffers multiple
-   periods internally, so each period generates an interrupt and a
-   memory copy, but userspace can be slower and read or write multiple
-   periods at the same time.
-
-Period size
-   This is the size of each period in Hz. *Not bytes, but Hz!.* In 
-   :mod:`alsaaudio` the period size is set directly, and it is
-   therefore important to understand the significance of this
-   number. If the period size is configured to for example 32,
-   each write should contain exactly 32 frames of sound data, and each
-   read will return either 32 frames of data or nothing at all.
-
-Once you understand these concepts, you will be ready to use the PCM API. Read
-on.
-
-
-********************
-Module documentation
-********************
-
+****************
 :mod:`alsaaudio`
-================
+****************
 
 .. module:: alsaaudio
    :platform: Linux
@@ -112,75 +34,67 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
 .. % should be enclosed in \var{...}.
 
 
-.. function:: mixers([cardname])
+.. function:: cards()
 
-   List the available mixers. The optional *cardname* specifies which card 
-   should be queried (this is only relevant if you have more than one sound 
-   card). Omit to use the default sound card.
+   List the available cards. 
 
+.. function:: mixers([cardindex])
 
-.. class:: PCM([type], [mode], [cardname])
+   List the available mixers. The optional *cardindex* specifies which card 
+   should be queried. The default is 0.
 
-   This class is used to represent a PCM device (both playback and capture
-   devices). The arguments are:  ---  *type* - can be either PCM_CAPTURE or
-   PCM_PLAYBACK (default).  ---  *mode* - can be either PCM_NONBLOCK,
-   PCM_ASYNC, or PCM_NORMAL (the default). ---  *cardname* - specifies
-   which card should be used (this is only relevant if you have more
-   than one sound card). Omit to use the default sound card
+.. class:: PCM(type=PCM_PLAYBACK, mode=PCM_NORMAL, card='default')
 
+   This class is used to represent a PCM device (both for playback and
+   recording - capture). The arguments are:
 
-.. class:: Mixer([control], [id], [cardname])
+   * *type* - can be either ``PCM_CAPTURE`` or ``PCM_PLAYBACK`` (default).  
+   * *mode* - can be either ``PCM_NONBLOCK``, or ``PCM_NORMAL`` (default). 
+   * *card* - specifies the name of the card that should be used.
 
-   This class is used to access a specific ALSA mixer. The arguments are:  ---
-   *control* - Name of the chosen mixed (default is Master).  ---  *id* - id of
-   mixer (default is 0) -- More explanation needed here ---  *cardname* 
-   specifies which card should be used (this is only relevant if you have more 
-   than one sound card). Omit to use the default sound card.
+.. class:: Mixer(control='Master', id=0, cardindex=0)
 
+   This class is used to access a specific ALSA mixer. The arguments
+   are:  
+
+   * *control* - Name of the chosen mixed (default is 'Master').  
+   * *id* - id of mixer -- More explanation needed here 
+   * *cardindex*  specifies which card should be used.
 
 .. exception:: ALSAAudioError
 
    Exception raised when an operation fails for a ALSA specific reason. The
    exception argument is a string describing the reason of the failure.
 
-
 .. _pcm-objects:
 
 PCM Objects
 -----------
 
-The acronym PCM is short for Pulse Code Modulation and is the method used in
-ALSA and many other places to handle playback and capture of sampled
-sound data.
-
-PCM objects in :mod:`alsaaudio` are used to do exactly that, either
-play sample based sound or capture sound from some input source
-(probably a microphone). The PCM object constructor takes the
+PCM objects in :mod:`alsaaudio` can play or capture (record) PCM
+sound through speakers or a microphone. The PCM constructor takes the
 following arguments:
 
+.. class:: PCM(type=PCM_CAPTURE, mode=PCM_NORMAL, card='default')
 
-.. class:: PCM([type], [mode], [cardname])
+   *type* - can be either ``PCM_CAPTURE`` or ``PCM_PLAYBACK`` (default).
 
-   *type* - can be either PCM_CAPTURE or PCM_PLAYBACK (default).
+   *mode* - can be either ``PCM_NONBLOCK``, or ``PCM_NORMAL`` (the
+   default). In ``PCM_NONBLOCK`` mode, calls to :func:`read` will return
+   immediately independent of whether there is any actual data to
+   read. Similarly, calls to :func:`write` will return immediately without
+   actually writing anything to the playout buffer if the buffer is
+   full [#f1]_.
 
-   *mode* - can be either PCM_NONBLOCK, PCM_ASYNC, or PCM_NORMAL (the
-   default). In PCM_NONBLOCK mode, calls to read will return
-   immediately independent of wether there is any actual data to
-   read. Similarly, write calls will return immediately without
-   actually writing anything to the playout buffer if the buffer is full.
+   *card* - specifies which card should be used. This can be a string
+   like 'default' or a name that was returned from the :func:`cards` function.
 
-   In the current version of :mod:`alsaaudio` PCM_ASYNC is useless,
-   since it relies on a callback procedure, which can't be specified
-   through this API yet.
+   This will construct a PCM object with these default settings:
 
-   *cardname* - specifies which card should be used (this is only
-   relevant if you have more than one sound card). Omit to use the
-   default sound card.
-
-   This will construct a PCM object with default settings:
-
-   Sample format: PCM_FORMAT_S16_LE  ---  Rate: 8000 Hz  ---  Channels: 2  ---
-   Period size: 32 frames  ---
+   * Sample format: ``PCM_FORMAT_S16_LE``
+   * Rate: 44100 Hz 
+   * Channels: 2
+   * Period size: 32 frames
 
 PCM objects have the following methods:
 
@@ -304,7 +218,7 @@ ugly clicking sounds will occur. Conversely, of too much data is
 written to the device, the write function will either block
 (PCM_NORMAL mode) or return zero (PCM_NONBLOCK mode).
 
-If your program does nothing, but play sound, the easiest way is to put the
+If your program does nothing but play sound, the best strategy is to put the
 device in PCM_NORMAL mode, and just write as much data to the device as
 possible. This strategy can also be achieved by using a separate
 thread with the sole task of playing out sound.
@@ -330,7 +244,7 @@ Mixer Objects
 Mixer objects provides access to the ALSA mixer API.
 
 
-.. class:: Mixer([control], [id],  [cardname])
+.. class:: Mixer([control], [id], [cardindex])
 
    *control* - specifies which control to manipulate using this mixer
    object. The list of available controls can be found with the 
@@ -339,9 +253,12 @@ Mixer objects provides access to the ALSA mixer API.
 
    *id* - the id of the mixer control. Default is 0
 
-   *cardname* - specifies which card should be used (this is only
-   relevant if you have more than one sound card). Omit to use the
-   default sound card.
+   *cardindex* - specifies which card should be used[#f3]_. 0 is the
+   first sound card. Default is 0.
+
+   For a list of available controls, you can also use ``amixer``::
+      
+	  amixer -c 1
 
 Mixer objects have the following methods:
 
@@ -498,7 +415,7 @@ Mixer objects have the following methods:
 
    This method will fail if the mixer has no capture switch capabilities.
 
-**A Note on the ALSA Mixer API**
+**A rant on the ALSA Mixer API**
 
 The ALSA mixer API is extremely complicated - and hardly documented at all.
 :mod:`alsaaudio` implements a much simplified way to access this API. In
@@ -525,9 +442,56 @@ painful trial and error process.
 
 .. _pcm-example:
 
-ALSA Examples
--------------
+Examples
+--------
 
-For now, the only examples available are the 'playbacktest.py' and the
-'recordtest.py' programs included.  This will change in a future version.
+The following examples are provided:
 
+* playwav.py
+* recordtest.py
+* playbacktest.py
+
+All examples take the commandline option '-c <cardname>'. 
+
+To determine a valid card name, use the commandline ALSA player::
+
+   $ aplay -L
+
+or::
+
+   $ python
+
+   >>> import alsaaudio
+   >>> alsaaudio.cards()
+
+playwav.py
+~~~~~~~~~~
+
+``playwav.py`` plays a wav file. A sample wav file is
+provided in the source distribution. 
+
+To test PCM playback (on your default soundcard), do::
+
+   $ python playwav.py foo.wav
+
+recordtest.py and playbacktest.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``recordtest.py`` and ``playbacktest.py`` will record and play a raw
+sound file in CD quality.
+
+To test PCM recordings (on your default soundcard), do::
+
+   $ python recordtest.py <filename>
+
+Speak into the microphone, and interrupt the recording at any time
+with ``Ctl-C``.
+
+Play back the recording with::
+
+   $ python playbacktest.py <filename>
+
+.. rubric:: Footnotes
+
+.. [#f1]   ALSA also allows ``PCM_ASYNC``, but this is not supported yet.
+.. [#f2] But :mod:`alsaaudio` will leave any name alone that has a ':' (colon) in it.
+.. [#f3] This is inconsistent with the PCM objects, which use names, but it is consistent with aplay and amixer.

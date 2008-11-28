@@ -1,6 +1,6 @@
-***************
-  PyAlsaAudio  
-***************
+************
+Introduction
+************
 
 :Author: Casper Wilstrup
 :Author: Lars Immisch
@@ -91,7 +91,7 @@ Note: the wrappers link with the alsasound library (from the alsa-lib package)
 and need the ALSA headers for compilation.  Verify that you have
 /usr/lib/libasound.so and /usr/include/alsa (or similar paths) before building.
 
-On Debian (and probably Ubuntu), make sure you have libasound2-dev installed.
+*On Debian (and probably Ubuntu), install libasound2-dev.*
 
 Naturally you also need to use a kernel with proper ALSA support. This is the
 default in Linux kernel 2.6 and later. If you are using kernel version 2.4 you
@@ -105,3 +105,30 @@ To install, execute the following:  ---   ::
 And then as root:  ---   ::
 
    # python setup.py install
+
+*******
+Testing
+*******
+
+First of all, run::
+   
+   $ python test.py
+
+This is a small test suite that mostly performs consistency tests. If
+it fails, please file a `bug report
+<http://sourceforge.net/tracker/?group_id=120651>`_.
+
+To test PCM recordings (on your default soundcard), verify your
+microphone works, then do::
+
+   $ python recordtest.py <filename>
+
+Speak into the microphone, and interrupt the recording at any time
+with ``Ctl-C``.
+
+Play back the recording with::
+
+   $ python playbacktest.py <filename>
+
+
+
