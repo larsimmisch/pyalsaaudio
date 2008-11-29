@@ -8,7 +8,19 @@ from distutils.core import setup
 from distutils.extension import Extension
 from sys import version
 
-# patch distutils if it can't cope with the "classifiers" or
+try:
+    from distutils.command.build_py import build_py_2to3 as \
+         build_py
+except ImportError:
+    from distutils.command.build_py import build_py
+
+try:
+    from distutils.command.build_scripts import build_scripts_2to3 as \
+         build_scripts
+except ImportError:
+    from distutils.command.build_scripts import build_scripts
+
+# patch distutils if it's too old to cope with the "classifiers" or
 # "download_url" keywords
 from sys import version
 if version < '2.2.3':
@@ -23,16 +35,21 @@ setup(
     long_description = __doc__,
     author = 'Casper Wilstrup',
     author_email='cwi@aves.dk',
-    # maintainer = 'Lars Immisch',
-    # maintainer_email = 'lars@ibp.de',
+    maintainer = 'Lars Immisch',
+    maintainer_email = 'lars@ibp.de',
     license='PSF',
     platforms=['posix'],
+    scripts=['playbacktest.py', 'recordtest.py', 'playwav.py', 'mixertest.py'],
     url='http://pyalsaaudio.sourceforge.net/',
+    cmdclass = {'build_py':build_py,
+                'build_scripts':build_scripts},
     classifiers = [
     'Development Status :: 4 - Beta',
     'Intended Audience :: Developers',
     'License :: OSI Approved :: Python Software Foundation License',
     'Operating System :: POSIX :: Linux',
+    'Programming Language :: Python :: 2',
+    'Programming Language :: Python :: 3',    
     'Topic :: Multimedia :: Sound/Audio',
     'Topic :: Multimedia :: Sound/Audio :: Mixers',
     'Topic :: Multimedia :: Sound/Audio :: Players',
