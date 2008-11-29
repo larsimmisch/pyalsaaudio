@@ -36,7 +36,7 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
 
 .. function:: cards()
 
-   List the available cards. 
+   List the available cards by name (suitable for PCM objects). 
 
 .. function:: mixers([cardindex])
 
@@ -101,13 +101,13 @@ PCM objects have the following methods:
 
 .. method:: PCM.pcmtype()
 
-   Returns the type of PCM object. Either PCM_CAPTURE or PCM_PLAYBACK.
+   Returns the type of PCM object. Either ``PCM_CAPTURE`` or ``PCM_PLAYBACK``.
 
 
 .. method:: PCM.pcmmode()
 
-   Return the mode of the PCM object. One of PCM_NONBLOCK, PCM_ASYNC,
-   or PCM_NORMAL
+   Return the mode of the PCM object. One of ``PCM_NONBLOCK``, ``PCM_ASYNC``,
+   or ``PCM_NORMAL``
 
 
 .. method:: PCM.cardname()
@@ -168,19 +168,19 @@ PCM objects have the following methods:
 
    Sets the actual period size in frames. Each write should consist of
    exactly this number of frames, and each read will return this
-   number of frames (unless the device is in PCM_NONBLOCK mode, in
+   number of frames (unless the device is in ``PCM_NONBLOCK`` mode, in
    which case it may return nothing at all)
 
 
 .. method:: PCM.read()
 
-   In PCM_NORMAL mode, this function blocks until a full period is
+   In ``PCM_NORMAL`` mode, this function blocks until a full period is
    available, and then returns a tuple (length,data) where *length* is
    the number of frames of captured data, and *data* is the captured
    sound frames as a string. The length of the returned data will be 
    periodsize\*framesize bytes.
 
-   In PCM_NONBLOCK mode, the call will not block, but will return
+   In ``PCM_NONBLOCK`` mode, the call will not block, but will return
    ``(0,'')`` if no new period has become available since the last
    call to read.
 
@@ -192,12 +192,12 @@ PCM objects have the following methods:
    period. If less than 'period size' frames are provided, the actual
    playout will not happen until more data is written.
 
-   If the device is not in PCM_NONBLOCK mode, this call will block if
+   If the device is not in ``PCM_NONBLOCK`` mode, this call will block if
    the kernel buffer is full, and until enough sound has been played
    to allow the sound data to be buffered. The call always returns the
    size of the data provided.
 
-   In PCM_NONBLOCK mode, the call will return immediately, with a
+   In ``PCM_NONBLOCK`` mode, the call will return immediately, with a
    return value of zero, if the buffer is full. In this case, the data
    should be written at a later time.
 
@@ -209,17 +209,16 @@ PCM objects have the following methods:
 
 **A few hints on using PCM devices for playback**
 
-The most common reason for problems with playback of PCM audio, is that the
-people don't properly understand that writes to PCM devices must match
-*exactly* the data rate of the device.
+The most common reason for problems with playback of PCM audio is that writes 
+to PCM devices must *exactly* match the data rate of the device.
 
 If too little data is written to the device, it will underrun, and
 ugly clicking sounds will occur. Conversely, of too much data is
 written to the device, the write function will either block
-(PCM_NORMAL mode) or return zero (PCM_NONBLOCK mode).
+(``PCM_NORMAL`` mode) or return zero (``PCM_NONBLOCK`` mode).
 
 If your program does nothing but play sound, the best strategy is to put the
-device in PCM_NORMAL mode, and just write as much data to the device as
+device in ``PCM_NORMAL`` mode, and just write as much data to the device as
 possible. This strategy can also be achieved by using a separate
 thread with the sole task of playing out sound.
 
@@ -230,7 +229,7 @@ period. The purpose of the preloading is to avoid underrun clicks if the used
 timer doesn't expire exactly on time.
 
 Also note, that most timer APIs that you can find for Python will
-acummulate time delays: If you set the timer to expire after 1/10'th
+accummulate time delays: If you set the timer to expire after 1/10'th
 of a second, the actual timeout will happen slightly later, which will
 accumulate to quite a lot after a few seconds. Hint: use time.time()
 to check how much time has really passed, and add extra writes as nessecary.
@@ -244,7 +243,7 @@ Mixer Objects
 Mixer objects provides access to the ALSA mixer API.
 
 
-.. class:: Mixer([control], [id], [cardindex])
+.. class:: Mixer(control='Master', id=0, cardindex=0)
 
    *control* - specifies which control to manipulate using this mixer
    object. The list of available controls can be found with the 
@@ -253,12 +252,13 @@ Mixer objects provides access to the ALSA mixer API.
 
    *id* - the id of the mixer control. Default is 0
 
-   *cardindex* - specifies which card should be used[#f3]_. 0 is the
-   first sound card. Default is 0.
+   *cardindex* - specifies which card should be used [#f3]_. 0 is the
+   first sound card.
 
-   For a list of available controls, you can also use ``amixer``::
+   
+   **Note:** For a list of available controls, you can also use **amixer**::
       
-	  amixer -c 1
+      amixer
 
 Mixer objects have the following methods:
 
@@ -283,19 +283,19 @@ Mixer objects have the following methods:
    Returns a list of the switches which are defined by this specific mixer.
    Possible values in this list are:
 
-   ====================  ================
-   Switch                Description
-   ====================  ================
-   Mute                  This mixer can mute
-   Joined Mute           This mixer can mute all channels at the same time
-   Playback Mute         This mixer can mute the playback output
-   Joined Playback Mute  Mute playback for all channels at the same time}
-   Capture Mute          Mute sound capture 
-   Joined Capture Mute   Mute sound capture for all channels at a time}
-   Capture Exclusive     Not quite sure what this is
-   ====================  ================
-   
-   To manipulate these swithes use the :meth:`setrec` or
+   ======================  ================
+   Switch                  Description
+   ======================  ================
+   'Mute'                  This mixer can mute
+   'Joined Mute'           This mixer can mute all channels at the same time
+   'Playback Mute'         This mixer can mute the playback output
+   'Joined Playback Mute'  Mute playback for all channels at the same time}
+   'Capture Mute'          Mute sound capture 
+   'Joined Capture Mute'   Mute sound capture for all channels at a time}
+   'Capture Exclusive'     Not quite sure what this is
+   ======================  ================
+
+   To manipulate these switches use the :meth:`setrec` or
    :meth:`setmute` methods
 
 
@@ -304,16 +304,16 @@ Mixer objects have the following methods:
    Returns a list of the volume control capabilities of this
    mixer. Possible values in the list are:
 
-   ======================  ================
-   Capability              Description
-   ======================  ================
-   Volume                  This mixer can control volume
-   Joined Volume           This mixer can control volume for all channels at the same time
-   Playback Volume         This mixer can manipulate the playback output
-   Joined Playback Volume  Manipulate playback volumne for all channels at the same time
-   Capture Volume          Manipulate sound capture volume
-   Joined Capture Volume   Manipulate sound capture volume for all channels at a time
-   ======================  ================
+   ========================  ================
+   Capability                Description
+   ========================  ================
+   'Volume'                  This mixer can control volume
+   'Joined Volume'           This mixer can control volume for all channels at the same time
+   'Playback Volume'         This mixer can manipulate the playback output
+   'Joined Playback Volume'  Manipulate playback volumne for all channels at the same time
+   'Capture Volume'          Manipulate sound capture volume
+   'Joined Capture Volume'   Manipulate sound capture volume for all channels at a time
+   ========================  ================
    
 .. method:: Mixer.getenum()
 
@@ -445,13 +445,15 @@ painful trial and error process.
 Examples
 --------
 
-The following examples are provided:
+The following example are provided:
 
 * playwav.py
 * recordtest.py
 * playbacktest.py
+* mixertest.py
 
-All examples take the commandline option '-c <cardname>'. 
+All examples (except mixertest.py) accept the commandline option 
+*-c <cardname>*.
 
 To determine a valid card name, use the commandline ALSA player::
 
@@ -464,22 +466,24 @@ or::
    >>> import alsaaudio
    >>> alsaaudio.cards()
 
+mixertest.py accepts the commandline option *-c <cardindex>*. Card 
+indices start at 0.
+
 playwav.py
 ~~~~~~~~~~
 
-``playwav.py`` plays a wav file. A sample wav file is
-provided in the source distribution. 
+**playwav.py** plays a wav file. 
 
-To test PCM playback (on your default soundcard), do::
+To test PCM playback (on your default soundcard), run::
 
-   $ python playwav.py foo.wav
+   $ python playwav.py <wav file>
 
 recordtest.py and playbacktest.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-``recordtest.py`` and ``playbacktest.py`` will record and play a raw
+**recordtest.py** and **playbacktest.py** will record and play a raw
 sound file in CD quality.
 
-To test PCM recordings (on your default soundcard), do::
+To test PCM recordings (on your default soundcard), run::
 
    $ python recordtest.py <filename>
 
@@ -490,8 +494,53 @@ Play back the recording with::
 
    $ python playbacktest.py <filename>
 
+mixertest.py
+~~~~~~~~~~~~
+
+Without arguments, **mixertest.py** will list all available *controls*. 
+The output might look like this::
+   
+   $ ./mixertest.py
+   Available mixer controls:
+     'Master'
+     'Master Mono'
+     'Headphone'
+     'PCM'
+     'Line'
+     'Line In->Rear Out'
+     'CD'
+     'Mic'
+     'PC Speaker'
+     'Aux'
+     'Mono Output Select'
+     'Capture'
+     'Mix'
+     'Mix Mono'
+
+With a single argument - the *control*, it will display the settings of 
+that control; for example::
+
+   $ ./mixertest.py Master
+   Mixer name: 'Master'
+   Capabilities: Playback Volume Playback Mute
+   Channel 0 volume: 61%
+   Channel 1 volume: 61%
+
+With two arguments, the *control* and a *parameter*, it will set the 
+parameter on the mixer::
+
+   $ ./mixertest.py Master mute
+
+This will mute the Master mixer.
+
+Or::
+
+   $ ./mixertest.py Master 40
+
+This sets the volume to 40% on all channels.
+
 .. rubric:: Footnotes
 
 .. [#f1]   ALSA also allows ``PCM_ASYNC``, but this is not supported yet.
-.. [#f2] But :mod:`alsaaudio` will leave any name alone that has a ':' (colon) in it.
+.. [#f2] :mod:`alsaaudio` will leave any name alone that has a ':' (colon) in it.
 .. [#f3] This is inconsistent with the PCM objects, which use names, but it is consistent with aplay and amixer.

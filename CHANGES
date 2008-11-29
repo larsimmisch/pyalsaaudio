@@ -1,6 +1,11 @@
 Version 0.4:
+- API changes: mixers() and Mixer() now take a card index instead of a 
+  card name as optional parameter.
 - Support for Python 3.0
-- Documentation in reStructuredText; use Sphinx instead of LaTeX.
+- Documentation converted to reStructuredText; use Sphinx instead of LaTeX.
+- added cards()
+- added PCM.close()
+- added Mixer.close()
 - added mixer.getenum()
 
 

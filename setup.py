@@ -8,18 +8,6 @@ from distutils.core import setup
 from distutils.extension import Extension
 from sys import version
 
-try:
-    from distutils.command.build_py import build_py_2to3 as \
-         build_py
-except ImportError:
-    from distutils.command.build_py import build_py
-
-try:
-    from distutils.command.build_scripts import build_scripts_2to3 as \
-         build_scripts
-except ImportError:
-    from distutils.command.build_scripts import build_scripts
-
 # patch distutils if it's too old to cope with the "classifiers" or
 # "download_url" keywords
 from sys import version
@@ -39,10 +27,7 @@ setup(
     maintainer_email = 'lars@ibp.de',
     license='PSF',
     platforms=['posix'],
-    scripts=['playbacktest.py', 'recordtest.py', 'playwav.py', 'mixertest.py'],
     url='http://pyalsaaudio.sourceforge.net/',
-    cmdclass = {'build_py':build_py,
-                'build_scripts':build_scripts},
     classifiers = [
     'Development Status :: 4 - Beta',
     'Intended Audience :: Developers',
@@ -55,5 +40,5 @@ setup(
     'Topic :: Multimedia :: Sound/Audio :: Players',
     'Topic :: Multimedia :: Sound/Audio :: Capture/Recording',
     ],
-    ext_modules=[Extension('alsaaudio',['alsaaudio.c'],libraries=['asound'])]
+    ext_modules=[Extension('alsaaudio',['alsaaudio.c'], libraries=['asound'])]
     )

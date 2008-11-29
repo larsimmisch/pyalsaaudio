@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 ## playbacktest.py
 ##
 ## This is an example of a simple sound playback script.
@@ -7,30 +9,53 @@
 ## from stdin and writes it to the device.
 ##
 ## To test it out do the following:
-## python recordtest.py > out.raw # talk to the microphone
-## python playbacktest.py < out.raw
-##
-## If you have Gnome, you could also just test by doing something like:
-## python playbacktest.py < /usr/share/sounds/gnibbles/laughter.wav
-import alsaaudio
+## python recordtest.py out.raw # talk to the microphone
+## python playbacktest.py out.raw
+
+
+# Footnote: I'd normally use print instead of sys.std(out|err).write,
+# but we're in the middle of the conversion between python 2 and 3
+# and this code runs on both versions without conversion
+
 import sys
 import time
+import getopt
+import alsaaudio
 
-# Open the device in playback mode. 
-out = alsaaudio.PCM(alsaaudio.PCM_PLAYBACK)
+def usage():
+    sys.stderr.write('usage: playbacktest.py [-c <card>] <file>\n')
+    sys.exit(2)
 
-# Set attributes: Mono, 8000 Hz, 16 bit little endian frames
-out.setchannels(1)
-out.setrate(8000)
-out.setformat(alsaaudio.PCM_FORMAT_S16_LE)
+if __name__ == '__main__':
 
-# The period size controls the internal number of frames per period.
-# The significance of this parameter is documented in the ALSA api.
-out.setperiodsize(160)
+    card = 'default'
 
-loops = 10000
-while loops > 0:
-  loops -= 1
-  # Read data from stdin
-  data = sys.stdin.read(320)
-  out.write(data)
+    opts, args = getopt.getopt(sys.argv[1:], 'c:')
+    for o, a in opts:
+        if o == '-c':
+            card = a
+
+    if not args:
+        usage()
+
+    f = open(args[0], 'rb')
+
+    # Open the device in playback mode. 
+    out = alsaaudio.PCM(alsaaudio.PCM_PLAYBACK, card=card)
+
+    # Set attributes: Mono, 44100 Hz, 16 bit little endian frames
+    out.setchannels(1)
+    out.setrate(44100)
+    out.setformat(alsaaudio.PCM_FORMAT_S16_LE)
+
+    # The period size controls the internal number of frames per period.
+    # The significance of this parameter is documented in the ALSA api.
+    out.setperiodsize(160)
+
+    # Read data from stdin
+    data = f.read(320)
+    while data:
+        out.write(data)
+        data = f.read(320)
+            
+        

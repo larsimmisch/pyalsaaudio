@@ -16,8 +16,7 @@
 #include "Python.h"
 #if PY_MAJOR_VERSION < 3
 #include "stringobject.h"
-#define PyUnicode_AS_DATA PyString_AS_STRING
-#define PyUnicode_Check PyString_Check
+#define PyUnicode_FromString PyString_FromString
 #endif
 #include <alsa/asoundlib.h>
 #include <stdio.h>
