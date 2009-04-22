@@ -183,16 +183,23 @@ static int alsapcm_setup(alsapcm_t *self)
     snd_pcm_hw_params_set_access(self->handle, hwparams, 
                                  SND_PCM_ACCESS_RW_INTERLEAVED);
     snd_pcm_hw_params_set_format(self->handle, hwparams, self->format);
-    snd_pcm_hw_params_set_channels(self->handle, hwparams, self->channels);
+    res = snd_pcm_hw_params_set_channels(self->handle, hwparams, 
+                                         self->channels);
+    if (res < 0) return res;
+
     dir = 0;
-    snd_pcm_hw_params_set_rate(self->handle, hwparams, self->rate, dir);
-    snd_pcm_hw_params_set_period_size(self->handle, hwparams, 
+    res = snd_pcm_hw_params_set_rate(self->handle, hwparams, self->rate, dir);
+    if (res < 0) return res;
+    
+    res = snd_pcm_hw_params_set_period_size(self->handle, hwparams, 
                                       self->periodsize, dir);
-    snd_pcm_hw_params_set_periods(self->handle, hwparams, 4, 0);
+    if (res < 0) return res;
+
+    res = snd_pcm_hw_params_set_periods(self->handle, hwparams, 4, 0);
+    if (res < 0) return res;
     
     /* Write it to the device */
     res = snd_pcm_hw_params(self->handle, hwparams);
-    if (res) return res;
     
     /* Query current settings. These may differ from the requested values,
        which should therefore be sync'ed with actual values */
