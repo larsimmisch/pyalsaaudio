@@ -12,8 +12,10 @@
 ## python mixertest.py Master        # show Master mixer settings
 ## python mixertest.py Master 80     # set the master volume to 80%
 ## python mixertest.py Master 1,90   # set channel 1 volume to 90%
-## python mixertest.py Master mute   # mute the master mixer
-## python mixertest.py Master unmute # unmute the master mixer
+## python mixertest.py Master [un]mute   # [un]mute the master mixer
+## python mixertest.py Capture [un]rec   # [dis/en]able capture
+## python mixertest.py Master 0,[un]mute   # [un]mute channel 0
+## python mixertest.py Capture 0,[un]rec   # [dis/en]able capture on channel 0
 
 
 # Footnote: I'd normally use print instead of sys.std(out|err).write,
@@ -70,30 +72,32 @@ def set_mixer(name, args, idx=0):
         sys.stderr.write("No such mixer")
         sys.exit(1)
 
-    if args in ['mute','unmute']:
-        # Mute/unmute the mixer
-        if args == 'mute':
-            mixer.setmute(1)
-        else:
-            mixer.setmute(0)
-        sys.exit(0)
-        
-    if args in ['rec','unrec']:
-        # Enable/disable recording
-        if args == 'rec':
-            mixer.setrec(1)
-        else:
-            mixer.setrec(0)
-        sys.exit(0)
-            
     if args.find(',') != -1:
-        channel,volume = map(int,args.split(','))
+        args_array = args.split(',')
+        channel = int(args_array[0])
+        args = ','.join(args_array[1:])
     else:
         channel = alsaaudio.MIXER_CHANNEL_ALL
+
+    if args in ['mute', 'unmute']:
+        # Mute/unmute the mixer
+        if args == 'mute':
+            mixer.setmute(1, channel)
+        else:
+            mixer.setmute(0, channel)
+        
+    elif args in ['rec','unrec']:
+        # Enable/disable recording
+        if args == 'rec':
+            mixer.setrec(1, channel)
+        else:
+            mixer.setrec(0, channel)
+
+    else:
+        # Set volume for specified channel. MIXER_CHANNEL_ALL means set
+        # volume for all channels
         volume = int(args)
-    # Set volume for specified channel. MIXER_CHANNEL_ALL means set
-    # volume for all channels
-    mixer.setvolume(volume, channel)
+        mixer.setvolume(volume, channel)
 
 def usage():
     sys.stderr.write('usage: mixertest.py [-c <card>] ' \
@@ -114,7 +118,3 @@ if __name__ == '__main__':
         show_mixer(args[0], cardindex)
     else:
         set_mixer(args[0], args[1], cardindex)
-
-
-
-

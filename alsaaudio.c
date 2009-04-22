@@ -14,7 +14,7 @@
  */
 
 #include "Python.h"
-#if PY_MAJOR_VERSION < 3
+#if PY_MAJOR_VERSION < 3 && PY_MINOR_VERSION < 6
 #include "stringobject.h"
 #define PyUnicode_FromString PyString_FromString
 #endif
@@ -1566,7 +1566,7 @@ alsamixer_getrec(alsamixer_t *self, PyObject *args)
         if (snd_mixer_selem_has_capture_channel(elem, i)) 
         {
             snd_mixer_selem_get_capture_switch(elem, i, &ival);
-            PyList_Append(result,PyLong_FromLong(!ival));
+            PyList_Append(result,PyLong_FromLong(ival));
         }
     }
     return result;
@@ -1759,7 +1759,7 @@ alsamixer_setrec(alsamixer_t *self, PyObject *args)
         {
             if (snd_mixer_selem_has_capture_channel(elem, i)) 
             {
-                snd_mixer_selem_set_playback_switch(elem, i, rec);
+                snd_mixer_selem_set_capture_switch(elem, i, rec);
                 done++;
             }
         }
