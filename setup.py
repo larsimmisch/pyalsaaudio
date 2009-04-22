@@ -18,7 +18,7 @@ if version < '2.2.3':
     
 setup(
     name = 'pyalsaaudio',
-    version = '0.4',
+    version = '0.5',
     description = 'ALSA bindings',
     long_description = __doc__,
     author = 'Casper Wilstrup',

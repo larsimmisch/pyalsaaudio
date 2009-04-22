@@ -1,3 +1,8 @@
+Version 0.5:
+- applied patch 2777035: Fixed setrec method in alsaaudio.c
+  This included a mixertest with more features
+- fixed/applied patch 2594366: alsapcm_setup does not do any error checking
+
 Version 0.4:
 - API changes: mixers() and Mixer() now take a card index instead of a 
   card name as optional parameter.
