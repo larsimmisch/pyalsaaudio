@@ -14,13 +14,18 @@ import alsaaudio
 
 def play(device, f):    
 
+
+    sys.stdout.write('%d channels, %d sampling rate\n' % (f.getnchannels(),
+                                                          f.getframerate()))
     # Set attributes
     device.setchannels(f.getnchannels())
     device.setrate(f.getframerate())
 
-    # We assume signed data, little endian
+
+    # We 8bit is unsigned in wav files
     if f.getsampwidth() == 1:
-        device.setformat(alsaaudio.PCM_FORMAT_S8)
+        device.setformat(alsaaudio.PCM_FORMAT_U8)
+    # Otherwise we assume signed data, little endian
     elif f.getsampwidth() == 2:
         device.setformat(alsaaudio.PCM_FORMAT_S16_LE)
     elif f.getsampwidth() == 3:

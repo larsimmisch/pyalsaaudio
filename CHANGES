@@ -3,6 +3,7 @@ Version 0.5:
   This included a mixertest with more features
 - fixed/applied patch 2594366: alsapcm_setup does not do any error checking
 
+
 Version 0.4:
 - API changes: mixers() and Mixer() now take a card index instead of a 
   card name as optional parameter.
