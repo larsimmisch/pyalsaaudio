@@ -1784,6 +1784,58 @@ If omitted, the capture flag is set for all channels.\n\
 \n\
 This method will fail if the mixer has no capture switch capabilities");
 
+static PyObject *
+alsamixer_polldescriptors(alsamixer_t *self, PyObject *args) 
+{
+    int i, count, rc;
+    PyObject *result;
+    struct pollfd *fds;
+
+    if (!PyArg_ParseTuple(args,":polldescriptors")) 
+        return NULL;
+    
+    if (!self->handle) 
+    {
+        PyErr_SetString(ALSAAudioError, "Mixer is closed");
+        return NULL;
+    }
+    
+    count = snd_mixer_poll_descriptors_count(self->handle);
+    if (count < 0)
+    {
+        PyErr_SetString(ALSAAudioError,"Can't get poll descriptor count");
+        return NULL;
+    }
+
+    fds = (struct pollfd*)calloc(count, sizeof(struct pollfd));
+    if (!fds)
+    {
+        PyErr_SetString(PyExc_MemoryError, "Out of memory");
+        return NULL;
+    }
+
+    result = PyList_New(count);
+    rc = snd_mixer_poll_descriptors(self->handle, fds, (unsigned int)count);
+    if (rc != count)
+    {
+        PyErr_SetString(ALSAAudioError,"Can't get poll descriptors");
+        return NULL;
+    }
+
+    for (i = 0; i < count; ++i)
+    {
+        PyList_SetItem(result, i, 
+                       Py_BuildValue("II", fds[i].fd, fds[i].events));
+    }
+
+    return result;
+}
+
+PyDoc_STRVAR(polldescriptors_doc,
+"polldescriptors() -> List of tuples (fd, eventmask).\n\
+\n\
+Return a list of file descriptors and event masks\n\
+suitable for use with poll to monitor changes on this mixer.");
 
 static PyMethodDef alsamixer_methods[] = {
     {"cardname", (PyCFunction)alsamixer_cardname, METH_VARARGS, 
@@ -1805,6 +1857,9 @@ static PyMethodDef alsamixer_methods[] = {
      setvolume_doc},
     {"setmute", (PyCFunction)alsamixer_setmute, METH_VARARGS, setmute_doc},
     {"setrec", (PyCFunction)alsamixer_setrec, METH_VARARGS, setrec_doc},
+    {"polldescriptors", (PyCFunction)alsamixer_polldescriptors, METH_VARARGS, 
+     polldescriptors_doc},
+    
     {NULL, NULL}
 };
 

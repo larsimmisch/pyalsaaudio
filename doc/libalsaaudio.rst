@@ -415,6 +415,11 @@ Mixer objects have the following methods:
 
    This method will fail if the mixer has no capture switch capabilities.
 
+.. method:: Mixer.polldescriptors()
+
+   Returns a tuple of (file descriptor, eventmask) that can be used to
+   wait for changes on the mixer with *select.poll*.
+
 **A rant on the ALSA Mixer API**
 
 The ALSA mixer API is extremely complicated - and hardly documented at all.

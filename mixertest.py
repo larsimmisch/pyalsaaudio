@@ -107,10 +107,12 @@ def usage():
 if __name__ == '__main__':
 
     cardindex = 0
-    opts, args = getopt.getopt(sys.argv[1:], 'c:')
+    opts, args = getopt.getopt(sys.argv[1:], 'c:?h')
     for o, a in opts:
         if o == '-c':
             cardindex = int(a)
+        else:
+            usage()
 
     if not len(args):
         list_mixers(cardindex)
