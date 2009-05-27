@@ -88,7 +88,7 @@ char *translate_cardname(char *name)
     full = malloc(strlen("default:CARD=") + strlen(name) + 1);  
     sprintf(full, "default:CARD=%s", name);
 
-                       return full;
+    return full;
 }
 
 /* Translate a card index to a ALSA cardname 
@@ -172,31 +172,29 @@ static int alsapcm_setup(alsapcm_t *self)
     snd_pcm_hw_params_t *hwparams;
     
     /* Allocate a hwparam structure on the stack, 
-       and fill it in with configuration space */
+       and fill it with configuration space */
     snd_pcm_hw_params_alloca(&hwparams);
     res = snd_pcm_hw_params_any(self->handle, hwparams);
     if (res < 0) 
         return res;
     
-    /* Fill it in with default values. */
+    /* Fill it with default values. 
+
+       We don't care if any of this fails - we'll read the actual values 
+       back out.
+     */
     snd_pcm_hw_params_any(self->handle, hwparams);
     snd_pcm_hw_params_set_access(self->handle, hwparams, 
                                  SND_PCM_ACCESS_RW_INTERLEAVED);
     snd_pcm_hw_params_set_format(self->handle, hwparams, self->format);
-    res = snd_pcm_hw_params_set_channels(self->handle, hwparams, 
-                                         self->channels);
-    if (res < 0) return res;
+    snd_pcm_hw_params_set_channels(self->handle, hwparams, 
+                                   self->channels);
 
     dir = 0;
-    res = snd_pcm_hw_params_set_rate(self->handle, hwparams, self->rate, dir);
-    if (res < 0) return res;
-    
-    res = snd_pcm_hw_params_set_period_size(self->handle, hwparams, 
+    snd_pcm_hw_params_set_rate(self->handle, hwparams, self->rate, dir);
+    snd_pcm_hw_params_set_period_size(self->handle, hwparams, 
                                       self->periodsize, dir);
-    if (res < 0) return res;
-
-    res = snd_pcm_hw_params_set_periods(self->handle, hwparams, 4, 0);
-    if (res < 0) return res;
+    snd_pcm_hw_params_set_periods(self->handle, hwparams, 4, 0);
     
     /* Write it to the device */
     res = snd_pcm_hw_params(self->handle, hwparams);
