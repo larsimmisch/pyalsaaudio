@@ -86,8 +86,8 @@ class PCMTest(unittest.TestCase):
     def testPCM(self):
         "Open a PCM object on every card"
 
-        for c in alsaaudio.cards():
-            pcm = alsaaudio.PCM(card=c)
+        for i in range(len(alsaaudio.cards())):
+            pcm = alsaaudio.PCM(i)
             pcm.close()
 
     def testPCMAll(self):
