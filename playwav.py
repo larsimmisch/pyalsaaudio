@@ -4,8 +4,7 @@
 
 
 # Footnote: I'd normally use print instead of sys.std(out|err).write,
-# but we're in the middle of the conversion between python 2 and 3
-# and this code runs on both versions without conversion
+# but this version runs on python 2 and python 3 without conversion
 
 import sys
 import wave
@@ -21,8 +20,7 @@ def play(device, f):
     device.setchannels(f.getnchannels())
     device.setrate(f.getframerate())
 
-
-    # We 8bit is unsigned in wav files
+    # 8bit is unsigned in wav files
     if f.getsampwidth() == 1:
         device.setformat(alsaaudio.PCM_FORMAT_U8)
     # Otherwise we assume signed data, little endian
@@ -34,6 +32,8 @@ def play(device, f):
         device.setformat(alsaaudio.PCM_FORMAT_S32_LE)
     else:
         raise ValueError('Unsupported format')
+
+    device.setperiodsize(320)
     
     data = f.readframes(320)
     while data:
