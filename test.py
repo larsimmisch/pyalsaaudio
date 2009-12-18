@@ -67,7 +67,8 @@ class MixerTest(unittest.TestCase):
         mixer.close()
 
     def testMixerClose(self):
-        "Run common Mixer methods on a closed object and verify it raises an error"
+        """Run common Mixer methods on a closed object and verify it raises an 
+        error"""
 
         mixers = alsaaudio.mixers()
         mixer = alsaaudio.Mixer(mixers[0])

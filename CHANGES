@@ -1,3 +1,8 @@
+Version 0.6:
+- mostly reverted patch 2594366: alsapcm_setup did not do complete error 
+checking for good reasons; some ALSA functions in alsapcm_setup may fail without
+rendering the device unusable
+
 Version 0.5:
 - applied patch 2777035: Fixed setrec method in alsaaudio.c
   This included a mixertest with more features

@@ -73,5 +73,5 @@ linkcheck:
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in linkcheck/output.txt."
 
-install:
+upload: html
 	scp -r ./html/* $(SFUSER),pyalsaaudio@web.sourceforge.net:htdocs

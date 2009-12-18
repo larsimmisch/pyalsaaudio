@@ -13,6 +13,9 @@
 
 import sys, os
 
+sys.path.append('..')
+from setup import pyalsa_version
+
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
@@ -36,15 +39,15 @@ master_doc = 'index'
 
 # General substitutions.
 project = u'alsaaudio'
-copyright = u'2008, Casper Wilstrup, Lars Immisch'
+copyright = u'2008-2009, Casper Wilstrup, Lars Immisch'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
 #
 # The short X.Y version.
-version = '0.4'
+version = pyalsa_version
 # The full version, including alpha/beta/rc tags.
-release = '0.4'
+release = pyalsa_version
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
