@@ -759,6 +759,59 @@ PyDoc_STRVAR(pause_doc,
 If enable is 1, playback or capture is paused. If enable is 0,\n\
 playback/capture is resumed.");
 
+static PyObject *
+alsapcm_polldescriptors(alsapcm_t *self, PyObject *args)
+{
+    int i, count, rc;
+    PyObject *result;
+    struct pollfd *fds;
+
+    if (!PyArg_ParseTuple(args,":polldescriptors"))
+        return NULL;
+
+    if (!self->handle)
+    {
+        PyErr_SetString(ALSAAudioError, "PCM device is closed");
+        return NULL;
+    }
+
+    count = snd_pcm_poll_descriptors_count(self->handle);
+    if (count < 0)
+    {
+        PyErr_SetString(ALSAAudioError,"Can't get poll descriptor count");
+        return NULL;
+    }
+
+    fds = (struct pollfd*)calloc(count, sizeof(struct pollfd));
+    if (!fds)
+    {
+        PyErr_SetString(PyExc_MemoryError, "Out of memory");
+        return NULL;
+    }
+
+    result = PyList_New(count);
+    rc = snd_pcm_poll_descriptors(self->handle, fds, (unsigned int)count);
+    if (rc != count)
+    {
+        PyErr_SetString(ALSAAudioError,"Can't get poll descriptors");
+        return NULL;
+    }
+
+    for (i = 0; i < count; ++i)
+    {
+        PyList_SetItem(result, i,
+                       Py_BuildValue("II", fds[i].fd, fds[i].events));
+    }
+
+    return result;
+}
+
+PyDoc_STRVAR(pcm_polldescriptors_doc,
+"polldescriptors() -> List of tuples (fd, eventmask).\n\
+\n\
+Return a list of file descriptors and event masks\n\
+suitable for use with poll.");
+
 
 /* ALSA PCM Object Bureaucracy */
 
@@ -777,6 +830,8 @@ static PyMethodDef alsapcm_methods[] = {
     {"write", (PyCFunction)alsapcm_write, METH_VARARGS, write_doc},
     {"pause", (PyCFunction)alsapcm_pause, METH_VARARGS, pause_doc},
     {"close", (PyCFunction)alsapcm_close, METH_VARARGS, pcm_close_doc},
+    {"polldescriptors", (PyCFunction)alsapcm_polldescriptors, METH_VARARGS,
+     pcm_polldescriptors_doc},
     {NULL, NULL}
 };
 
