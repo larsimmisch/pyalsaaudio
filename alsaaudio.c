@@ -131,7 +131,8 @@ alsacard_list(PyObject *self, PyObject *args)
     {
         char name[32];
         int err;
-        
+        PyObject *item;        
+
         /* One would be tempted to think that snd_card_get_name returns a name
            that is actually meaningful for any further operations.
            
@@ -148,9 +149,10 @@ alsacard_list(PyObject *self, PyObject *args)
             Py_DECREF(result);
             return NULL;
         }
-        
-        PyList_Append(result, 
-                      PyUnicode_FromString(snd_ctl_card_info_get_id(info)));
+       
+        item = PyUnicode_FromString(snd_ctl_card_info_get_id(info));
+        PyList_Append(result, item); 
+        Py_DECREF(item);
         
         snd_ctl_close(handle);
     }
@@ -1205,6 +1207,8 @@ static PyObject *
 alsamixer_volumecap(alsamixer_t *self, PyObject *args) 
 {
     PyObject *result;
+    PyObject *item;
+
     if (!PyArg_ParseTuple(args,":volumecap")) return NULL;
 
     if (!self->handle) 
@@ -1215,18 +1219,42 @@ alsamixer_volumecap(alsamixer_t *self, PyObject *args)
 
     result = PyList_New(0);
     if (self->volume_cap&MIXER_CAP_VOLUME) 
-        PyList_Append(result,PyUnicode_FromString("Volume"));
+    {
+        item = PyUnicode_FromString("Volume");
+        PyList_Append(result, item);
+        Py_DECREF(item);
+    }
     if (self->volume_cap&MIXER_CAP_VOLUME_JOINED) 
-        PyList_Append(result,PyUnicode_FromString("Joined Volume"));
+    {
+        item = PyUnicode_FromString("Joined Volume"); 
+        PyList_Append(result, item);
+        Py_DECREF(item);
+    }
     if (self->volume_cap&MIXER_CAP_PVOLUME) 
-        PyList_Append(result,PyUnicode_FromString("Playback Volume"));
+    {
+        item = PyUnicode_FromString("Playback Volume");
+        PyList_Append(result, item);
+        Py_DECREF(item);
+    }
     if (self->volume_cap&MIXER_CAP_PVOLUME_JOINED) 
-        PyList_Append(result,PyUnicode_FromString("Joined Playback Volume"));
+    {
+        item = PyUnicode_FromString("Joined Playback Volume");
+        PyList_Append(result, item);
+        Py_DECREF(item);
+    }
     if (self->volume_cap&MIXER_CAP_CVOLUME) 
-        PyList_Append(result,PyUnicode_FromString("Capture Volume"));
+    {
+        item = PyUnicode_FromString("Capture Volume");
+        PyList_Append(result, item);
+        Py_DECREF(item);
+    }
     if (self->volume_cap&MIXER_CAP_CVOLUME_JOINED) 
-        PyList_Append(result,PyUnicode_FromString("Joined Capture Volume"));
-    
+    {
+        item = PyUnicode_FromString("Joined Capture Volume");
+        PyList_Append(result, item);
+        Py_DECREF(item);
+    }
+
     return result;
 }
 
@@ -1247,6 +1275,8 @@ static PyObject *
 alsamixer_switchcap(alsamixer_t *self, PyObject *args) 
 {
     PyObject *result;
+    PyObject *item;
+
     if (!PyArg_ParseTuple(args,":switchcap")) 
         return NULL;
 
@@ -1258,19 +1288,47 @@ alsamixer_switchcap(alsamixer_t *self, PyObject *args)
 
     result = PyList_New(0);
     if (self->volume_cap&MIXER_CAP_SWITCH) 
-        PyList_Append(result,PyUnicode_FromString("Mute"));
+    {
+        item = PyUnicode_FromString("Mute");
+        PyList_Append(result, item);
+        Py_DECREF(item);
+    }
     if (self->volume_cap&MIXER_CAP_SWITCH_JOINED) 
-        PyList_Append(result,PyUnicode_FromString("Joined Mute"));
+    {
+        item = PyUnicode_FromString("Joined Mute");
+        PyList_Append(result, item);
+        Py_DECREF(item);
+    }
     if (self->volume_cap&MIXER_CAP_PSWITCH) 
-        PyList_Append(result,PyUnicode_FromString("Playback Mute"));
+    {
+        item = PyUnicode_FromString("Playback Mute");
+        PyList_Append(result, item);
+        Py_DECREF(item);
+    }
     if (self->volume_cap&MIXER_CAP_PSWITCH_JOINED) 
-        PyList_Append(result,PyUnicode_FromString("Joined Playback Mute"));
+    {
+        item = PyUnicode_FromString("Joined Playback Mute");
+        PyList_Append(result, item);
+        Py_DECREF(item);
+    }
     if (self->volume_cap&MIXER_CAP_CSWITCH) 
-        PyList_Append(result,PyUnicode_FromString("Capture Mute"));
+    {
+        item = PyUnicode_FromString("Capture Mute");
+        PyList_Append(result, item);
+        Py_DECREF(item);
+    }
     if (self->volume_cap&MIXER_CAP_CSWITCH_JOINED) 
-        PyList_Append(result,PyUnicode_FromString("Joined Capture Mute"));
+    {
+        item = PyUnicode_FromString("Joined Capture Mute");
+        PyList_Append(result, item);
+        Py_DECREF(item);
+    }
     if (self->volume_cap&MIXER_CAP_CSWITCH_EXCLUSIVE) 
-        PyList_Append(result,PyUnicode_FromString("Capture Exclusive"));
+    {
+        item = PyUnicode_FromString("Capture Exclusive");
+        PyList_Append(result, item);
+        Py_DECREF(item);
+    }
 
     return result;
 }
@@ -1326,6 +1384,7 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args)
     long ival;
     char *dirstr = 0;
     PyObject *result;
+    PyObject *item;
     
     if (!PyArg_ParseTuple(args,"|s:getvolume",&dirstr)) 
         return NULL;
@@ -1362,19 +1421,21 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args)
             snd_mixer_selem_has_playback_channel(elem, channel)) 
         {
             snd_mixer_selem_get_playback_volume(elem, channel, &ival);
-            PyList_Append(
-                result, PyLong_FromLong(alsamixer_getpercentage(self->pmin, 
-                                                                self->pmax, 
-                                                                ival)));
+            item = PyLong_FromLong(alsamixer_getpercentage(self->pmin,
+                                                           self->pmax,
+                                                           ival));
+            PyList_Append(result, item);
+            Py_DECREF(item);
         }
         else if (direction == 1
                  && snd_mixer_selem_has_capture_channel(elem, channel)
                  && snd_mixer_selem_has_capture_volume(elem)) {
             snd_mixer_selem_get_capture_volume(elem, channel, &ival);
-            PyList_Append(
-                result, PyLong_FromLong(alsamixer_getpercentage(self->cmin,
-                                                                self->cmax, 
-                                                                ival)));
+            item = PyLong_FromLong(alsamixer_getpercentage(self->cmin,
+                                                           self->cmax,
+                                                           ival));
+            PyList_Append(result, item);
+            Py_DECREF(item);
         }
     }
 
@@ -1555,6 +1616,8 @@ alsamixer_getmute(alsamixer_t *self, PyObject *args)
     int i;
     int ival;
     PyObject *result;
+    PyObject *item;
+
     if (!PyArg_ParseTuple(args,":getmute")) 
         return NULL;
 
@@ -1570,13 +1633,18 @@ alsamixer_getmute(alsamixer_t *self, PyObject *args)
         PyErr_SetString(ALSAAudioError,"Mixer has no mute switch");
         return NULL;
     }    
+
     result = PyList_New(0);
+
     for (i = 0; i <= SND_MIXER_SCHN_LAST; i++) 
     {
         if (snd_mixer_selem_has_playback_channel(elem, i)) 
         {
             snd_mixer_selem_get_playback_switch(elem, i, &ival);
-            PyList_Append(result,PyLong_FromLong(!ival));
+
+            item = PyLong_FromLong(!ival);
+            PyList_Append(result, item);
+            Py_DECREF(item);
         }
     }
     return result;
@@ -1598,6 +1666,8 @@ alsamixer_getrec(alsamixer_t *self, PyObject *args)
     int i;
     int ival;
     PyObject *result;
+    PyObject *item;
+
     if (!PyArg_ParseTuple(args,":getrec")) 
         return NULL;
     
@@ -1613,13 +1683,17 @@ alsamixer_getrec(alsamixer_t *self, PyObject *args)
         PyErr_SetString(ALSAAudioError,"Mixer has no record switch");
         return NULL;
     }    
+
     result = PyList_New(0);
+
     for (i = 0; i <= SND_MIXER_SCHN_LAST; i++) 
     {
         if (snd_mixer_selem_has_capture_channel(elem, i)) 
         {
             snd_mixer_selem_get_capture_switch(elem, i, &ival);
-            PyList_Append(result,PyLong_FromLong(ival));
+            item = PyLong_FromLong(ival);
+            PyList_Append(result, item);
+            Py_DECREF(item);
         }
     }
     return result;
