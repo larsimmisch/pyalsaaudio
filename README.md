@@ -1,6 +1,6 @@
 # PyAlsaAudio
 
-> Author: Casper Wilstrup (cwi@aves.dk)
+> Author: Casper Wilstrup (cwi@aves.dk)  
 > Maintainer: Lars Immisch (lars@ibp.de)
 
 This package contains wrappers for accessing the ALSA api from Python. It
