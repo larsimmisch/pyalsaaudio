@@ -1,10 +1,10 @@
 # PyAlsaAudio
 
-Author: Casper Wilstrup (cwi@aves.dk)
-Maintainer: Lars Immisch (lars@ibp.de)
+> Author: Casper Wilstrup (cwi@aves.dk)
+> Maintainer: Lars Immisch (lars@ibp.de)
 
 This package contains wrappers for accessing the ALSA api from Python. It
-is currently fairly complete for PCM devices, and has some support for mixers
+is currently fairly complete for PCM devices, and has some support for mixers.
 
 If you find bugs in the wrappers please open an issue in the issue tracker.
 Please don't send bug reports regarding ALSA specifically. There are several
@@ -33,7 +33,7 @@ To install, execute the following:
 ```
 And then as root:
 ```
-  # sudo python setup.py install
+  $ sudo python setup.py install
 ```
 
 # Using the API
