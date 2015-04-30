@@ -13,7 +13,7 @@ Github pages
 =================
 
 * `Project page <https://github.com/larsimmisch/pyalsaaudio/>`_
-* `Download from pypi: <https://pypi.python.org/pypi/pyalsaaudio>`_
+* `Download from pypi <https://pypi.python.org/pypi/pyalsaaudio>`_
 * `Bug tracker <https://github.com/larsimmisch/pyalsaaudio/issues>`_
 
 
