@@ -8,7 +8,7 @@ from distutils.core import setup
 from distutils.extension import Extension
 from sys import version
 
-pyalsa_version = '0.6'
+pyalsa_version = '0.8'
 
 # patch distutils if it's too old to cope with the "classifiers" or
 # "download_url" keywords
@@ -30,7 +30,7 @@ if __name__ == '__main__':
         maintainer_email = 'lars@ibp.de',
         license='PSF',
         platforms=['posix'],
-        url='http://pyalsaaudio.sourceforge.net/',
+        url='http://larsimmisch.github.io/pyalsaaudio/',
         classifiers = [
             'Development Status :: 4 - Beta',
             'Intended Audience :: Developers',

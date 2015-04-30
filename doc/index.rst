@@ -9,12 +9,12 @@ alsaaudio documentation
    libalsaaudio
 
 
-SourceForge pages
+Github pages
 =================
 
-* `Project page <http://sourceforge.net/projects/pyalsaaudio/>`_
-* `Download <http://sourceforge.net/project/showfiles.php?group_id=120651">`_
-* `Bug tracker <http://sourceforge.net/tracker/?group_id=120651>`_
+* `Project page <https://github.com/larsimmisch/pyalsaaudio/>`_
+* `Download from pypi <https://pypi.python.org/pypi/pyalsaaudio>`_
+* `Bug tracker <https://github.com/larsimmisch/pyalsaaudio/issues>`_
 
 
 Indices and tables
