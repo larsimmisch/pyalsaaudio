@@ -1,1 +1,4 @@
-gh-pages/
+*.pyc
+doc/gh-pages/
+doc/html/
+doc/doctrees/
