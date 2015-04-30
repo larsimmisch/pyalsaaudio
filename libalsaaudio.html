@@ -1,0 +1,729 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>alsaaudio &mdash; alsaaudio 0.8 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="alsaaudio 0.8 documentation" href="index.html" />
+    <link rel="prev" title="PCM Terminology and Concepts" href="terminology.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="terminology.html" title="PCM Terminology and Concepts"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">alsaaudio 0.8 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-alsaaudio">
+<span id="alsaaudio"></span><h1><a class="reference internal" href="#module-alsaaudio" title="alsaaudio (Linux)"><tt class="xref py py-mod docutils literal"><span class="pre">alsaaudio</span></tt></a><a class="headerlink" href="#module-alsaaudio" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="#module-alsaaudio" title="alsaaudio (Linux)"><tt class="xref py py-mod docutils literal"><span class="pre">alsaaudio</span></tt></a> module defines functions and classes for using ALSA.</p>
+<dl class="function">
+<dt id="alsaaudio.cards">
+<tt class="descclassname">alsaaudio.</tt><tt class="descname">cards</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.cards" title="Permalink to this definition">¶</a></dt>
+<dd><p>List the available cards by name (suitable for PCM objects).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alsaaudio.mixers">
+<tt class="descclassname">alsaaudio.</tt><tt class="descname">mixers</tt><big>(</big><span class="optional">[</span><em>cardindex</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#alsaaudio.mixers" title="Permalink to this definition">¶</a></dt>
+<dd><p>List the available mixers. The optional <em>cardindex</em> specifies which card
+should be queried. The default is 0.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="alsaaudio.PCM">
+<em class="property">class </em><tt class="descclassname">alsaaudio.</tt><tt class="descname">PCM</tt><big>(</big><em>type=PCM_PLAYBACK</em>, <em>mode=PCM_NORMAL</em>, <em>card='default'</em><big>)</big><a class="headerlink" href="#alsaaudio.PCM" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class is used to represent a PCM device (both for playback and
+recording - capture). The arguments are:</p>
+<ul class="simple">
+<li><em>type</em> - can be either <tt class="docutils literal"><span class="pre">PCM_CAPTURE</span></tt> or <tt class="docutils literal"><span class="pre">PCM_PLAYBACK</span></tt> (default).</li>
+<li><em>mode</em> - can be either <tt class="docutils literal"><span class="pre">PCM_NONBLOCK</span></tt>, or <tt class="docutils literal"><span class="pre">PCM_NORMAL</span></tt> (default).</li>
+<li><em>card</em> - specifies the name of the card that should be used.</li>
+</ul>
+</dd></dl>
+
+<dl class="class">
+<dt id="alsaaudio.Mixer">
+<em class="property">class </em><tt class="descclassname">alsaaudio.</tt><tt class="descname">Mixer</tt><big>(</big><em>control='Master'</em>, <em>id=0</em>, <em>cardindex=0</em><big>)</big><a class="headerlink" href="#alsaaudio.Mixer" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class is used to access a specific ALSA mixer. The arguments
+are:</p>
+<ul class="simple">
+<li><em>control</em> - Name of the chosen mixed (default is &#8216;Master&#8217;).</li>
+<li><em>id</em> - id of mixer &#8211; More explanation needed here</li>
+<li><em>cardindex</em>  specifies which card should be used.</li>
+</ul>
+</dd></dl>
+
+<dl class="exception">
+<dt id="alsaaudio.ALSAAudioError">
+<em class="property">exception </em><tt class="descclassname">alsaaudio.</tt><tt class="descname">ALSAAudioError</tt><a class="headerlink" href="#alsaaudio.ALSAAudioError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception raised when an operation fails for a ALSA specific reason. The
+exception argument is a string describing the reason of the failure.</p>
+</dd></dl>
+
+<div class="section" id="pcm-objects">
+<span id="id1"></span><h2>PCM Objects<a class="headerlink" href="#pcm-objects" title="Permalink to this headline">¶</a></h2>
+<p>PCM objects in <a class="reference internal" href="#module-alsaaudio" title="alsaaudio (Linux)"><tt class="xref py py-mod docutils literal"><span class="pre">alsaaudio</span></tt></a> can play or capture (record) PCM
+sound through speakers or a microphone. The PCM constructor takes the
+following arguments:</p>
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">alsaaudio.</tt><tt class="descname">PCM</tt><big>(</big><em>type=PCM_CAPTURE</em>, <em>mode=PCM_NORMAL</em>, <em>card='default'</em><big>)</big></dt>
+<dd><p><em>type</em> - can be either <tt class="docutils literal"><span class="pre">PCM_CAPTURE</span></tt> or <tt class="docutils literal"><span class="pre">PCM_PLAYBACK</span></tt> (default).</p>
+<p><em>mode</em> - can be either <tt class="docutils literal"><span class="pre">PCM_NONBLOCK</span></tt>, or <tt class="docutils literal"><span class="pre">PCM_NORMAL</span></tt> (the
+default). In <tt class="docutils literal"><span class="pre">PCM_NONBLOCK</span></tt> mode, calls to <a class="reference internal" href="#alsaaudio.PCM.read" title="alsaaudio.PCM.read"><tt class="xref py py-func docutils literal"><span class="pre">read()</span></tt></a> will return
+immediately independent of whether there is any actual data to
+read. Similarly, calls to <a class="reference internal" href="#alsaaudio.PCM.write" title="alsaaudio.PCM.write"><tt class="xref py py-func docutils literal"><span class="pre">write()</span></tt></a> will return immediately without
+actually writing anything to the playout buffer if the buffer is
+full <a class="footnote-reference" href="#f1" id="id2">[1]</a>.</p>
+<p><em>card</em> - specifies which card should be used. This can be a string
+like &#8216;default&#8217; or a name that was returned from the <a class="reference internal" href="#alsaaudio.cards" title="alsaaudio.cards"><tt class="xref py py-func docutils literal"><span class="pre">cards()</span></tt></a> function.</p>
+<p>This will construct a PCM object with these default settings:</p>
+<ul class="simple">
+<li>Sample format: <tt class="docutils literal"><span class="pre">PCM_FORMAT_S16_LE</span></tt></li>
+<li>Rate: 44100 Hz</li>
+<li>Channels: 2</li>
+<li>Period size: 32 frames</li>
+</ul>
+</dd></dl>
+
+<p>PCM objects have the following methods:</p>
+<dl class="method">
+<dt id="alsaaudio.PCM.pcmtype">
+<tt class="descclassname">PCM.</tt><tt class="descname">pcmtype</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.PCM.pcmtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the type of PCM object. Either <tt class="docutils literal"><span class="pre">PCM_CAPTURE</span></tt> or <tt class="docutils literal"><span class="pre">PCM_PLAYBACK</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.PCM.pcmmode">
+<tt class="descclassname">PCM.</tt><tt class="descname">pcmmode</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.PCM.pcmmode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the mode of the PCM object. One of <tt class="docutils literal"><span class="pre">PCM_NONBLOCK</span></tt>, <tt class="docutils literal"><span class="pre">PCM_ASYNC</span></tt>,
+or <tt class="docutils literal"><span class="pre">PCM_NORMAL</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.PCM.cardname">
+<tt class="descclassname">PCM.</tt><tt class="descname">cardname</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.PCM.cardname" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the name of the sound card used by this PCM object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.PCM.setchannels">
+<tt class="descclassname">PCM.</tt><tt class="descname">setchannels</tt><big>(</big><em>nchannels</em><big>)</big><a class="headerlink" href="#alsaaudio.PCM.setchannels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to set the number of capture or playback channels. Common
+values are: 1 = mono, 2 = stereo, and 6 = full 6 channel audio. Few
+sound cards support more than 2 channels</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.PCM.setrate">
+<tt class="descclassname">PCM.</tt><tt class="descname">setrate</tt><big>(</big><em>rate</em><big>)</big><a class="headerlink" href="#alsaaudio.PCM.setrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the sample rate in Hz for the device. Typical values are 8000
+(mainly used for telephony), 16000, 44100 (CD quality), and 96000.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.PCM.setformat">
+<tt class="descclassname">PCM.</tt><tt class="descname">setformat</tt><big>(</big><em>format</em><big>)</big><a class="headerlink" href="#alsaaudio.PCM.setformat" title="Permalink to this definition">¶</a></dt>
+<dd><p>The sound <em>format</em> of the device. Sound format controls how the PCM device
+interpret data for playback, and how data is encoded in captures.</p>
+<p>The following formats are provided by ALSA:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="78%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Format</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>PCM_FORMAT_S8</td>
+<td>Signed 8 bit samples for each channel</td>
+</tr>
+<tr class="row-odd"><td>PCM_FORMAT_U8</td>
+<td>Signed 8 bit samples for each channel</td>
+</tr>
+<tr class="row-even"><td>PCM_FORMAT_S16_LE</td>
+<td>Signed 16 bit samples for each channel Little Endian byte order)</td>
+</tr>
+<tr class="row-odd"><td>PCM_FORMAT_S16_BE</td>
+<td>Signed 16 bit samples for each channel (Big Endian byte order)</td>
+</tr>
+<tr class="row-even"><td>PCM_FORMAT_U16_LE</td>
+<td>Unsigned 16 bit samples for each channel (Little Endian byte order)</td>
+</tr>
+<tr class="row-odd"><td>PCM_FORMAT_U16_BE</td>
+<td>Unsigned 16 bit samples for each channel (Big Endian byte order)</td>
+</tr>
+<tr class="row-even"><td>PCM_FORMAT_S24_LE</td>
+<td>Signed 24 bit samples for each channel (Little Endian byte order)</td>
+</tr>
+<tr class="row-odd"><td>PCM_FORMAT_S24_BE</td>
+<td>Signed 24 bit samples for each channel (Big Endian byte order)}</td>
+</tr>
+<tr class="row-even"><td>PCM_FORMAT_U24_LE</td>
+<td>Unsigned 24 bit samples for each channel (Little Endian byte order)</td>
+</tr>
+<tr class="row-odd"><td>PCM_FORMAT_U24_BE</td>
+<td>Unsigned 24 bit samples for each channel (Big Endian byte order)</td>
+</tr>
+<tr class="row-even"><td>PCM_FORMAT_S32_LE</td>
+<td>Signed 32 bit samples for each channel (Little Endian byte order)</td>
+</tr>
+<tr class="row-odd"><td>PCM_FORMAT_S32_BE</td>
+<td>Signed 32 bit samples for each channel (Big Endian byte order)</td>
+</tr>
+<tr class="row-even"><td>PCM_FORMAT_U32_LE</td>
+<td>Unsigned 32 bit samples for each channel (Little Endian byte order)</td>
+</tr>
+<tr class="row-odd"><td>PCM_FORMAT_U32_BE</td>
+<td>Unsigned 32 bit samples for each channel (Big Endian byte order)</td>
+</tr>
+<tr class="row-even"><td>PCM_FORMAT_FLOAT_LE</td>
+<td>32 bit samples encoded as float (Little Endian byte order)</td>
+</tr>
+<tr class="row-odd"><td>PCM_FORMAT_FLOAT_BE</td>
+<td>32 bit samples encoded as float (Big Endian byte order)</td>
+</tr>
+<tr class="row-even"><td>PCM_FORMAT_FLOAT64_LE</td>
+<td>64 bit samples encoded as float (Little Endian byte order)</td>
+</tr>
+<tr class="row-odd"><td>PCM_FORMAT_FLOAT64_BE</td>
+<td>64 bit samples encoded as float (Big Endian byte order)</td>
+</tr>
+<tr class="row-even"><td>PCM_FORMAT_MU_LAW</td>
+<td>A logarithmic encoding (used by Sun .au files and telephony)</td>
+</tr>
+<tr class="row-odd"><td>PCM_FORMAT_A_LAW</td>
+<td>Another logarithmic encoding</td>
+</tr>
+<tr class="row-even"><td>PCM_FORMAT_IMA_ADPCM</td>
+<td>A 4:1 compressed format defined by the Interactive Multimedia Association.</td>
+</tr>
+<tr class="row-odd"><td>PCM_FORMAT_MPEG</td>
+<td>MPEG encoded audio?</td>
+</tr>
+<tr class="row-even"><td>PCM_FORMAT_GSM</td>
+<td>9600 bits/s constant rate encoding for speech</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.PCM.setperiodsize">
+<tt class="descclassname">PCM.</tt><tt class="descname">setperiodsize</tt><big>(</big><em>period</em><big>)</big><a class="headerlink" href="#alsaaudio.PCM.setperiodsize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the actual period size in frames. Each write should consist of
+exactly this number of frames, and each read will return this
+number of frames (unless the device is in <tt class="docutils literal"><span class="pre">PCM_NONBLOCK</span></tt> mode, in
+which case it may return nothing at all)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.PCM.read">
+<tt class="descclassname">PCM.</tt><tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.PCM.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>In <tt class="docutils literal"><span class="pre">PCM_NORMAL</span></tt> mode, this function blocks until a full period is
+available, and then returns a tuple (length,data) where <em>length</em> is
+the number of frames of captured data, and <em>data</em> is the captured
+sound frames as a string. The length of the returned data will be
+periodsize*framesize bytes.</p>
+<p>In <tt class="docutils literal"><span class="pre">PCM_NONBLOCK</span></tt> mode, the call will not block, but will return
+<tt class="docutils literal"><span class="pre">(0,'')</span></tt> if no new period has become available since the last
+call to read.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.PCM.write">
+<tt class="descclassname">PCM.</tt><tt class="descname">write</tt><big>(</big><em>data</em><big>)</big><a class="headerlink" href="#alsaaudio.PCM.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes (plays) the sound in data. The length of data <em>must</em> be a
+multiple of the frame size, and <em>should</em> be exactly the size of a
+period. If less than &#8216;period size&#8217; frames are provided, the actual
+playout will not happen until more data is written.</p>
+<p>If the device is not in <tt class="docutils literal"><span class="pre">PCM_NONBLOCK</span></tt> mode, this call will block if
+the kernel buffer is full, and until enough sound has been played
+to allow the sound data to be buffered. The call always returns the
+size of the data provided.</p>
+<p>In <tt class="docutils literal"><span class="pre">PCM_NONBLOCK</span></tt> mode, the call will return immediately, with a
+return value of zero, if the buffer is full. In this case, the data
+should be written at a later time.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.PCM.pause">
+<tt class="descclassname">PCM.</tt><tt class="descname">pause</tt><big>(</big><span class="optional">[</span><em>enable=1</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#alsaaudio.PCM.pause" title="Permalink to this definition">¶</a></dt>
+<dd><p>If <em>enable</em> is 1, playback or capture is paused. If <em>enable</em> is 0,
+playback/capture is resumed.</p>
+</dd></dl>
+
+<p><strong>A few hints on using PCM devices for playback</strong></p>
+<p>The most common reason for problems with playback of PCM audio is that writes
+to PCM devices must <em>exactly</em> match the data rate of the device.</p>
+<p>If too little data is written to the device, it will underrun, and
+ugly clicking sounds will occur. Conversely, of too much data is
+written to the device, the write function will either block
+(<tt class="docutils literal"><span class="pre">PCM_NORMAL</span></tt> mode) or return zero (<tt class="docutils literal"><span class="pre">PCM_NONBLOCK</span></tt> mode).</p>
+<p>If your program does nothing but play sound, the best strategy is to put the
+device in <tt class="docutils literal"><span class="pre">PCM_NORMAL</span></tt> mode, and just write as much data to the device as
+possible. This strategy can also be achieved by using a separate
+thread with the sole task of playing out sound.</p>
+<p>In GUI programs, however, it may be a better strategy to setup the device,
+preload the buffer with a few periods by calling write a couple of times, and
+then use some timer method to write one period size of data to the device every
+period. The purpose of the preloading is to avoid underrun clicks if the used
+timer doesn&#8217;t expire exactly on time.</p>
+<p>Also note, that most timer APIs that you can find for Python will
+accummulate time delays: If you set the timer to expire after 1/10&#8217;th
+of a second, the actual timeout will happen slightly later, which will
+accumulate to quite a lot after a few seconds. Hint: use time.time()
+to check how much time has really passed, and add extra writes as nessecary.</p>
+</div>
+<div class="section" id="mixer-objects">
+<span id="id3"></span><h2>Mixer Objects<a class="headerlink" href="#mixer-objects" title="Permalink to this headline">¶</a></h2>
+<p>Mixer objects provides access to the ALSA mixer API.</p>
+<dl class="class">
+<dt>
+<em class="property">class </em><tt class="descclassname">alsaaudio.</tt><tt class="descname">Mixer</tt><big>(</big><em>control='Master'</em>, <em>id=0</em>, <em>cardindex=0</em><big>)</big></dt>
+<dd><p><em>control</em> - specifies which control to manipulate using this mixer
+object. The list of available controls can be found with the
+<a class="reference internal" href="#module-alsaaudio" title="alsaaudio (Linux)"><tt class="xref py py-mod docutils literal"><span class="pre">alsaaudio</span></tt></a>.<a class="reference internal" href="#alsaaudio.mixers" title="alsaaudio.mixers"><tt class="xref py py-func docutils literal"><span class="pre">mixers()</span></tt></a> function.  The default value is
+&#8216;Master&#8217; - other common controls include &#8216;Master Mono&#8217;, &#8216;PCM&#8217;, &#8216;Line&#8217;, etc.</p>
+<p><em>id</em> - the id of the mixer control. Default is 0</p>
+<p><em>cardindex</em> - specifies which card should be used <a class="footnote-reference" href="#f3" id="id4">[3]</a>. 0 is the
+first sound card.</p>
+<p><strong>Note:</strong> For a list of available controls, you can also use <strong>amixer</strong>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">amixer</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<p>Mixer objects have the following methods:</p>
+<dl class="method">
+<dt id="alsaaudio.Mixer.cardname">
+<tt class="descclassname">Mixer.</tt><tt class="descname">cardname</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.Mixer.cardname" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the name of the sound card used by this Mixer object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.Mixer.mixer">
+<tt class="descclassname">Mixer.</tt><tt class="descname">mixer</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.Mixer.mixer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the name of the specific mixer controlled by this object, For example
+&#8216;Master&#8217; or &#8216;PCM&#8217;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.Mixer.mixerid">
+<tt class="descclassname">Mixer.</tt><tt class="descname">mixerid</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.Mixer.mixerid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the ID of the ALSA mixer controlled by this object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.Mixer.switchcap">
+<tt class="descclassname">Mixer.</tt><tt class="descname">switchcap</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.Mixer.switchcap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of the switches which are defined by this specific mixer.
+Possible values in this list are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="31%" />
+<col width="69%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Switch</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>&#8216;Mute&#8217;</td>
+<td>This mixer can mute</td>
+</tr>
+<tr class="row-odd"><td>&#8216;Joined Mute&#8217;</td>
+<td>This mixer can mute all channels at the same time</td>
+</tr>
+<tr class="row-even"><td>&#8216;Playback Mute&#8217;</td>
+<td>This mixer can mute the playback output</td>
+</tr>
+<tr class="row-odd"><td>&#8216;Joined Playback Mute&#8217;</td>
+<td>Mute playback for all channels at the same time}</td>
+</tr>
+<tr class="row-even"><td>&#8216;Capture Mute&#8217;</td>
+<td>Mute sound capture</td>
+</tr>
+<tr class="row-odd"><td>&#8216;Joined Capture Mute&#8217;</td>
+<td>Mute sound capture for all channels at a time}</td>
+</tr>
+<tr class="row-even"><td>&#8216;Capture Exclusive&#8217;</td>
+<td>Not quite sure what this is</td>
+</tr>
+</tbody>
+</table>
+<p>To manipulate these switches use the <a class="reference internal" href="#alsaaudio.Mixer.setrec" title="alsaaudio.Mixer.setrec"><tt class="xref py py-meth docutils literal"><span class="pre">setrec()</span></tt></a> or
+<a class="reference internal" href="#alsaaudio.Mixer.setmute" title="alsaaudio.Mixer.setmute"><tt class="xref py py-meth docutils literal"><span class="pre">setmute()</span></tt></a> methods</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.Mixer.volumecap">
+<tt class="descclassname">Mixer.</tt><tt class="descname">volumecap</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.Mixer.volumecap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of the volume control capabilities of this
+mixer. Possible values in the list are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="28%" />
+<col width="72%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Capability</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>&#8216;Volume&#8217;</td>
+<td>This mixer can control volume</td>
+</tr>
+<tr class="row-odd"><td>&#8216;Joined Volume&#8217;</td>
+<td>This mixer can control volume for all channels at the same time</td>
+</tr>
+<tr class="row-even"><td>&#8216;Playback Volume&#8217;</td>
+<td>This mixer can manipulate the playback output</td>
+</tr>
+<tr class="row-odd"><td>&#8216;Joined Playback Volume&#8217;</td>
+<td>Manipulate playback volumne for all channels at the same time</td>
+</tr>
+<tr class="row-even"><td>&#8216;Capture Volume&#8217;</td>
+<td>Manipulate sound capture volume</td>
+</tr>
+<tr class="row-odd"><td>&#8216;Joined Capture Volume&#8217;</td>
+<td>Manipulate sound capture volume for all channels at a time</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.Mixer.getenum">
+<tt class="descclassname">Mixer.</tt><tt class="descname">getenum</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.Mixer.getenum" title="Permalink to this definition">¶</a></dt>
+<dd><p>For enumerated controls, return the currently selected item and  the list of
+items available.</p>
+<p>Returns a tuple <em>(string, list of strings)</em>.</p>
+<p>For example, my soundcard has a Mixer called <em>Mono Output Select</em>. Using
+<em>amixer</em>, I get:</p>
+<div class="highlight-python"><pre>$ amixer get "Mono Output Select"
+Simple mixer control 'Mono Output Select',0
+  Capabilities: enum
+  Items: 'Mix' 'Mic'
+  Item0: 'Mix'</pre>
+</div>
+<p>Using <a class="reference internal" href="#module-alsaaudio" title="alsaaudio (Linux)"><tt class="xref py py-mod docutils literal"><span class="pre">alsaaudio</span></tt></a>, one could do:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">alsaaudio</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">alsaaudio</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s">&#39;Mono Output Select&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">getenum</span><span class="p">()</span>
+<span class="go">(&#39;Mix&#39;, [&#39;Mix&#39;, &#39;Mic&#39;])</span>
+</pre></div>
+</div>
+<p>This method will return an empty tuple if the mixer is not an  enumerated
+control.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.Mixer.getmute">
+<tt class="descclassname">Mixer.</tt><tt class="descname">getmute</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.Mixer.getmute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list indicating the current mute setting for each
+channel. 0 means not muted, 1 means muted.</p>
+<p>This method will fail if the mixer has no playback switch capabilities.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.Mixer.getrange">
+<tt class="descclassname">Mixer.</tt><tt class="descname">getrange</tt><big>(</big><span class="optional">[</span><em>direction</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#alsaaudio.Mixer.getrange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the volume range of the ALSA mixer controlled by this object.</p>
+<p>The optional <em>direction</em> argument can be either &#8216;playback&#8217; or
+&#8216;capture&#8217;, which is relevant if the mixer can control both playback
+and capture volume.  The default value is &#8216;playback&#8217; if the mixer
+has this capability, otherwise &#8216;capture&#8217;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.Mixer.getrec">
+<tt class="descclassname">Mixer.</tt><tt class="descname">getrec</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.Mixer.getrec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list indicating the current record mute setting for each channel. 0
+means not recording, 1 means recording.</p>
+<p>This method will fail if the mixer has no capture switch capabilities.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.Mixer.getvolume">
+<tt class="descclassname">Mixer.</tt><tt class="descname">getvolume</tt><big>(</big><span class="optional">[</span><em>direction</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#alsaaudio.Mixer.getvolume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list with the current volume settings for each channel. The list
+elements are integer percentages.</p>
+<p>The optional <em>direction</em> argument can be either &#8216;playback&#8217; or
+&#8216;capture&#8217;, which is relevant if the mixer can control both playback
+and capture volume. The default value is &#8216;playback&#8217; if the mixer
+has this capability, otherwise &#8216;capture&#8217;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.Mixer.setvolume">
+<tt class="descclassname">Mixer.</tt><tt class="descname">setvolume</tt><big>(</big><em>volume</em><span class="optional">[</span>, <em>channel</em><span class="optional">]</span><span class="optional">[</span>, <em>direction</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#alsaaudio.Mixer.setvolume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the current volume settings for this mixer. The <em>volume</em> argument
+controls the new volume setting as an integer percentage.</p>
+<p>If the optional argument <em>channel</em> is present, the volume is set
+only for this channel. This assumes that the mixer can control the
+volume for the channels independently.</p>
+<p>The optional <em>direction</em> argument can be either &#8216;playback&#8217; or &#8216;capture&#8217; is
+relevant if the mixer has independent playback and capture volume
+capabilities, and controls which of the volumes if changed. The
+default is &#8216;playback&#8217; if the mixer has this capability, otherwise &#8216;capture&#8217;.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.Mixer.setmute">
+<tt class="descclassname">Mixer.</tt><tt class="descname">setmute</tt><big>(</big><em>mute</em><span class="optional">[</span>, <em>channel</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#alsaaudio.Mixer.setmute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the mute flag to a new value. The <em>mute</em> argument is either 0 for not
+muted, or 1 for muted.</p>
+<p>The optional <em>channel</em> argument controls which channel is
+muted. The default is to set the mute flag for all channels.</p>
+<p>This method will fail if the mixer has no playback mute capabilities</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.Mixer.setrec">
+<tt class="descclassname">Mixer.</tt><tt class="descname">setrec</tt><big>(</big><em>capture</em><span class="optional">[</span>, <em>channel</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#alsaaudio.Mixer.setrec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the capture mute flag to a new value. The <em>capture</em> argument
+is either 0 for no capture, or 1 for capture.</p>
+<p>The optional <em>channel</em> argument controls which channel is
+changed. The default is to set the capture flag for all channels.</p>
+<p>This method will fail if the mixer has no capture switch capabilities.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="alsaaudio.Mixer.polldescriptors">
+<tt class="descclassname">Mixer.</tt><tt class="descname">polldescriptors</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.Mixer.polldescriptors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a tuple of (file descriptor, eventmask) that can be used to
+wait for changes on the mixer with <em>select.poll</em>.</p>
+</dd></dl>
+
+<p><strong>A rant on the ALSA Mixer API</strong></p>
+<p>The ALSA mixer API is extremely complicated - and hardly documented at all.
+<a class="reference internal" href="#module-alsaaudio" title="alsaaudio (Linux)"><tt class="xref py py-mod docutils literal"><span class="pre">alsaaudio</span></tt></a> implements a much simplified way to access this API. In
+designing the API I&#8217;ve had to make some choices which may limit what can and
+cannot be controlled through the API. However, If I had chosen to implement the
+full API, I would have reexposed the horrible complexity/documentation ratio of
+the underlying API.  At least the <a class="reference internal" href="#module-alsaaudio" title="alsaaudio (Linux)"><tt class="xref py py-mod docutils literal"><span class="pre">alsaaudio</span></tt></a> API is easy to
+understand and use.</p>
+<p>If my design choises prevents you from doing something that the underlying API
+would have allowed, please let me know, so I can incorporate these needs into
+future versions.</p>
+<p>If the current state of affairs annoys you, the best you can do is to write a
+HOWTO on the API and make this available on the net. Until somebody does this,
+the availability of ALSA mixer capable devices will stay quite limited.</p>
+<p>Unfortunately, I&#8217;m not able to create such a HOWTO myself, since I only
+understand half of the API, and that which I do understand has come from a
+painful trial and error process.</p>
+</div>
+<div class="section" id="examples">
+<span id="pcm-example"></span><h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>The following example are provided:</p>
+<ul class="simple">
+<li>playwav.py</li>
+<li>recordtest.py</li>
+<li>playbacktest.py</li>
+<li>mixertest.py</li>
+</ul>
+<p>All examples (except mixertest.py) accept the commandline option
+<em>-c &lt;cardname&gt;</em>.</p>
+<p>To determine a valid card name, use the commandline ALSA player:</p>
+<div class="highlight-python"><pre>$ aplay -L</pre>
+</div>
+<p>or:</p>
+<div class="highlight-python"><pre>$ python
+
+&gt;&gt;&gt; import alsaaudio
+&gt;&gt;&gt; alsaaudio.cards()</pre>
+</div>
+<p>mixertest.py accepts the commandline option <em>-c &lt;cardindex&gt;</em>. Card
+indices start at 0.</p>
+<div class="section" id="playwav-py">
+<h3>playwav.py<a class="headerlink" href="#playwav-py" title="Permalink to this headline">¶</a></h3>
+<p><strong>playwav.py</strong> plays a wav file.</p>
+<p>To test PCM playback (on your default soundcard), run:</p>
+<div class="highlight-python"><pre>$ python playwav.py &lt;wav file&gt;</pre>
+</div>
+</div>
+<div class="section" id="recordtest-py-and-playbacktest-py">
+<h3>recordtest.py and playbacktest.py<a class="headerlink" href="#recordtest-py-and-playbacktest-py" title="Permalink to this headline">¶</a></h3>
+<p><strong>recordtest.py</strong> and <strong>playbacktest.py</strong> will record and play a raw
+sound file in CD quality.</p>
+<p>To test PCM recordings (on your default soundcard), run:</p>
+<div class="highlight-python"><pre>$ python recordtest.py &lt;filename&gt;</pre>
+</div>
+<p>Speak into the microphone, and interrupt the recording at any time
+with <tt class="docutils literal"><span class="pre">Ctl-C</span></tt>.</p>
+<p>Play back the recording with:</p>
+<div class="highlight-python"><pre>$ python playbacktest.py &lt;filename&gt;</pre>
+</div>
+</div>
+<div class="section" id="mixertest-py">
+<h3>mixertest.py<a class="headerlink" href="#mixertest-py" title="Permalink to this headline">¶</a></h3>
+<p>Without arguments, <strong>mixertest.py</strong> will list all available <em>controls</em>.
+The output might look like this:</p>
+<div class="highlight-python"><pre>$ ./mixertest.py
+Available mixer controls:
+  'Master'
+  'Master Mono'
+  'Headphone'
+  'PCM'
+  'Line'
+  'Line In-&gt;Rear Out'
+  'CD'
+  'Mic'
+  'PC Speaker'
+  'Aux'
+  'Mono Output Select'
+  'Capture'
+  'Mix'
+  'Mix Mono'</pre>
+</div>
+<p>With a single argument - the <em>control</em>, it will display the settings of
+that control; for example:</p>
+<div class="highlight-python"><pre>$ ./mixertest.py Master
+Mixer name: 'Master'
+Capabilities: Playback Volume Playback Mute
+Channel 0 volume: 61%
+Channel 1 volume: 61%</pre>
+</div>
+<p>With two arguments, the <em>control</em> and a <em>parameter</em>, it will set the
+parameter on the mixer:</p>
+<div class="highlight-python"><pre>$ ./mixertest.py Master mute</pre>
+</div>
+<p>This will mute the Master mixer.</p>
+<p>Or:</p>
+<div class="highlight-python"><pre>$ ./mixertest.py Master 40</pre>
+</div>
+<p>This sets the volume to 40% on all channels.</p>
+<p class="rubric">Footnotes</p>
+<table class="docutils footnote" frame="void" id="f1" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[1]</a></td><td>ALSA also allows <tt class="docutils literal"><span class="pre">PCM_ASYNC</span></tt>, but this is not supported yet.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="f2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[2]</td><td><a class="reference internal" href="#module-alsaaudio" title="alsaaudio (Linux)"><tt class="xref py py-mod docutils literal"><span class="pre">alsaaudio</span></tt></a> will leave any name alone that has a &#8216;:&#8217; (colon) in it.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="f3" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[3]</a></td><td>This is inconsistent with the PCM objects, which use names, but it is consistent with aplay and amixer.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">alsaaudio</span></tt></a><ul>
+<li><a class="reference internal" href="#pcm-objects">PCM Objects</a></li>
+<li><a class="reference internal" href="#mixer-objects">Mixer Objects</a></li>
+<li><a class="reference internal" href="#examples">Examples</a><ul>
+<li><a class="reference internal" href="#playwav-py">playwav.py</a></li>
+<li><a class="reference internal" href="#recordtest-py-and-playbacktest-py">recordtest.py and playbacktest.py</a></li>
+<li><a class="reference internal" href="#mixertest-py">mixertest.py</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="terminology.html"
+                        title="previous chapter">PCM Terminology and Concepts</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/libalsaaudio.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="terminology.html" title="PCM Terminology and Concepts"
+             >previous</a> |</li>
+        <li><a href="index.html">alsaaudio 0.8 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2008-2009, Casper Wilstrup, Lars Immisch.
+      Last updated on Apr 30, 2015.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
