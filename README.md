@@ -19,13 +19,14 @@ whatsoever.
 
 # Installation
 
-Note: the wrappers link with the alsasound library alsa (from the alsa-lib
-package). Verify that this is installed by looking for /usr/lib/libasound.so
-before building. The libasound development files are also neccesary. On debian
-and derivatives, this is achieved by installing the `alsalib-dev` package.
+*Note:* the wrappers need the ALSA library and headers.
+The installation of these varies from distribution to distribution.
 
-Naturally you also need to use a kernel with proper ALSA
-support.
+On Debian or Ubuntu, make sure to install `linasound2-dev`. On Arch,
+install `alsa-lib`. When in doubt, search your distribution for a
+package that contains `libasound.so` and `asoundlib.h`.
+
+Naturally you also need to use a kernel with ALSA support.
 
 To install, execute the following:
 ```
@@ -37,15 +38,13 @@ And then as root:
 ```
 
 # Using the API
-There is a reasonably useful API documentation included in the module
-documentation, which can be found in the doc subdirectory of the source
-distribution.
+The API documentation is included in the doc subdirectory of the source
+distribution; it is also online on [http://larsimmisch.github.io/pyalsaaudio/](http://larsimmisch.github.io/pyalsaaudio/).
 
-There are also three example programs included with the source:
-`playbacktest.py` which plays back raw sound data read from
-stdin
+There are some example programs included with the source:
 
-`recordtest.py` which captures sound from the microphone at writes
+* `playwav.py` plays back a wav file
+* `playbacktest.py` plays back raw sound data read from stdin
+* `recordtest.py` captures sound from the microphone and writes
 it raw to stdout.
-
-`mixertest.py` which can be used to manipulate the mixers.
+* `mixertest.py` can be used to manipulate the mixers.
