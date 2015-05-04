@@ -42,13 +42,18 @@ class MixerTest(unittest.TestCase):
     """Test Mixer objects"""
 
     def testMixer(self):
-        """Open a Mixer on every card"""
+        """Open the default Mixers and the Mixers on every card"""
+        
+        for d in ['default'] + range(len(alsaaudio.cards())):
+            if type(d) == type(0):
+                kwargs = { 'cardindex': d }
+            else:
+                kwargs = { 'device': d }
 
-        # Mixers are addressed by index, not name
-        for i in range(len(alsaaudio.cards())):
-            mixers = alsaaudio.mixers(i)
+            mixers = alsaaudio.mixers(**kwargs)
+            
             for m in mixers:
-                mixer = alsaaudio.Mixer(m, cardindex=i)
+                mixer = alsaaudio.Mixer(m, **kwargs)
                 mixer.close()
 
     def testMixerAll(self):

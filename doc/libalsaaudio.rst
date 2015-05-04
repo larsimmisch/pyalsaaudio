@@ -38,11 +38,23 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
 
    List the available cards by name (suitable for PCM objects). 
 
-.. function:: mixers([cardindex])
+.. function:: mixers(device='default', cardindex=-1)
 
-   List the available mixers. The optional *cardindex* specifies which card 
-   should be queried. The default is 0.
+   List the available mixers. The arguments are:
 
+    *device* - the name of the device on which the mixer resides. The default is
+   'default'.
+   
+   *cardindex* - specifies which card should be used [#f3]_. If this argument
+   is given, the device name  is constructed like this: `hw:<cardindex>` and
+   the `device` keyword argument is ignored. 0 is the
+   first sound card. 
+
+   **Note:** The arguments for this function were changed in
+   version 0.8 and this change is not completely backward compatible.
+   Old versions accepted just the optional parameter *cardindex*.
+   The current version accepts either a device name or a cardindex.
+  
 .. class:: PCM(type=PCM_PLAYBACK, mode=PCM_NORMAL, card='default')
 
    This class is used to represent a PCM device (both for playback and
@@ -52,14 +64,24 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
    * *mode* - can be either ``PCM_NONBLOCK``, or ``PCM_NORMAL`` (default). 
    * *card* - specifies the name of the card that should be used.
 
-.. class:: Mixer(control='Master', id=0, cardindex=0)
+.. class:: Mixer(control='Master', id=0, device='default', cardindex=-1)
 
    This class is used to access a specific ALSA mixer. The arguments
    are:  
 
    * *control* - Name of the chosen mixed (default is 'Master').  
-   * *id* - id of mixer -- More explanation needed here 
-   * *cardindex*  specifies which card should be used.
+   * *id* - id of mixer -- More explanation needed here
+   *device* - the name of the device on which the mixer resides. The default is
+   'default'.
+   *cardindex* - specifies which card should be used [#f3]_. If this argument
+   is given, the device name  is constructed like this: `hw:<cardindex>` and
+   the `device` keyword argument is ignored. 0 is the
+   first sound card. 
+
+   **Note:** The arguments for this constructor were changed in
+   version 0.8 and this change is not completely backward compatible.
+   Old versions accepted just the optional parameter *cardindex*.
+   The current version accepts either a device name or a cardindex.
 
 .. exception:: ALSAAudioError
 
@@ -243,7 +265,7 @@ Mixer Objects
 Mixer objects provides access to the ALSA mixer API.
 
 
-.. class:: Mixer(control='Master', id=0, cardindex=0)
+.. class:: Mixer(control='Master', id=0, device='default', cardindex=-1)
 
    *control* - specifies which control to manipulate using this mixer
    object. The list of available controls can be found with the 
@@ -252,10 +274,19 @@ Mixer objects provides access to the ALSA mixer API.
 
    *id* - the id of the mixer control. Default is 0
 
-   *cardindex* - specifies which card should be used [#f3]_. 0 is the
-   first sound card.
-
+   *device* - the name of the device on which the mixer resides. The default is
+   'default'.
    
+   *cardindex* - specifies which card should be used [#f3]_. If this argument
+   is given, the device name is constructed like this: `hw:<cardindex>` and
+   the `device` keyword argument is ignored. 0 is the
+   first sound card. 
+   
+   **Note:** The arguments for this function were changed in
+   version 0.8 and this change is not completely backward compatible.
+   Old versions accepted just the optional parameter *cardindex*.
+   The current version accepts either a device name or a cardindex.
+  
    **Note:** For a list of available controls, you can also use **amixer**::
       
       amixer
@@ -471,8 +502,8 @@ or::
    >>> import alsaaudio
    >>> alsaaudio.cards()
 
-mixertest.py accepts the commandline option *-c <cardindex>*. Card 
-indices start at 0.
+mixertest.py accepts the commandline options *-d <device> and
+*-c <cardindex>*. 
 
 playwav.py
 ~~~~~~~~~~
@@ -502,11 +533,13 @@ Play back the recording with::
 mixertest.py
 ~~~~~~~~~~~~
 
-Without arguments, **mixertest.py** will list all available *controls*. 
+Without arguments, **mixertest.py** will list all available *controls* on the
+default soundcard.
+
 The output might look like this::
    
-   $ ./mixertest.py
-   Available mixer controls:
+  $ ./mixertest.py
+  Available mixer controls:
      'Master'
      'Master Mono'
      'Headphone'
@@ -525,24 +558,33 @@ The output might look like this::
 With a single argument - the *control*, it will display the settings of 
 that control; for example::
 
-   $ ./mixertest.py Master
-   Mixer name: 'Master'
-   Capabilities: Playback Volume Playback Mute
-   Channel 0 volume: 61%
-   Channel 1 volume: 61%
+  $ ./mixertest.py Master
+  Mixer name: 'Master'
+  Capabilities: Playback Volume Playback Mute
+  Channel 0 volume: 61%
+  Channel 1 volume: 61%
 
 With two arguments, the *control* and a *parameter*, it will set the 
 parameter on the mixer::
 
-   $ ./mixertest.py Master mute
+  $ ./mixertest.py Master mute
 
 This will mute the Master mixer.
 
 Or::
 
-   $ ./mixertest.py Master 40
+  $ ./mixertest.py Master 40
 
 This sets the volume to 40% on all channels.
+
+To select a different soundcard, use either the *device* or *cardindex*
+argument::
+
+  $ ./mixertest.py -c 0 Master
+  Mixer name: 'Master'
+  Capabilities: Playback Volume Playback Mute
+  Channel 0 volume: 61%
+  Channel 1 volume: 61%
 
 .. rubric:: Footnotes
 

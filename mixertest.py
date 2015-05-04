@@ -18,39 +18,35 @@
 ## python mixertest.py Capture 0,[un]rec   # [dis/en]able capture on channel 0
 
 
-# Footnote: I'd normally use print instead of sys.std(out|err).write,
-# but we're in the middle of the conversion between python 2 and 3
-# and this code runs on both versions without conversion
-
 import sys
 import getopt
 import alsaaudio
 
-def list_mixers(idx=0):
-    sys.stdout.write("Available mixer controls:\n")
-    for m in alsaaudio.mixers(idx):
-        sys.stdout.write("  '%s'\n" % m)
+def list_mixers(kwargs):
+    print("Available mixer controls:")
+    for m in alsaaudio.mixers(**kwargs):
+        print("  '%s'\n" % m)
     
-def show_mixer(name, idx=0):
+def show_mixer(name, kwargs):
     # Demonstrates how mixer settings are queried.
     try:
-        mixer = alsaaudio.Mixer(name, cardindex=idx)
+        mixer = alsaaudio.Mixer(name, **kwargs)
     except alsaaudio.ALSAAudioError:
         sys.stderr.write("No such mixer\n")
         sys.exit(1)
 
-    sys.stdout.write("Mixer name: '%s'\n" % mixer.mixer())
-    sys.stdout.write("Capabilities: %s %s\n" % (' '.join(mixer.volumecap()),
-                                                ' '.join(mixer.switchcap())))
+    print("Mixer name: '%s'" % mixer.mixer())
+    print("Capabilities: %s %s" % (' '.join(mixer.volumecap()),
+                                              ' '.join(mixer.switchcap())))
     volumes = mixer.getvolume()
     for i in range(len(volumes)):
-        sys.stdout.write("Channel %i volume: %i%%\n" % (i,volumes[i]))
+        print("Channel %i volume: %i%%" % (i,volumes[i]))
         
     try:
         mutes = mixer.getmute()
         for i in range(len(mutes)):
             if mutes[i]:
-                sys.stdout.write("Channel %i is muted\n" % i)
+                print("Channel %i is muted" % i)
     except alsaaudio.ALSAAudioError:
         # May not support muting
         pass
@@ -59,15 +55,15 @@ def show_mixer(name, idx=0):
         recs = mixer.getrec()
         for i in range(len(recs)):
             if recs[i]:
-                sys.stdout.write("Channel %i is recording\n" % i)
+                print("Channel %i is recording" % i)
     except alsaaudio.ALSAAudioError:
         # May not support recording
         pass
 
-def set_mixer(name, args, idx=0):
+def set_mixer(name, args, kwargs):
     # Demonstrates how to set mixer settings
     try:
-        mixer = alsaaudio.Mixer(name, cardindex=idx)
+        mixer = alsaaudio.Mixer(name, **kwargs)
     except alsaaudio.ALSAAudioError:
         sys.stderr.write("No such mixer")
         sys.exit(1)
@@ -106,17 +102,19 @@ def usage():
 
 if __name__ == '__main__':
 
-    cardindex = 0
-    opts, args = getopt.getopt(sys.argv[1:], 'c:?h')
+    kwargs = {}
+    opts, args = getopt.getopt(sys.argv[1:], 'c:d:?h')
     for o, a in opts:
         if o == '-c':
-            cardindex = int(a)
+            kwargs = { 'cardindex': int(a) }
+        elif o == '-d':
+            kwargs = { 'device': a }
         else:
             usage()
 
     if not len(args):
-        list_mixers(cardindex)
+        list_mixers(kwargs)
     elif len(args) == 1:
-        show_mixer(args[0], cardindex)
+        show_mixer(args[0], kwargs)
     else:
-        set_mixer(args[0], args[1], cardindex)
+        set_mixer(args[0], args[1], kwargs)

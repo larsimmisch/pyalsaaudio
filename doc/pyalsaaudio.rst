@@ -2,10 +2,10 @@
 Introduction
 ************
 
-:Author: Casper Wilstrup
-:Author: Lars Immisch
+:Author: Casper Wilstrup <cwi@aves.dk>
+:Author: Lars Immisch <lars@ibp.de>
 
-.. |release| replace:: 0.4
+.. |release| replace:: 0.8
 
 .. % At minimum, give your name and an email address.  You can include a
 .. % snail-mail address if you like.

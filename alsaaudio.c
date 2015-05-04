@@ -91,19 +91,6 @@ char *translate_cardname(char *name)
     return full;
 }
 
-/* Translate a card index to a ALSA cardname 
-
-   Returns a newly allocated string.
-*/
-char *translate_cardidx(int idx)
-{
-    char name[32];
-
-    sprintf(name, "hw:%d", idx);
-
-    return strdup(name);
-}
-
 /******************************************/
 /* PCM object wrapper                   */
 /******************************************/
@@ -927,26 +914,39 @@ alsamixer_gethandle(char *cardname, snd_mixer_t **handle)
 }
 
 static PyObject *
-alsamixer_list(PyObject *self, PyObject *args) 
+alsamixer_list(PyObject *self, PyObject *args, PyObject *kwds) 
 {
     snd_mixer_t *handle;
     snd_mixer_selem_id_t *sid;
     snd_mixer_elem_t *elem;
     int err;
-    int cardidx = 0;
-    char cardname[32];
+    int cardidx = -1;
+    char hw_device[32];
+    char *device = "default";
     PyObject *result;
-    
-    if (!PyArg_ParseTuple(args,"|i:mixers",&cardidx)) 
-        return NULL;
-    
-    sprintf(cardname, "hw:%d", cardidx);
 
+    char *kw[] = { "device", "cardindex", NULL };
+    
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|si", kw,
+                                     &device, &cardidx)) 
+        return NULL;
+
+    if (cardidx >= 0) {
+        if (cardidx >= 0 && cardidx < 32) {
+            snprintf(hw_device, sizeof(hw_device), "hw:%d", cardidx);
+        }
+        else {
+            PyErr_SetString(ALSAAudioError, "Invalid card number");
+            return NULL;
+        }
+        device = hw_device;
+    }
+    
     snd_mixer_selem_id_alloca(&sid);
-    err = alsamixer_gethandle(cardname, &handle);
+    err = alsamixer_gethandle(device, &handle);
     if (err < 0) 
     {
-        PyErr_SetString(ALSAAudioError,snd_strerror(err));
+        PyErr_SetString(ALSAAudioError, snd_strerror(err));
         snd_mixer_close(handle);
         return NULL;
     }
@@ -991,22 +991,35 @@ alsamixer_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
     alsamixer_t *self;
     int err;
-    int cardindex = 0;
     char *control = "Master";
+    char *device = "default";
+    char hw_device[32];
+    int cardidx = -1;
     int id = 0;
     snd_mixer_elem_t *elem;
     int channel;
-    char *kw[] = { "control", "id", "cardindex", NULL };
+    char *kw[] = { "control", "id", "device", "cardindex", NULL };
     
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|sii", kw,
-                                     &control, &id, &cardindex)) 
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|sisi", kw,
+                                     &control, &id, &device, &cardidx)) 
         return NULL;
 
+    if (cardidx >= 0) {
+        if (cardidx >= 0 && cardidx < 32) {
+            snprintf(hw_device, sizeof(hw_device), "hw:%d", cardidx);
+        }
+        else {
+            PyErr_SetString(ALSAAudioError, "Invalid card number");
+            return NULL;
+        }
+        device = hw_device;
+    }
+    
     if (!(self = (alsamixer_t *)PyObject_New(alsamixer_t, &ALSAMixerType))) 
         return NULL;
 
     self->handle = 0;
-    self->cardname = translate_cardidx(cardindex);
+    self->cardname = strdup(device);
 
     err = alsamixer_gethandle(self->cardname, &self->handle);
     if (err<0) 
@@ -1019,15 +1032,17 @@ alsamixer_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     self->controlname = strdup(control);
     self->controlid = id;
     
-    elem = alsamixer_find_elem(self->handle,control,id);
+    elem = alsamixer_find_elem(self->handle,control, id);
     if (!elem) 
     {
         char errtext[128];
-        sprintf(errtext,"Unable to find mixer control '%s',%i",
+        sprintf(errtext,"Unable to find mixer control '%s',%i on card '%s'",
                 self->controlname,
-                self->controlid);
+                self->controlid,
+                self->cardname);
         snd_mixer_close(self->handle);
         PyErr_SetString(ALSAAudioError,errtext);
+        free(self->cardname);
         return NULL;
     }
     /* Determine mixer capabilities */
@@ -2050,8 +2065,8 @@ static PyTypeObject ALSAMixerType = {
 /******************************************/
 
 static PyMethodDef alsaaudio_methods[] = {
-    { "cards", alsacard_list, METH_VARARGS, cards_doc},
-    { "mixers", alsamixer_list, METH_VARARGS, mixers_doc},
+    { "cards", (PyCFunction)alsacard_list, METH_VARARGS, cards_doc},
+    { "mixers", (PyCFunction)alsamixer_list, METH_VARARGS|METH_KEYWORDS, mixers_doc},
     { 0, 0 },
 };
 
