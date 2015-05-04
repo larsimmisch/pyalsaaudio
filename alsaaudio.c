@@ -1780,7 +1780,7 @@ alsamixer_setvolume(alsamixer_t *self, PyObject *args)
                 done++;
             }
             else if (direction == 1
-                     && snd_mixer_selem_has_capture_channel(elem, channel)
+                     && snd_mixer_selem_has_capture_channel(elem, i)
                      && snd_mixer_selem_has_capture_volume(elem)) 
             {
                 physvolume = alsamixer_getphysvolume(self->cmin,self->cmax,
