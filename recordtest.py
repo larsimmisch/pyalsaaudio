@@ -12,10 +12,9 @@
 ## python recordtest.py out.raw # talk to the microphone
 ## aplay -r 8000 -f S16_LE -c 1 out.raw
 
+#!/usr/bin/env python
 
-# Footnote: I'd normally use print instead of sys.std(out|err).write,
-# but we're in the middle of the conversion between python 2 and 3
-# and this code runs on both versions without conversion
+from __future__ import print_function
 
 import sys
 import time
@@ -23,7 +22,7 @@ import getopt
 import alsaaudio
 
 def usage():
-    sys.stderr.write('usage: recordtest.py [-c <card>] <file>\n')
+    print('usage: recordtest.py [-c <card>] <file>', file=sys.stderr)
     sys.exit(2)
 
 if __name__ == '__main__':

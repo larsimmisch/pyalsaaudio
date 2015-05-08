@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-# These are internal test. They shouldn't fail, but they don't cover all
-# of the ALSA API. Most of all PCM.read and PCM.write are missing.
+# These are internal tests. They shouldn't fail, but they don't cover all
+# of the ALSA API. Most importantly PCM.read and PCM.write are missing.
 # These need to be tested by playbacktest.py and recordtest.py
 
 # In case of a problem, run these tests. If they fail, file a bug report on
-# http://sourceforge.net/projects/pyalsaaudio
+# http://github.com/larsimmisch/pyalsaaudio/issues
 
 import unittest
 import alsaaudio

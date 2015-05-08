@@ -4,8 +4,10 @@
 >>> change(880)
 '''
 
+from __future__ import print_function
+
 from threading import Thread
-from Queue import Queue, Empty
+from queue import Queue, Empty
 from math import pi, sin
 import struct
 import alsaaudio
@@ -23,7 +25,7 @@ def digitize(s):
 def generate(frequency):
     # generate a buffer with a sine wave of frequency
     size = int(sampling_rate / frequency)
-    buffer = ''
+    buffer = bytes()
     for i in range(size):
         buffer = buffer + digitize(sin(i/(2 * pi)))
 
@@ -55,7 +57,7 @@ class SinePlayer(Thread):
             factor = 1
         
         buf = generate(frequency) * factor
-        print 'factor: %d, frames: %d' % (factor, len(buf) / framesize)
+        print('factor: %d, frames: %d' % (factor, len(buf) / framesize))
 
         self.queue.put( buf)
                         
@@ -64,7 +66,7 @@ class SinePlayer(Thread):
         while True:
             try:
                 buffer = self.queue.get(False)
-                self.device.setperiodsize(len(buffer) / framesize)
+                self.device.setperiodsize(int(len(buffer) / framesize))
                 self.device.write(buffer)
             except Empty:
                 if buffer:

@@ -2,9 +2,7 @@
 
 # Simple test script that plays (some) wav files
 
-
-# Footnote: I'd normally use print instead of sys.std(out|err).write,
-# but this version runs on python 2 and python 3 without conversion
+from __future__ import print_function
 
 import sys
 import wave
@@ -13,9 +11,8 @@ import alsaaudio
 
 def play(device, f):    
 
-
-    sys.stdout.write('%d channels, %d sampling rate\n' % (f.getnchannels(),
-                                                          f.getframerate()))
+    print('%d channels, %d sampling rate\n' % (f.getnchannels(),
+                                               f.getframerate()))
     # Set attributes
     device.setchannels(f.getnchannels())
     device.setrate(f.getframerate())
@@ -43,7 +40,7 @@ def play(device, f):
 
 
 def usage():
-    sys.stderr.write('usage: playwav.py [-c <card>] <file>\n')
+    print('usage: playwav.py [-c <card>] <file>', file=sys.stderr)
     sys.exit(2)
 
 if __name__ == '__main__':

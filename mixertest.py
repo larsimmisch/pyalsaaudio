@@ -17,6 +17,7 @@
 ## python mixertest.py Master 0,[un]mute   # [un]mute channel 0
 ## python mixertest.py Capture 0,[un]rec   # [dis/en]able capture on channel 0
 
+from __future__ import print_function
 
 import sys
 import getopt
@@ -25,19 +26,19 @@ import alsaaudio
 def list_mixers(kwargs):
     print("Available mixer controls:")
     for m in alsaaudio.mixers(**kwargs):
-        print("  '%s'\n" % m)
-    
+        print("  '%s'" % m)
+
 def show_mixer(name, kwargs):
     # Demonstrates how mixer settings are queried.
     try:
         mixer = alsaaudio.Mixer(name, **kwargs)
     except alsaaudio.ALSAAudioError:
-        sys.stderr.write("No such mixer\n")
+        print("No such mixer", file=sys.stderr)
         sys.exit(1)
 
     print("Mixer name: '%s'" % mixer.mixer())
     print("Capabilities: %s %s" % (' '.join(mixer.volumecap()),
-                                              ' '.join(mixer.switchcap())))
+                                   ' '.join(mixer.switchcap())))
     volumes = mixer.getvolume()
     for i in range(len(volumes)):
         print("Channel %i volume: %i%%" % (i,volumes[i]))
@@ -65,7 +66,7 @@ def set_mixer(name, args, kwargs):
     try:
         mixer = alsaaudio.Mixer(name, **kwargs)
     except alsaaudio.ALSAAudioError:
-        sys.stderr.write("No such mixer")
+        print("No such mixer", file=sys.stderr)
         sys.exit(1)
 
     if args.find(',') != -1:
@@ -96,8 +97,8 @@ def set_mixer(name, args, kwargs):
         mixer.setvolume(volume, channel)
 
 def usage():
-    sys.stderr.write('usage: mixertest.py [-c <card>] ' \
-                     '[ <control>[,<value>]]\n')
+    print('usage: mixertest.py [-c <card>] [ <control>[,<value>]]',
+          file=sys.stderr)
     sys.exit(2)
 
 if __name__ == '__main__':
