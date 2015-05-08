@@ -652,6 +652,7 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
     int res;
     int datalen;
     char *data;
+    PyObject *rc = NULL;
     
 #if PY_MAJOR_VERSION < 3
     if (!PyArg_ParseTuple(args,"s#:write",&data,&datalen)) 
@@ -690,15 +691,22 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
     }
     Py_END_ALLOW_THREADS
   
-    if (res == -EAGAIN) 
-        return PyLong_FromLong(0);
+    if (res == -EAGAIN) {
+        rc = PyLong_FromLong(0);
+    }
     else if (res < 0) 
     {
         PyErr_SetString(ALSAAudioError,snd_strerror(res));
-        return NULL;
     }  
+    else {
+        rc = PyLong_FromLong(res);
+    }
+    
+#if PY_MAJOR_VERSION >= 3
+    PyBuffer_Release(&buf);
+#endif
 
-  return PyLong_FromLong(res);
+    return rc;
 }
 
 PyDoc_STRVAR(write_doc,
