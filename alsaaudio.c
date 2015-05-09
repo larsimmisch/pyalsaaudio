@@ -5,10 +5,8 @@
  *              The standard audio API for Linux since kernel 2.6
  *
  * Contributed by Unispeed A/S (http://www.unispeed.com)
- * Author: Casper Wilstup (cwi@aves.dk)
+ * Author: Casper Wilstup (cwi@aves.dk) and Lars Immisch (lars@ibp.de)
  *
- * Bug fixes and maintenance by Lars Immisch <lars@ibp.de>
- * 
  * License: Python Software Foundation License
  *
  */
@@ -105,11 +103,11 @@ alsacard_list(PyObject *self, PyObject *args)
 
         sprintf(name, "hw:%d", card);
         if ((err = snd_ctl_open(&handle, name, 0)) < 0) {
-            PyErr_SetString(ALSAAudioError,snd_strerror(err));
+            PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(err), name);
             return NULL;
         }
         if ((err = snd_ctl_card_info(handle, info)) < 0) {
-            PyErr_SetString(ALSAAudioError,snd_strerror(err));
+            PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(err), name);
             snd_ctl_close(handle);
             Py_DECREF(result);
             return NULL;
@@ -258,7 +256,7 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
             device = hw_device;
         }
         else {
-            PyErr_SetString(ALSAAudioError, "Invalid card number");
+            PyErr_Format(ALSAAudioError, "Invalid card number %d", cardidx);
             return NULL;
         }
     }
@@ -300,7 +298,7 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
             snd_pcm_close(self->handle);
             self->handle = 0;
         }
-        PyErr_SetString(ALSAAudioError, snd_strerror(res));
+        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res), device);
         return NULL;    
     }
     return (PyObject *)self;
@@ -521,7 +519,8 @@ alsapcm_setchannels(alsapcm_t *self, PyObject *args)
     res = alsapcm_setup(self);
     if (res < 0) 
     {
-        PyErr_SetString(ALSAAudioError, snd_strerror(res));
+        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
+                     self->cardname);
         return NULL;    
     }
     return PyLong_FromLong(self->channels);
@@ -554,7 +553,8 @@ alsapcm_setrate(alsapcm_t *self, PyObject *args)
     res = alsapcm_setup(self);
     if (res < 0) 
     {
-        PyErr_SetString(ALSAAudioError, snd_strerror(res));
+        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
+                     self->cardname);
         return NULL;    
     }
     return PyLong_FromLong(self->rate);
@@ -585,7 +585,8 @@ alsapcm_setformat(alsapcm_t *self, PyObject *args)
     res = alsapcm_setup(self);
     if (res < 0) 
     {
-        PyErr_SetString(ALSAAudioError, snd_strerror(res));
+        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
+                     self->cardname);
         return NULL;    
     }
     return PyLong_FromLong(self->format);
@@ -613,7 +614,9 @@ alsapcm_setperiodsize(alsapcm_t *self, PyObject *args)
     res = alsapcm_setup(self);
     if (res < 0) 
     {
-        PyErr_SetString(ALSAAudioError, snd_strerror(res));
+        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
+                     self->cardname);
+
         return NULL;    
     }
     return PyLong_FromLong(self->periodsize);
@@ -634,6 +637,7 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
     char buffer[8000];
 
     if (self->framesize * self->periodsize > 8000) {
+
         PyErr_SetString(ALSAAudioError,"Capture data too large. "
                         "Try decreasing period size");
         return NULL;
@@ -649,7 +653,8 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
     
     if (self->pcmtype != SND_PCM_STREAM_CAPTURE) 
     {
-        PyErr_SetString(ALSAAudioError,"Cannot read from playback PCM");
+        PyErr_Format(ALSAAudioError, "Cannot read from playback PCM [%s]",
+                     self->cardname);
         return NULL;
     }
 
@@ -669,7 +674,9 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
             res = 0;
         }
         else if (res < 0) {
-            PyErr_SetString(ALSAAudioError, snd_strerror(res));
+            PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
+                         self->cardname);
+
             return NULL;
         } 
     }
@@ -743,7 +750,8 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
     }
     else if (res < 0) 
     {
-        PyErr_SetString(ALSAAudioError,snd_strerror(res));
+        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
+                     self->cardname);
     }  
     else {
         rc = PyLong_FromLong(res);
@@ -791,7 +799,9 @@ static PyObject *alsapcm_pause(alsapcm_t *self, PyObject *args)
   
     if (res < 0) 
     {
-        PyErr_SetString(ALSAAudioError,snd_strerror(res));
+        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
+                     self->cardname);
+
         return NULL;
     }
     return PyLong_FromLong(res);
@@ -822,14 +832,16 @@ alsapcm_polldescriptors(alsapcm_t *self, PyObject *args)
     count = snd_pcm_poll_descriptors_count(self->handle);
     if (count < 0)
     {
-        PyErr_SetString(ALSAAudioError,"Can't get poll descriptor count");
+        PyErr_Format(ALSAAudioError, "Can't get poll descriptor count [%s]",
+                     self->cardname);
         return NULL;
     }
 
     fds = (struct pollfd*)calloc(count, sizeof(struct pollfd));
     if (!fds)
     {
-        PyErr_SetString(PyExc_MemoryError, "Out of memory");
+        PyErr_Format(PyExc_MemoryError, "Out of memory [%s]",
+                     self->cardname);
         return NULL;
     }
 
@@ -837,7 +849,8 @@ alsapcm_polldescriptors(alsapcm_t *self, PyObject *args)
     rc = snd_pcm_poll_descriptors(self->handle, fds, (unsigned int)count);
     if (rc != count)
     {
-        PyErr_SetString(ALSAAudioError,"Can't get poll descriptors");
+        PyErr_Format(ALSAAudioError, "Can't get poll descriptors [%s]",
+                     self->cardname);
         return NULL;
     }
 
@@ -992,7 +1005,7 @@ alsamixer_list(PyObject *self, PyObject *args, PyObject *kwds)
             device = hw_device;
         }
         else {
-            PyErr_SetString(ALSAAudioError, "Invalid card number");
+            PyErr_Format(ALSAAudioError, "Invalid card number %d", cardidx);
             return NULL;
         }
     }
@@ -1001,7 +1014,7 @@ alsamixer_list(PyObject *self, PyObject *args, PyObject *kwds)
     err = alsamixer_gethandle(device, &handle);
     if (err < 0) 
     {
-        PyErr_SetString(ALSAAudioError, snd_strerror(err));
+        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(err), device);
         snd_mixer_close(handle);
         return NULL;
     }
@@ -1065,7 +1078,7 @@ alsamixer_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
             device = hw_device;
         }
         else {
-            PyErr_SetString(ALSAAudioError, "Invalid card number");
+            PyErr_Format(ALSAAudioError, "Invalid card number %d", cardidx);
             return NULL;
         }
     }
@@ -1078,7 +1091,8 @@ alsamixer_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     err = alsamixer_gethandle(device, &self->handle);
     if (err < 0)
     {
-        PyErr_SetString(ALSAAudioError,snd_strerror(err));
+        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(err), device);
+
         return NULL;
     }
     
@@ -1089,14 +1103,10 @@ alsamixer_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     elem = alsamixer_find_elem(self->handle,control, id);
     if (!elem) 
     {
-        char errtext[128];
-        snprintf(errtext, sizeof(errtext),
-                 "Unable to find mixer control '%s',%i on card '%s'",
-                 self->controlname,
-                 self->controlid,
-                 self->cardname);
         snd_mixer_close(self->handle);
-        PyErr_SetString(ALSAAudioError,errtext);
+        PyErr_Format(ALSAAudioError,
+                     "Unable to find mixer control %s,%i [%s]",
+                     self->controlname, self->controlid, self->cardname);
         free(self->cardname);
         free(self->controlname);
         return NULL;
@@ -1481,7 +1491,7 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args)
         direction = 1;
     else 
     {
-        PyErr_SetString(ALSAAudioError,"Invalid direction argument for mixer");
+        PyErr_SetString(ALSAAudioError, "Invalid direction argument for mixer");
         return NULL;
     }
 
@@ -1566,7 +1576,8 @@ alsamixer_getrange(alsamixer_t *self, PyObject *args)
             return Py_BuildValue("[ii]", self->pmin, self->pmax);
         }
 
-        PyErr_SetString(ALSAAudioError, "Mixer has no playback channel");
+        PyErr_Format(ALSAAudioError, "Mixer %s,%d has no playback channel [%s]",
+                     self->controlname, self->controlid, self->cardname);
         return NULL;
     }
     else if (direction == 1) 
@@ -1576,13 +1587,14 @@ alsamixer_getrange(alsamixer_t *self, PyObject *args)
             return Py_BuildValue("[ii]", self->cmin, self->cmax);
         }
 
-        PyErr_SetString(ALSAAudioError, "Mixer has no capture channel "
-                        "or capture volume");
+        PyErr_Format(ALSAAudioError, "Mixer %s,%d has no capture channel "
+                     "or capture volume [%s]",
+                     self->controlname, self->controlid, self->cardname);
         return NULL;    
     }
   
     // Unreached statement
-    PyErr_SetString(ALSAAudioError,"Huh?");
+    PyErr_SetString(ALSAAudioError, "Huh?");
     return NULL;
 }
 
@@ -1625,7 +1637,8 @@ alsamixer_getenum(alsamixer_t *self, PyObject *args)
     count = snd_mixer_selem_get_enum_items(elem);
     if (count < 0) 
     {
-        PyErr_SetString(ALSAAudioError, snd_strerror(count));
+        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(count),
+                     self->cardname);
         return NULL;
     }
 
@@ -1634,16 +1647,18 @@ alsamixer_getenum(alsamixer_t *self, PyObject *args)
         return NULL;
     
     rc = snd_mixer_selem_get_enum_item(elem, 0, &index);
-    if(rc) 
+    if (rc) 
     {
-        PyErr_SetString(ALSAAudioError, snd_strerror(rc));
+        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(rc),
+                     self->cardname);
         return NULL;
     }
     rc = snd_mixer_selem_get_enum_item_name(elem, index, sizeof(name)-1, name);
     if (rc) 
     {
         Py_DECREF(result);
-        PyErr_SetString(ALSAAudioError, snd_strerror(rc));
+        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(rc),
+                     self->cardname);
         return NULL;
     }  
   
@@ -1662,7 +1677,9 @@ alsamixer_getenum(alsamixer_t *self, PyObject *args)
         if (rc) {
             Py_DECREF(elems);
             Py_DECREF(result);
-            PyErr_SetString(ALSAAudioError, snd_strerror(rc));
+            PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(rc),
+                         self->cardname);
+
             return NULL;
         }
         
@@ -1698,10 +1715,14 @@ alsamixer_getmute(alsamixer_t *self, PyObject *args)
         return NULL;
     }
 
-    elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
+    elem = alsamixer_find_elem(self->handle, self->controlname,
+                               self->controlid);
     if (!snd_mixer_selem_has_playback_switch(elem)) 
     {
-        PyErr_SetString(ALSAAudioError,"Mixer has no mute switch");
+        PyErr_Format(ALSAAudioError,
+                     "Mixer %s,%d has no playback switch capabilities, [%s]",
+                     self->controlname, self->controlid, self->cardname);
+
         return NULL;
     }    
 
@@ -1748,10 +1769,13 @@ alsamixer_getrec(alsamixer_t *self, PyObject *args)
         return NULL;
     }
 
-    elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
+    elem = alsamixer_find_elem(self->handle, self->controlname,
+                               self->controlid);
     if (!snd_mixer_selem_has_capture_switch(elem)) 
     {
-        PyErr_SetString(ALSAAudioError,"Mixer has no record switch");
+        PyErr_Format(ALSAAudioError,
+                     "Mixer %s,%d has no capture switch capabilities [%s]",
+                     self->controlname, self->controlid, self->cardname);
         return NULL;
     }    
 
@@ -1795,7 +1819,7 @@ alsamixer_setvolume(alsamixer_t *self, PyObject *args)
 
     if (volume < 0 || volume > 100) 
     {
-        PyErr_SetString(ALSAAudioError,"Volume must be between 0 and 100");
+        PyErr_SetString(ALSAAudioError, "Volume must be between 0 and 100");
         return NULL;
     }
 
@@ -1814,13 +1838,13 @@ alsamixer_setvolume(alsamixer_t *self, PyObject *args)
         else 
             direction = 1;
     }
-    else if (strcasecmp(dirstr,"playback")==0) 
+    else if (strcasecmp(dirstr, "playback")==0) 
         direction = 0;
-    else if (strcasecmp(dirstr,"capture")==0) 
+    else if (strcasecmp(dirstr, "capture")==0) 
         direction = 1;
     else 
     {
-        PyErr_SetString(ALSAAudioError,"Invalid direction argument. Use "
+        PyErr_SetString(ALSAAudioError, "Invalid direction argument. Use "
                         "'playback' or 'capture'");
         return NULL;
     }
@@ -1846,9 +1870,11 @@ alsamixer_setvolume(alsamixer_t *self, PyObject *args)
             }
         }
     }
-    if(!done) 
+    
+    if(!done)
     {
-        PyErr_SetString(ALSAAudioError,"No such channel");
+        PyErr_Format(ALSAAudioError, "No such channel [%s]",
+                     self->cardname);
         return NULL;
     }
 
@@ -1892,7 +1918,9 @@ alsamixer_setmute(alsamixer_t *self, PyObject *args)
     elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
     if (!snd_mixer_selem_has_playback_switch(elem)) 
     {
-        PyErr_SetString(ALSAAudioError,"Mixer has no mute switch");
+        PyErr_Format(ALSAAudioError,
+                     "Mixer %s,%d has no playback switch capabilities [%s]",
+                     self->controlname, self->controlid, self->cardname);
         return NULL;
     }    
     for (i = 0; i <= SND_MIXER_SCHN_LAST; i++) 
@@ -1908,7 +1936,8 @@ alsamixer_setmute(alsamixer_t *self, PyObject *args)
     }
     if (!done) 
     {
-        PyErr_SetString(ALSAAudioError,"Invalid channel number");
+        PyErr_Format(ALSAAudioError, "Invalid channel number [%s]",
+                     self->cardname);
         return NULL;
     }
 
@@ -1945,10 +1974,13 @@ alsamixer_setrec(alsamixer_t *self, PyObject *args)
         return NULL;
     }
     
-    elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
+    elem = alsamixer_find_elem(self->handle, self->controlname,
+                               self->controlid);
     if (!snd_mixer_selem_has_capture_switch(elem)) 
     {
-        PyErr_SetString(ALSAAudioError,"Mixer has no record switch");
+        PyErr_Format(ALSAAudioError,
+                     "Mixer %s,%d has no record switch capabilities [%s]",
+                     self->controlname, self->controlid, self->cardname);
         return NULL;
     }    
     for (i = 0; i <= SND_MIXER_SCHN_LAST; i++) 
@@ -1964,7 +1996,8 @@ alsamixer_setrec(alsamixer_t *self, PyObject *args)
     }
     if (!done) 
     {
-        PyErr_SetString(ALSAAudioError,"Invalid channel number");
+        PyErr_Format(ALSAAudioError, "Invalid channel number [%s]",
+                     self->cardname);
         return NULL;
     }
     
@@ -2001,14 +2034,16 @@ alsamixer_polldescriptors(alsamixer_t *self, PyObject *args)
     count = snd_mixer_poll_descriptors_count(self->handle);
     if (count < 0)
     {
-        PyErr_SetString(ALSAAudioError,"Can't get poll descriptor count");
+        PyErr_Format(ALSAAudioError, "Can't get poll descriptor count [%s]",
+                     self->cardname);
         return NULL;
     }
 
     fds = (struct pollfd*)calloc(count, sizeof(struct pollfd));
     if (!fds)
     {
-        PyErr_SetString(PyExc_MemoryError, "Out of memory");
+        PyErr_Format(PyExc_MemoryError, "Out of memory [%s]",
+                     self->cardname);
         return NULL;
     }
 
@@ -2016,7 +2051,8 @@ alsamixer_polldescriptors(alsamixer_t *self, PyObject *args)
     rc = snd_mixer_poll_descriptors(self->handle, fds, (unsigned int)count);
     if (rc != count)
     {
-        PyErr_SetString(ALSAAudioError,"Can't get poll descriptors");
+        PyErr_Format(ALSAAudioError, "Can't get poll descriptors [%s]",
+                     self->cardname);
         return NULL;
     }
 
