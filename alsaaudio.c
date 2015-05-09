@@ -69,28 +69,6 @@ typedef struct {
     snd_mixer_t *handle;
 } alsamixer_t;
 
-/* Translate a card id to a ALSA cardname 
-
-   Returns a newly allocated string.
-*/
-char *translate_cardname(char *name)
-{
-    static char dflt[] = "default";
-    char *full = NULL;
-    
-    if (!name || !strcmp(name, dflt))
-        return strdup(dflt);
-    
-    // If we find a colon, we assume it is a real ALSA cardname
-    if (strchr(name, ':'))
-        return strdup(name);
-
-    full = malloc(strlen("default:CARD=") + strlen(name) + 1);  
-    sprintf(full, "default:CARD=%s", name);
-
-    return full;
-}
-
 /******************************************/
 /* PCM object wrapper                   */
 /******************************************/
@@ -152,6 +130,61 @@ PyDoc_STRVAR(cards_doc,
 \n\
 List the available card ids.");
 
+static PyObject *
+alsapcm_list(PyObject *self, PyObject *args) 
+{
+    int pcmtype = SND_PCM_STREAM_PLAYBACK;
+    PyObject *result = NULL;
+    PyObject *item;
+    void **hints, **n;
+    char *name, *io;
+    const char *filter;
+    
+    if (!PyArg_ParseTuple(args,"|i:pcms", &pcmtype)) 
+        return NULL;
+
+    if (pcmtype != SND_PCM_STREAM_PLAYBACK && 
+        pcmtype != SND_PCM_STREAM_CAPTURE) 
+    {
+        PyErr_SetString(ALSAAudioError, "PCM type must be PCM_PLAYBACK (0) "
+                        "or PCM_CAPTURE (1)");
+        return NULL;
+    }
+    
+    result = PyList_New(0);
+
+    if (snd_device_name_hint(-1, "pcm", &hints) < 0)
+        return result;
+    
+    n = hints;
+    filter = pcmtype == SND_PCM_STREAM_CAPTURE ? "Input" : "Output";
+    while (*n != NULL) {
+        name = snd_device_name_get_hint(*n, "NAME");
+        io = snd_device_name_get_hint(*n, "IOID");
+        if (io != NULL && strcmp(io, filter) != 0)
+            goto __end;
+
+        item = PyUnicode_FromString(name);
+        PyList_Append(result, item); 
+        Py_DECREF(item);
+        
+    __end:
+        if (name != NULL)
+            free(name);
+        if (io != NULL)
+            free(io);
+        n++;
+    }
+    snd_device_name_free_hint(hints);
+    
+    return result;  
+}
+
+PyDoc_STRVAR(pcms_doc,
+"pcms([type])\n\
+\n\
+List the available PCM devices");
+
 static int alsapcm_setup(alsapcm_t *self) 
 {
     int res,dir;
@@ -210,12 +243,25 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     alsapcm_t *self;
     int pcmtype = SND_PCM_STREAM_PLAYBACK;
     int pcmmode = 0;
-    char *kw[] = { "type", "mode", "card", NULL };
-    char *cardname = NULL;
+    char *device = "default";
+    int cardidx = -1;
+    char hw_device[32];
+    char *kw[] = { "type", "mode", "device", "cardindex", NULL };
     
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iiz", kw,
-                                     &pcmtype, &pcmmode, &cardname)) 
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iisi", kw,
+                                     &pcmtype, &pcmmode, &device, &cardidx))
         return NULL;
+
+    if (cardidx >= 0) {
+        if (cardidx < 32) {
+            snprintf(hw_device, sizeof(hw_device), "hw:%d", cardidx);
+            device = hw_device;
+        }
+        else {
+            PyErr_SetString(ALSAAudioError, "Invalid card number");
+            return NULL;
+        }
+    }
     
     if (!(self = (alsapcm_t *)PyObject_New(alsapcm_t, &ALSAPCMType))) 
         return NULL;
@@ -234,21 +280,22 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     self->handle = 0;
     self->pcmtype = pcmtype;
     self->pcmmode = pcmmode;
-    self->cardname = translate_cardname(cardname);
     self->channels = 2;
     self->rate = 44100;
     self->format = SND_PCM_FORMAT_S16_LE;
     self->periodsize = 32;
-    
-    res = snd_pcm_open(&(self->handle), self->cardname, self->pcmtype,
+
+    res = snd_pcm_open(&(self->handle), device, self->pcmtype,
                        self->pcmmode);
-    
-    if (res >= 0)
+
+    if (res >= 0) {
         res = alsapcm_setup(self);
-    
-    if (res < 0) 
-    {
-        if (self->handle) 
+    }
+    if (res >= 0) {
+        self->cardname = strdup(device);
+    }
+    else {
+        if (self->handle)
         {
             snd_pcm_close(self->handle);
             self->handle = 0;
@@ -933,21 +980,21 @@ alsamixer_list(PyObject *self, PyObject *args, PyObject *kwds)
     char *device = "default";
     PyObject *result;
 
-    char *kw[] = { "cardindex", "device", NULL };
+    char *kw[] = { "device", "cardindex", NULL };
     
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|is", kw,
-                                     &cardidx, &device)) 
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|si", kw,
+                                     &device, &cardidx)) 
         return NULL;
 
     if (cardidx >= 0) {
-        if (cardidx >= 0 && cardidx < 32) {
+        if (cardidx < 32) {
             snprintf(hw_device, sizeof(hw_device), "hw:%d", cardidx);
+            device = hw_device;
         }
         else {
             PyErr_SetString(ALSAAudioError, "Invalid card number");
             return NULL;
         }
-        device = hw_device;
     }
     
     snd_mixer_selem_id_alloca(&sid);
@@ -1006,37 +1053,36 @@ alsamixer_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     int id = 0;
     snd_mixer_elem_t *elem;
     int channel;
-    char *kw[] = { "control", "id", "cardindex", "device", NULL };
+    char *kw[] = { "control", "id", "device", "cardindex", NULL };
     
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|siis", kw,
-                                     &control, &id, &cardidx, &device)) 
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|sisi", kw,
+                                     &control, &id, &device, &cardidx))
         return NULL;
 
     if (cardidx >= 0) {
-        if (cardidx >= 0 && cardidx < 32) {
+        if (cardidx < 32) {
             snprintf(hw_device, sizeof(hw_device), "hw:%d", cardidx);
+            device = hw_device;
         }
         else {
             PyErr_SetString(ALSAAudioError, "Invalid card number");
             return NULL;
         }
-        device = hw_device;
     }
     
     if (!(self = (alsamixer_t *)PyObject_New(alsamixer_t, &ALSAMixerType))) 
         return NULL;
 
     self->handle = 0;
-    self->cardname = strdup(device);
 
-    err = alsamixer_gethandle(self->cardname, &self->handle);
-    if (err<0) 
+    err = alsamixer_gethandle(device, &self->handle);
+    if (err < 0)
     {
         PyErr_SetString(ALSAAudioError,snd_strerror(err));
-        free(self->cardname);
         return NULL;
     }
-
+    
+    self->cardname = strdup(device);
     self->controlname = strdup(control);
     self->controlid = id;
     
@@ -1044,13 +1090,15 @@ alsamixer_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (!elem) 
     {
         char errtext[128];
-        sprintf(errtext,"Unable to find mixer control '%s',%i on card '%s'",
-                self->controlname,
-                self->controlid,
-                self->cardname);
+        snprintf(errtext, sizeof(errtext),
+                 "Unable to find mixer control '%s',%i on card '%s'",
+                 self->controlname,
+                 self->controlid,
+                 self->cardname);
         snd_mixer_close(self->handle);
         PyErr_SetString(ALSAAudioError,errtext);
         free(self->cardname);
+        free(self->controlname);
         return NULL;
     }
     /* Determine mixer capabilities */
@@ -2074,6 +2122,7 @@ static PyTypeObject ALSAMixerType = {
 
 static PyMethodDef alsaaudio_methods[] = {
     { "cards", (PyCFunction)alsacard_list, METH_VARARGS, cards_doc},
+    { "pcms", (PyCFunction)alsapcm_list, METH_VARARGS, pcms_doc},
     { "mixers", (PyCFunction)alsamixer_list, METH_VARARGS|METH_KEYWORDS, mixers_doc},
     { 0, 0 },
 };

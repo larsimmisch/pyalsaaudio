@@ -34,34 +34,43 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
 .. % should be enclosed in \var{...}.
 
 
+.. function:: pcms([type=PCM_PLAYBACK])
+
+   List available PCM objects by name (the suitable for PCM objects). 
+
 .. function:: cards()
 
-   List the available cards by name (suitable for PCM objects). 
+   List the available cards by name.
 
-.. function:: mixers(cardindex=-1, device='default')
+.. function:: mixers(device='default', cardindex=-1)
 
    List the available mixers. The arguments are:
 
-   *cardindex* - specifies which card should be used [#f3]_. If this argument
+   * *device* - the name of the device on which the mixer resides. The default
+     is 'default'.
+
+   * *cardindex* - the card index [#f3]_. If this argument
    is given, the device name  is constructed like this: `hw:<cardindex>` and
    the `device` keyword argument is ignored. 0 is the
-   first sound card. 
-
-   *device* - the name of the device on which the mixer resides. The default is
-   'default'.
+   first hardware sound card. 
 
    **Note:** The arguments for this function were extended in
    version 0.8. The keyword argument `device` is new and can be used to select
    virtual devices.
   
-.. class:: PCM(type=PCM_PLAYBACK, mode=PCM_NORMAL, card='default')
+.. class:: PCM(type=PCM_PLAYBACK, mode=PCM_NORMAL, device='default',
+           cardindex=-1)
 
    This class is used to represent a PCM device (both for playback and
    recording - capture). The arguments are:
 
    * *type* - can be either ``PCM_CAPTURE`` or ``PCM_PLAYBACK`` (default).  
    * *mode* - can be either ``PCM_NONBLOCK``, or ``PCM_NORMAL`` (default). 
-   * *card* - specifies the name of the card that should be used.
+   * *device* - the name of the PCM device that should be used.
+   * *cardindex* - the card index [#f3]_. If this argument
+   is given, the device name  is constructed like this: `hw:<cardindex>` and
+   the `device` keyword argument is ignored. 0 is the
+   first hardware sound card. 
 
 .. class:: Mixer(control='Master', id=0, cardindex=-1, device='default')
 

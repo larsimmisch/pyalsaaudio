@@ -44,7 +44,7 @@ class MixerTest(unittest.TestCase):
     def testMixer(self):
         """Open the default Mixers and the Mixers on every card"""
         
-        for d in ['default'] + range(len(alsaaudio.cards())):
+        for d in ['default'] + list(range(len(alsaaudio.cards()))):
             if type(d) == type(0):
                 kwargs = { 'cardindex': d }
             else:
@@ -90,10 +90,14 @@ class PCMTest(unittest.TestCase):
     """Test PCM objects"""
 
     def testPCM(self):
-        "Open a PCM object on every card"
+        "Open a PCM object on every device"
 
-        for i in range(len(alsaaudio.cards())):
-            pcm = alsaaudio.PCM(i)
+        for device in alsaaudio.pcms():
+            pcm = alsaaudio.PCM(device=device)
+            pcm.close()
+
+        for device in alsaaudio.pcms(alsaaudio.PCM_CAPTURE):
+            pcm = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, device=device)
             pcm.close()
 
     def testPCMAll(self):
