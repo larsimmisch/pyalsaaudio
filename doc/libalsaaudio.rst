@@ -38,22 +38,21 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
 
    List the available cards by name (suitable for PCM objects). 
 
-.. function:: mixers(device='default', cardindex=-1)
+.. function:: mixers(cardindex=-1, device='default')
 
    List the available mixers. The arguments are:
 
-    *device* - the name of the device on which the mixer resides. The default is
-   'default'.
-   
    *cardindex* - specifies which card should be used [#f3]_. If this argument
    is given, the device name  is constructed like this: `hw:<cardindex>` and
    the `device` keyword argument is ignored. 0 is the
    first sound card. 
 
-   **Note:** The arguments for this function were changed in
-   version 0.8 and this change is not completely backward compatible.
-   Old versions accepted just the optional parameter *cardindex*.
-   The current version accepts either a device name or a cardindex.
+   *device* - the name of the device on which the mixer resides. The default is
+   'default'.
+
+   **Note:** The arguments for this function were extended in
+   version 0.8. The keyword argument `device` is new and can be used to select
+   virtual devices.
   
 .. class:: PCM(type=PCM_PLAYBACK, mode=PCM_NORMAL, card='default')
 
@@ -64,7 +63,7 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
    * *mode* - can be either ``PCM_NONBLOCK``, or ``PCM_NORMAL`` (default). 
    * *card* - specifies the name of the card that should be used.
 
-.. class:: Mixer(control='Master', id=0, device='default', cardindex=-1)
+.. class:: Mixer(control='Master', id=0, cardindex=-1, device='default')
 
    This class is used to access a specific ALSA mixer. The arguments
    are:  

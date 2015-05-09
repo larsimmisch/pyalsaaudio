@@ -933,10 +933,10 @@ alsamixer_list(PyObject *self, PyObject *args, PyObject *kwds)
     char *device = "default";
     PyObject *result;
 
-    char *kw[] = { "device", "cardindex", NULL };
+    char *kw[] = { "cardindex", "device", NULL };
     
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|si", kw,
-                                     &device, &cardidx)) 
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|is", kw,
+                                     &cardidx, &device)) 
         return NULL;
 
     if (cardidx >= 0) {
@@ -1006,10 +1006,10 @@ alsamixer_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     int id = 0;
     snd_mixer_elem_t *elem;
     int channel;
-    char *kw[] = { "control", "id", "device", "cardindex", NULL };
+    char *kw[] = { "control", "id", "cardindex", "device", NULL };
     
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|sisi", kw,
-                                     &control, &id, &device, &cardidx)) 
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|siis", kw,
+                                     &control, &id, &cardidx, &device)) 
         return NULL;
 
     if (cardidx >= 0) {
