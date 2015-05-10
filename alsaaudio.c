@@ -20,6 +20,9 @@
 #define PyLong_Check PyInt_Check
 #define PyLong_AS_LONG PyInt_AS_LONG
 #endif
+#if PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION == 7
+#define PyLong_AS_LONG PyInt_AS_LONG
+#endif
 #include <alsa/asoundlib.h>
 #include <stdio.h>
 
