@@ -12,9 +12,13 @@
  */
 
 #include "Python.h"
-#if PY_MAJOR_VERSION < 3 && PY_MINOR_VERSION < 6
+#if PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 6
 #include "stringobject.h"
+#define PyUnicode_AS_DATA PyString_FromString
 #define PyUnicode_FromString PyString_FromString
+#define PyUnicode_Check PyString_Check
+#define PyLong_Check PyInt_Check
+#define PyLong_AS_LONG PyInt_AS_LONG
 #endif
 #include <alsa/asoundlib.h>
 #include <stdio.h>
@@ -30,7 +34,7 @@ PyDoc_STRVAR(alsaaudio_module_doc,
 
 typedef struct {
     PyObject_HEAD;
-    int pcmtype;
+    long pcmtype;
     int pcmmode;
     char *cardname;
   
@@ -73,6 +77,34 @@ typedef struct {
 
 static PyTypeObject ALSAPCMType;
 static PyObject *ALSAAudioError;
+
+static long
+get_pcmtype(PyObject *obj)
+{
+    if (!obj || (obj == Py_None)) {
+        return SND_PCM_STREAM_PLAYBACK;
+    }
+    
+    if (PyLong_Check(obj)) {
+        long pcmtype = PyLong_AS_LONG(obj);
+        if (pcmtype == SND_PCM_STREAM_PLAYBACK || 
+            pcmtype == SND_PCM_STREAM_CAPTURE) {
+            return pcmtype;
+        }
+    }
+
+    if (PyUnicode_Check(obj)) {
+        const char *dirstr = PyUnicode_AS_DATA(obj);
+        if (strcasecmp(dirstr, "playback")==0) 
+            return SND_PCM_STREAM_PLAYBACK;
+        else if (strcasecmp(dirstr, "capture")==0) 
+            return SND_PCM_STREAM_CAPTURE;
+    }
+    
+    PyErr_SetString(ALSAAudioError, "PCM type must be PCM_PLAYBACK (0) "
+                    "or PCM_CAPTURE (1)");
+    return -1;
+}
 
 static PyObject *
 alsacard_list(PyObject *self, PyObject *args) 
@@ -131,21 +163,19 @@ List the available card ids.");
 static PyObject *
 alsapcm_list(PyObject *self, PyObject *args) 
 {
-    int pcmtype = SND_PCM_STREAM_PLAYBACK;
+    PyObject *pcmtypeobj = NULL;
+    long pcmtype;
     PyObject *result = NULL;
     PyObject *item;
     void **hints, **n;
     char *name, *io;
     const char *filter;
     
-    if (!PyArg_ParseTuple(args,"|i:pcms", &pcmtype)) 
+    if (!PyArg_ParseTuple(args,"|O:pcms", &pcmtypeobj)) 
         return NULL;
 
-    if (pcmtype != SND_PCM_STREAM_PLAYBACK && 
-        pcmtype != SND_PCM_STREAM_CAPTURE) 
-    {
-        PyErr_SetString(ALSAAudioError, "PCM type must be PCM_PLAYBACK (0) "
-                        "or PCM_CAPTURE (1)");
+    pcmtype = get_pcmtype(pcmtypeobj);
+    if (pcmtype < 0){
         return NULL;
     }
     
@@ -179,7 +209,7 @@ alsapcm_list(PyObject *self, PyObject *args)
 }
 
 PyDoc_STRVAR(pcms_doc,
-"pcms([type])\n\
+"pcms([pcmtype])\n\
 \n\
 List the available PCM devices");
 
@@ -239,15 +269,16 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
     int res;
     alsapcm_t *self;
-    int pcmtype = SND_PCM_STREAM_PLAYBACK;
+    PyObject *pcmtypeobj = NULL;
+    long pcmtype;
     int pcmmode = 0;
     char *device = "default";
     int cardidx = -1;
     char hw_device[32];
     char *kw[] = { "type", "mode", "device", "cardindex", NULL };
     
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iisi", kw,
-                                     &pcmtype, &pcmmode, &device, &cardidx))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oizi", kw,
+                                     &pcmtypeobj, &pcmmode, &device, &cardidx))
         return NULL;
 
     if (cardidx >= 0) {
@@ -260,21 +291,20 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
             return NULL;
         }
     }
-    
-    if (!(self = (alsapcm_t *)PyObject_New(alsapcm_t, &ALSAPCMType))) 
-        return NULL;
-    
-    if (pcmtype != SND_PCM_STREAM_PLAYBACK && 
-        pcmtype != SND_PCM_STREAM_CAPTURE) 
-    {
-        PyErr_SetString(ALSAAudioError, "PCM type must be PCM_PLAYBACK (0) "
-                        "or PCM_CAPTURE (1)");
+
+    pcmtype = get_pcmtype(pcmtypeobj);
+    if (pcmtype < 0) {
         return NULL;
     }
+
     if (pcmmode < 0 || pcmmode > SND_PCM_ASYNC) {
         PyErr_SetString(ALSAAudioError, "Invalid PCM mode");
         return NULL;
     }
+
+    if (!(self = (alsapcm_t *)PyObject_New(alsapcm_t, &ALSAPCMType))) 
+        return NULL;
+    
     self->handle = 0;
     self->pcmtype = pcmtype;
     self->pcmmode = pcmmode;
@@ -507,7 +537,7 @@ alsapcm_setchannels(alsapcm_t *self, PyObject *args)
 {
     int channels;
     int res;
-    if (!PyArg_ParseTuple(args,"i:setchannels",&channels)) 
+    if (!PyArg_ParseTuple(args,"i:setchannels", &channels)) 
         return NULL;
 
     if (!self->handle) {
@@ -540,7 +570,7 @@ alsapcm_setrate(alsapcm_t *self, PyObject *args)
 {
     int rate;
     int res;
-    if (!PyArg_ParseTuple(args,"i:setrate",&rate)) 
+    if (!PyArg_ParseTuple(args,"i:setrate", &rate)) 
         return NULL;
 
     if (!self->handle) 
@@ -572,7 +602,7 @@ alsapcm_setformat(alsapcm_t *self, PyObject *args)
 {
     int format;
     int res;
-    if (!PyArg_ParseTuple(args,"i:setformat",&format)) 
+    if (!PyArg_ParseTuple(args,"i:setformat", &format)) 
         return NULL;
 
     if (!self->handle) 
@@ -601,7 +631,7 @@ alsapcm_setperiodsize(alsapcm_t *self, PyObject *args)
     int periodsize;
     int res;
 
-    if (!PyArg_ParseTuple(args,"i:setperiodsize",&periodsize)) 
+    if (!PyArg_ParseTuple(args,"i:setperiodsize", &periodsize)) 
         return NULL;
 
     if (!self->handle) 
@@ -709,12 +739,12 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
     PyObject *rc = NULL;
     
 #if PY_MAJOR_VERSION < 3
-    if (!PyArg_ParseTuple(args,"s#:write",&data,&datalen)) 
+    if (!PyArg_ParseTuple(args,"s#:write", &data, &datalen))
         return NULL;
 #else
     Py_buffer buf;
 
-    if (!PyArg_ParseTuple(args,"y*:write",&buf)) 
+    if (!PyArg_ParseTuple(args,"y*:write", &buf))
         return NULL;
 
     data = buf.buf;
@@ -785,7 +815,7 @@ static PyObject *alsapcm_pause(alsapcm_t *self, PyObject *args)
 {
     int enabled=1, res;
 
-    if (!PyArg_ParseTuple(args,"|i:pause",&enabled)) 
+    if (!PyArg_ParseTuple(args,"|i:pause", &enabled)) 
         return NULL;
 
     if (!self->handle) {
@@ -1460,14 +1490,14 @@ static PyObject *
 alsamixer_getvolume(alsamixer_t *self, PyObject *args) 
 {
     snd_mixer_elem_t *elem;
-    int direction;
     int channel;
     long ival;
-    char *dirstr = 0;
+    PyObject *pcmtypeobj = NULL;
+    long pcmtype;
     PyObject *result;
     PyObject *item;
     
-    if (!PyArg_ParseTuple(args,"|s:getvolume",&dirstr)) 
+    if (!PyArg_ParseTuple(args,"|O:getvolume", &pcmtypeobj)) 
         return NULL;
     
     if (!self->handle) 
@@ -1475,30 +1505,18 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args)
         PyErr_SetString(ALSAAudioError, "Mixer is closed");
         return NULL;
     }
+
+    pcmtype = get_pcmtype(pcmtypeobj);
+    if (pcmtype < 0) {
+        return NULL;
+    }
     
     elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
     
-    if (!dirstr) 
-    {
-        if (self->pchannels) 
-            direction = 0;
-        else 
-            direction = 1;
-    }
-    else if (strcasecmp(dirstr,"playback")==0) 
-        direction = 0;
-    else if (strcasecmp(dirstr,"capture")==0) 
-        direction = 1;
-    else 
-    {
-        PyErr_SetString(ALSAAudioError, "Invalid direction argument for mixer");
-        return NULL;
-    }
-
     result = PyList_New(0);
 
     for (channel = 0; channel <= SND_MIXER_SCHN_LAST; channel++) {
-        if (direction == 0 && 
+        if (pcmtype == SND_PCM_STREAM_PLAYBACK && 
             snd_mixer_selem_has_playback_channel(elem, channel)) 
         {
             snd_mixer_selem_get_playback_volume(elem, channel, &ival);
@@ -1508,7 +1526,7 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args)
             PyList_Append(result, item);
             Py_DECREF(item);
         }
-        else if (direction == 1
+        else if (pcmtype == SND_PCM_STREAM_CAPTURE 
                  && snd_mixer_selem_has_capture_channel(elem, channel)
                  && snd_mixer_selem_has_capture_volume(elem)) {
             snd_mixer_selem_get_capture_volume(elem, channel, &ival);
@@ -1524,52 +1542,51 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args)
 }
 
 PyDoc_STRVAR(getvolume_doc,
-"getvolume([direction]) -> List of volume settings (int)\n\
+"getvolume([pcmtype]) -> List of volume settings (int)\n\
 \n\
 Returns a list with the current volume settings for each channel.\n\
 The list elements are integer percentages.\n\
 \n\
-The optional 'direction' argument can be either 'playback' or\n\
-'capture', which is relevant if the mixer can control both\n\
-playback and capture volume. The default value is 'playback'\n\
-if the mixer has this capability, otherwise 'capture'");
+The optional 'pcmtype' argument can be either PCM_PLAYBACK or\n\
+PCM_CAPTURE, which is relevant if the mixer can control both\n\
+playback and capture volume. The default value is PCM_PLAYBACK\n\
+if the mixer has this capability, otherwise PCM_CAPTURE");
 
 
 static PyObject *
 alsamixer_getrange(alsamixer_t *self, PyObject *args) 
 {
     snd_mixer_elem_t *elem;
-    int direction;
-    char *dirstr = 0;
+    PyObject *pcmtypeobj = NULL;
+    long pcmtype;
     
-    if (!PyArg_ParseTuple(args,"|s:getrange",&dirstr)) 
+    if (!PyArg_ParseTuple(args,"|O:getrange", &pcmtypeobj)) 
         return NULL;
 
-    if (!self->handle) 
+    if (!self->handle)
     {
         PyErr_SetString(ALSAAudioError, "Mixer is closed");
+        return NULL;
+    }
+
+    pcmtype = get_pcmtype(pcmtypeobj);
+    if (pcmtype < 0) {
         return NULL;
     }
     
     elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
     
-    if (!dirstr) 
+    if (!pcmtypeobj || (pcmtypeobj == Py_None))
     {
-        if (self->pchannels) 
-            direction = 0;
-        else 
-            direction = 1;
+        if (self->pchannels) {
+            pcmtype = SND_PCM_STREAM_PLAYBACK;
+        }
+        else {
+            pcmtype = SND_PCM_STREAM_CAPTURE;
+        }
     }
-    else if (strcasecmp(dirstr,"playback")==0) 
-      direction = 0;
-    else if (strcasecmp(dirstr,"capture")==0) 
-      direction = 1;
-    else 
-    {
-      PyErr_SetString(ALSAAudioError,"Invalid argument for direction");
-      return NULL;
-    }
-    if (direction == 0) 
+
+    if (pcmtype == SND_PCM_STREAM_CAPTURE) 
     {
         if (snd_mixer_selem_has_playback_channel(elem, 0)) 
         {
@@ -1580,7 +1597,7 @@ alsamixer_getrange(alsamixer_t *self, PyObject *args)
                      self->controlname, self->controlid, self->cardname);
         return NULL;
     }
-    else if (direction == 1) 
+    else
     { 
         if (snd_mixer_selem_has_capture_channel(elem, 0)
             && snd_mixer_selem_has_capture_volume(elem)) {
@@ -1599,12 +1616,12 @@ alsamixer_getrange(alsamixer_t *self, PyObject *args)
 }
 
 PyDoc_STRVAR(getrange_doc,
-"getrange([direction]) -> List of (min_volume, max_volume)\n\
+"getrange([pcmtype]) -> List of (min_volume, max_volume)\n\
 \n\
 Returns a list of tuples with the volume range (ints).\n\
 \n\
-The optional 'direction' argument can be either 'playback' or\n\
-'capture', which is relevant if the mixer can control both\n\
+The optional 'direction' argument can be either PCM_PLAYBACK or\n\
+PCM_CAPTURE, which is relevant if the mixer can control both\n\
 playback and capture volume. The default value is 'playback'\n\
 if the mixer has this capability, otherwise 'capture'");
 
@@ -1806,15 +1823,16 @@ static PyObject *
 alsamixer_setvolume(alsamixer_t *self, PyObject *args) 
 {
     snd_mixer_elem_t *elem;
-    int direction;
     int i;
     long volume;
     int physvolume;
-    char *dirstr = 0;
+    PyObject *pcmtypeobj = NULL;
+    long pcmtype;
     int channel = MIXER_CHANNEL_ALL;
     int done = 0;
 
-    if (!PyArg_ParseTuple(args,"l|is:setvolume",&volume,&channel,&dirstr)) 
+    if (!PyArg_ParseTuple(args,"l|iO:setvolume", &volume, &channel,
+                          &pcmtypeobj)) 
         return NULL;
 
     if (volume < 0 || volume > 100) 
@@ -1823,6 +1841,11 @@ alsamixer_setvolume(alsamixer_t *self, PyObject *args)
         return NULL;
     }
 
+    pcmtype = get_pcmtype(pcmtypeobj);
+    if (pcmtype < 0) {
+        return NULL;
+    }
+    
     if (!self->handle) 
     {
         PyErr_SetString(ALSAAudioError, "Mixer is closed");
@@ -1831,39 +1854,30 @@ alsamixer_setvolume(alsamixer_t *self, PyObject *args)
   
     elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
 
-    if (!dirstr) 
+    if (!pcmtypeobj || (pcmtypeobj == Py_None)) 
     {
-        if (self->pchannels) 
-            direction = 0;
+        if (self->pchannels)
+            pcmtype = SND_PCM_STREAM_PLAYBACK;
         else 
-            direction = 1;
+            pcmtype = SND_PCM_STREAM_CAPTURE;
     }
-    else if (strcasecmp(dirstr, "playback")==0) 
-        direction = 0;
-    else if (strcasecmp(dirstr, "capture")==0) 
-        direction = 1;
-    else 
-    {
-        PyErr_SetString(ALSAAudioError, "Invalid direction argument. Use "
-                        "'playback' or 'capture'");
-        return NULL;
-    }
+
     for (i = 0; i <= SND_MIXER_SCHN_LAST; i++) 
     {
         if (channel == -1 || channel == i) 
         {
-            if (direction == 0 && 
+            if (pcmtype == SND_PCM_STREAM_PLAYBACK && 
                 snd_mixer_selem_has_playback_channel(elem, i)) {
                 physvolume = alsamixer_getphysvolume(self->pmin,
                                                      self->pmax, volume);
                 snd_mixer_selem_set_playback_volume(elem, i, physvolume);
                 done++;
             }
-            else if (direction == 1
+            else if (pcmtype == SND_PCM_STREAM_CAPTURE
                      && snd_mixer_selem_has_capture_channel(elem, i)
                      && snd_mixer_selem_has_capture_volume(elem)) 
             {
-                physvolume = alsamixer_getphysvolume(self->cmin,self->cmax,
+                physvolume = alsamixer_getphysvolume(self->cmin, self->cmax,
                                                      volume);
                 snd_mixer_selem_set_capture_volume(elem, i, physvolume);
                 done++;
@@ -1883,7 +1897,7 @@ alsamixer_setvolume(alsamixer_t *self, PyObject *args)
 }
 
 PyDoc_STRVAR(setvolume_doc,
-"setvolume(volume[[, channel] [, direction]])\n\
+"setvolume(volume[[, channel] [, pcmtype]])\n\
 \n\
 Change the current volume settings for this mixer. The volume argument\n\
 controls the new volume setting as an integer percentage.\n\
@@ -1891,7 +1905,7 @@ If the optional argument channel is present, the volume is set only for\n\
 this channel. This assumes that the mixer can control the volume for the\n\
 channels independently.\n\
 \n\
-The optional direction argument can be either 'playback' or 'capture'.\n\
+The optional direction argument can be either PCM_PLAYBACK or PCM_CAPTURE.\n\
 It is relevant if the mixer has independent playback and capture volume\n\
 capabilities, and controls which of the volumes will be changed.\n\
 The default is 'playback' if the mixer has this capability, otherwise\n\
@@ -1906,7 +1920,7 @@ alsamixer_setmute(alsamixer_t *self, PyObject *args)
     int mute = 0;
     int done = 0;
     int channel = MIXER_CHANNEL_ALL;
-    if (!PyArg_ParseTuple(args,"i|i:setmute",&mute,&channel)) 
+    if (!PyArg_ParseTuple(args,"i|i:setmute", &mute, &channel)) 
         return NULL;
 
     if (!self->handle) 
@@ -1965,7 +1979,7 @@ alsamixer_setrec(alsamixer_t *self, PyObject *args)
     int done = 0;
     int channel = MIXER_CHANNEL_ALL;
     
-    if (!PyArg_ParseTuple(args,"i|i:setrec",&rec,&channel)) 
+    if (!PyArg_ParseTuple(args,"i|i:setrec", &rec, &channel)) 
         return NULL;
     
     if (!self->handle) 

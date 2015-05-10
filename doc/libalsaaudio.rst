@@ -50,13 +50,12 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
      is 'default'.
 
    * *cardindex* - the card index [#f3]_. If this argument
-   is given, the device name  is constructed like this: `hw:<cardindex>` and
+   is given, the device name is constructed as: `hw:<cardindex>` and
    the `device` keyword argument is ignored. 0 is the
    first hardware sound card. 
 
-   **Note:** The arguments for this function were extended in
-   version 0.8. The keyword argument `device` is new and can be used to select
-   virtual devices.
+   *Changed in 0.8* The keyword argument `device` is new and can be used to
+   select virtual devices.
   
 .. class:: PCM(type=PCM_PLAYBACK, mode=PCM_NORMAL, device='default',
            cardindex=-1)
@@ -68,9 +67,12 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
    * *mode* - can be either ``PCM_NONBLOCK``, or ``PCM_NORMAL`` (default). 
    * *device* - the name of the PCM device that should be used.
    * *cardindex* - the card index [#f3]_. If this argument
-   is given, the device name  is constructed like this: `hw:<cardindex>` and
+   is given, the device name  is constructed as: `hw:<cardindex>` and
    the `device` keyword argument is ignored. 0 is the
    first hardware sound card. 
+
+   *Changed in 0.8* The keyword argument `card` was renamed to `device`. Also,
+   the keyword argument `cardindex` is new
 
 .. class:: Mixer(control='Master', id=0, cardindex=-1, device='default')
 
@@ -86,7 +88,7 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
    the `device` keyword argument is ignored. 0 is the
    first sound card. 
 
-   **Note:** The arguments for this constructor were changed in
+   *Changed in 0.8* The arguments for this constructor were changed in
    version 0.8 and this change is not completely backward compatible.
    Old versions accepted just the optional parameter *cardindex*.
    The current version accepts either a device name or a cardindex.
@@ -290,7 +292,7 @@ Mixer objects provides access to the ALSA mixer API.
    the `device` keyword argument is ignored. 0 is the
    first sound card. 
    
-   **Note:** The arguments for this function were changed in
+   *Changed in 0.8* The arguments for this function were changed in
    version 0.8 and this change is not completely backward compatible.
    Old versions accepted just the optional parameter *cardindex*.
    The current version accepts either a device name or a cardindex.
