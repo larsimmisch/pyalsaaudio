@@ -1329,37 +1329,37 @@ alsamixer_volumecap(alsamixer_t *self, PyObject *args)
     }
 
     result = PyList_New(0);
-    if (self->volume_cap&MIXER_CAP_VOLUME) 
+    if (self->volume_cap & MIXER_CAP_VOLUME) 
     {
         item = PyUnicode_FromString("Volume");
         PyList_Append(result, item);
         Py_DECREF(item);
     }
-    if (self->volume_cap&MIXER_CAP_VOLUME_JOINED) 
+    if (self->volume_cap & MIXER_CAP_VOLUME_JOINED) 
     {
         item = PyUnicode_FromString("Joined Volume"); 
         PyList_Append(result, item);
         Py_DECREF(item);
     }
-    if (self->volume_cap&MIXER_CAP_PVOLUME) 
+    if (self->volume_cap & MIXER_CAP_PVOLUME) 
     {
         item = PyUnicode_FromString("Playback Volume");
         PyList_Append(result, item);
         Py_DECREF(item);
     }
-    if (self->volume_cap&MIXER_CAP_PVOLUME_JOINED) 
+    if (self->volume_cap & MIXER_CAP_PVOLUME_JOINED) 
     {
         item = PyUnicode_FromString("Joined Playback Volume");
         PyList_Append(result, item);
         Py_DECREF(item);
     }
-    if (self->volume_cap&MIXER_CAP_CVOLUME) 
+    if (self->volume_cap & MIXER_CAP_CVOLUME) 
     {
         item = PyUnicode_FromString("Capture Volume");
         PyList_Append(result, item);
         Py_DECREF(item);
     }
-    if (self->volume_cap&MIXER_CAP_CVOLUME_JOINED) 
+    if (self->volume_cap & MIXER_CAP_CVOLUME_JOINED) 
     {
         item = PyUnicode_FromString("Joined Capture Volume");
         PyList_Append(result, item);
@@ -1398,43 +1398,43 @@ alsamixer_switchcap(alsamixer_t *self, PyObject *args)
     }
 
     result = PyList_New(0);
-    if (self->volume_cap&MIXER_CAP_SWITCH) 
+    if (self->volume_cap & MIXER_CAP_SWITCH) 
     {
         item = PyUnicode_FromString("Mute");
         PyList_Append(result, item);
         Py_DECREF(item);
     }
-    if (self->volume_cap&MIXER_CAP_SWITCH_JOINED) 
+    if (self->volume_cap & MIXER_CAP_SWITCH_JOINED) 
     {
         item = PyUnicode_FromString("Joined Mute");
         PyList_Append(result, item);
         Py_DECREF(item);
     }
-    if (self->volume_cap&MIXER_CAP_PSWITCH) 
+    if (self->volume_cap & MIXER_CAP_PSWITCH) 
     {
         item = PyUnicode_FromString("Playback Mute");
         PyList_Append(result, item);
         Py_DECREF(item);
     }
-    if (self->volume_cap&MIXER_CAP_PSWITCH_JOINED) 
+    if (self->volume_cap & MIXER_CAP_PSWITCH_JOINED) 
     {
         item = PyUnicode_FromString("Joined Playback Mute");
         PyList_Append(result, item);
         Py_DECREF(item);
     }
-    if (self->volume_cap&MIXER_CAP_CSWITCH) 
+    if (self->volume_cap & MIXER_CAP_CSWITCH) 
     {
         item = PyUnicode_FromString("Capture Mute");
         PyList_Append(result, item);
         Py_DECREF(item);
     }
-    if (self->volume_cap&MIXER_CAP_CSWITCH_JOINED) 
+    if (self->volume_cap & MIXER_CAP_CSWITCH_JOINED) 
     {
         item = PyUnicode_FromString("Joined Capture Mute");
         PyList_Append(result, item);
         Py_DECREF(item);
     }
-    if (self->volume_cap&MIXER_CAP_CSWITCH_EXCLUSIVE) 
+    if (self->volume_cap & MIXER_CAP_CSWITCH_EXCLUSIVE) 
     {
         item = PyUnicode_FromString("Capture Exclusive");
         PyList_Append(result, item);
@@ -1574,8 +1574,9 @@ alsamixer_getrange(alsamixer_t *self, PyObject *args)
         return NULL;
     }
     
-    elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
-    
+    elem = alsamixer_find_elem(self->handle, self->controlname,
+                               self->controlid);
+
     if (!pcmtypeobj || (pcmtypeobj == Py_None))
     {
         if (self->pchannels) {
@@ -1586,7 +1587,7 @@ alsamixer_getrange(alsamixer_t *self, PyObject *args)
         }
     }
 
-    if (pcmtype == SND_PCM_STREAM_CAPTURE) 
+    if (pcmtype == SND_PCM_STREAM_PLAYBACK) 
     {
         if (snd_mixer_selem_has_playback_channel(elem, 0)) 
         {
