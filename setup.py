@@ -4,11 +4,17 @@
 It is fairly complete for PCM devices and Mixer access.
 '''
 
+import subprocess
 from distutils.core import setup
 from distutils.extension import Extension
 from sys import version
 
-pyalsa_version = '0.8'
+def gitrev():
+    rev = subprocess.check_output(['git', 'describe', '--tags', '--dirty=-dev',
+                                  '--always'])
+    return rev.decode('utf-8').strip()
+
+pyalsa_version = gitrev()
 
 # patch distutils if it's too old to cope with the "classifiers" or
 # "download_url" keywords

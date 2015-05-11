@@ -5,7 +5,7 @@ Introduction
 :Author: Casper Wilstrup <cwi@aves.dk>
 :Author: Lars Immisch <lars@ibp.de>
 
-.. |release| replace:: 0.8
+.. |release| replace:: version
 
 .. % At minimum, give your name and an email address.  You can include a
 .. % snail-mail address if you like.
@@ -116,7 +116,7 @@ First of all, run::
 
 This is a small test suite that mostly performs consistency tests. If
 it fails, please file a `bug report
-<http://sourceforge.net/tracker/?group_id=120651>`_.
+<https://github.com/larsimmisch/pyalsaaudio/issues>`_.
 
 To test PCM recordings (on your default soundcard), verify your
 microphone works, then do::
