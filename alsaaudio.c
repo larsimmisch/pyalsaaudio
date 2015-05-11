@@ -20,9 +20,6 @@
 #define PyLong_Check PyInt_Check
 #define PyLong_AS_LONG PyInt_AS_LONG
 #endif
-#if PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION == 7
-#define PyLong_AS_LONG PyInt_AS_LONG
-#endif
 #include <alsa/asoundlib.h>
 #include <stdio.h>
 
@@ -88,6 +85,7 @@ get_pcmtype(PyObject *obj)
         return SND_PCM_STREAM_PLAYBACK;
     }
 
+#if PY_MAJOR_VERSION > 2
     if (PyLong_Check(obj)) {
         long pcmtype = PyLong_AS_LONG(obj);
         if (pcmtype == SND_PCM_STREAM_PLAYBACK ||
@@ -95,6 +93,15 @@ get_pcmtype(PyObject *obj)
             return pcmtype;
         }
     }
+#else
+    if (PyInt_Check(obj)) {
+        long pcmtype = PyInt_AS_LONG(obj);
+        if (pcmtype == SND_PCM_STREAM_PLAYBACK ||
+            pcmtype == SND_PCM_STREAM_CAPTURE) {
+            return pcmtype;
+        }
+    }
+#endif
 
     if (PyUnicode_Check(obj)) {
         const char *dirstr = PyUnicode_AS_DATA(obj);
@@ -178,7 +185,7 @@ alsapcm_list(PyObject *self, PyObject *args)
         return NULL;
 
     pcmtype = get_pcmtype(pcmtypeobj);
-    if (pcmtype < 0){
+    if (pcmtype < 0) {
         return NULL;
     }
 
