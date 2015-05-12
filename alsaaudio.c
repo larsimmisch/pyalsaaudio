@@ -288,7 +288,7 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     char hw_device[128];
     char *kw[] = { "type", "mode", "device", "cardindex", "card", NULL };
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oiziz", kw,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oisiz", kw,
                                      &pcmtypeobj, &pcmmode, &device,
                                      &cardidx, &card))
         return NULL;
@@ -1125,7 +1125,7 @@ alsamixer_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     int channel;
     char *kw[] = { "control", "id", "cardindex", "device", NULL };
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ziiz", kw,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|siis", kw,
                                      &control, &id, &cardidx, &device)) {
         return NULL;
     }
