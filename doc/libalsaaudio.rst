@@ -11,8 +11,7 @@
 
 .. moduleauthor:: Casper Wilstrup <cwi@aves.dk>
 .. moduleauthor:: Lars Immisch <lars@ibp.de>
-
-
+                  
 .. % Author of the module code;
 
 
@@ -36,67 +35,69 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
 
 .. function:: pcms([type=PCM_PLAYBACK])
 
-   List available PCM objects by name (the suitable for PCM objects). 
+   List available PCM objects by name.
+   
+   Items from this list can be used as the `device` keyword argument for the
+   :class:`PCM` constructor). 
 
+   Arguments are:
+
+   * *type* - can be either :const:`PCM_CAPTURE` or :const:`PCM_PLAYBACK`
+     (default).  
+
+   **Note:**
+
+   For :const:`PCM_PLAYBACK`, the list of device names should be equivalent
+   to the list of device names that ``aplay -L`` displays on the commandline::
+
+      $ aplay -L
+
+   For :const:`PCM_CAPTURE`, the list of device names should be equivalent
+   to the list of device names that  ``arecord -L`` displays on the
+   commandline::
+
+      $ arecord -L
+
+   *New in 0.8*
+      
 .. function:: cards()
 
    List the available cards by name.
 
-.. function:: mixers(device='default', cardindex=-1)
+.. function:: mixers(cardindex=-1, device='default')
 
    List the available mixers. The arguments are:
 
+   * *cardindex* - the card index. If this argument is given, the device name
+     is constructed as: 'hw:*cardindex*' and
+     the `device` keyword argument is ignored. ``0`` is the first hardware sound
+     card.
+
    * *device* - the name of the device on which the mixer resides. The default
-     is 'default'.
+     is ``'default'``.
 
-   * *cardindex* - the card index [#f3]_. If this argument
-   is given, the device name is constructed as: `hw:<cardindex>` and
-   the `device` keyword argument is ignored. 0 is the
-   first hardware sound card. 
+   **Note:** For a list of available controls, you can also use ``amixer`` on
+   the commandline::
+      
+      $ amixer
 
-   *Changed in 0.8* The keyword argument `device` is new and can be used to
-   select virtual devices.
-  
-.. class:: PCM(type=PCM_PLAYBACK, mode=PCM_NORMAL, device='default',
-           cardindex=-1)
+   To elaborate the example, calling :func:`mixers` with the argument
+   ``cardindex=0`` should give the same list of Mixer controls as::
 
-   This class is used to represent a PCM device (both for playback and
-   recording - capture). The arguments are:
+      $ amixer -c 0
 
-   * *type* - can be either ``PCM_CAPTURE`` or ``PCM_PLAYBACK`` (default).  
-   * *mode* - can be either ``PCM_NONBLOCK``, or ``PCM_NORMAL`` (default). 
-   * *device* - the name of the PCM device that should be used.
-   * *cardindex* - the card index [#f3]_. If this argument
-   is given, the device name  is constructed as: `hw:<cardindex>` and
-   the `device` keyword argument is ignored. 0 is the
-   first hardware sound card. 
+   And calling :func:`mixers` with the argument ``device='foo'`` should give
+   the same list of Mixer controls as::
 
-   *Changed in 0.8* The keyword argument `card` was renamed to `device`. Also,
-   the keyword argument `cardindex` is new
+      $ amixer -D foo
 
-.. class:: Mixer(control='Master', id=0, cardindex=-1, device='default')
+   *Changed in 0.8*:
+   
+   - The keyword argument `device` is new and can be used to
+     select virtual devices. As a result, the default behaviour has subtly
+     changed. Since 0.8, this functions returns the mixers for the default
+     device, not the mixers for the first card.
 
-   This class is used to access a specific ALSA mixer. The arguments
-   are:  
-
-   * *control* - Name of the chosen mixed (default is 'Master').  
-   * *id* - id of mixer -- More explanation needed here
-   *device* - the name of the device on which the mixer resides. The default is
-   'default'.
-   *cardindex* - specifies which card should be used [#f3]_. If this argument
-   is given, the device name  is constructed like this: `hw:<cardindex>` and
-   the `device` keyword argument is ignored. 0 is the
-   first sound card. 
-
-   *Changed in 0.8* The arguments for this constructor were changed in
-   version 0.8 and this change is not completely backward compatible.
-   Old versions accepted just the optional parameter *cardindex*.
-   The current version accepts either a device name or a cardindex.
-
-.. exception:: ALSAAudioError
-
-   Exception raised when an operation fails for a ALSA specific reason. The
-   exception argument is a string describing the reason of the failure.
 
 .. _pcm-objects:
 
@@ -107,39 +108,54 @@ PCM objects in :mod:`alsaaudio` can play or capture (record) PCM
 sound through speakers or a microphone. The PCM constructor takes the
 following arguments:
 
-.. class:: PCM(type=PCM_CAPTURE, mode=PCM_NORMAL, card='default')
+.. class:: PCM(type=PCM_PLAYBACK, mode=PCM_NORMAL, device='default', cardindex=-1)
 
-   *type* - can be either ``PCM_CAPTURE`` or ``PCM_PLAYBACK`` (default).
+   This class is used to represent a PCM device (either for playback and
+   recording). The arguments are:
 
-   *mode* - can be either ``PCM_NONBLOCK``, or ``PCM_NORMAL`` (the
-   default). In ``PCM_NONBLOCK`` mode, calls to :func:`read` will return
-   immediately independent of whether there is any actual data to
-   read. Similarly, calls to :func:`write` will return immediately without
-   actually writing anything to the playout buffer if the buffer is
-   full [#f1]_.
-
-   *card* - specifies which card should be used. This can be a string
-   like 'default' or a name that was returned from the :func:`cards` function.
+   * *type* - can be either :const:`PCM_CAPTURE` or :const:`PCM_PLAYBACK`
+     (default).  
+   * *mode* - can be either :const:`PCM_NONBLOCK`, or :const:`PCM_NORMAL`
+     (default). 
+   * *device* - the name of the PCM device that should be used (for example
+     a value from the output of :func:`pcms`). The default value is
+     ``'default'``.
+   * *cardindex* - the card index. If this argument is given, the device name
+     is constructed as 'hw:*cardindex*' and
+     the `device` keyword argument is ignored.
+     ``0`` is the first hardware sound card.
 
    This will construct a PCM object with these default settings:
 
-   * Sample format: ``PCM_FORMAT_S16_LE``
+   * Sample format: :const:`PCM_FORMAT_S16_LE`
    * Rate: 44100 Hz 
    * Channels: 2
    * Period size: 32 frames
 
+   *Changed in 0.8:*
+   
+   - The `card` keyword argument is still supported,
+     but deprecated. Please use `device` instead.
+
+   - The keyword argument `cardindex` was added.
+
+   The `card` keyword is deprecated because it guesses the real ALSA
+   name of the card. This was always fragile and broke some legitimate usecases.
+   
+     
 PCM objects have the following methods:
 
 
 .. method:: PCM.pcmtype()
 
-   Returns the type of PCM object. Either ``PCM_CAPTURE`` or ``PCM_PLAYBACK``.
+   Returns the type of PCM object. Either :const:`PCM_CAPTURE` or
+   :const:`PCM_PLAYBACK`.
 
 
 .. method:: PCM.pcmmode()
 
-   Return the mode of the PCM object. One of ``PCM_NONBLOCK``, ``PCM_ASYNC``,
-   or ``PCM_NORMAL``
+   Return the mode of the PCM object. One of :const:`PCM_NONBLOCK`,
+   :const:`PCM_ASYNC`, or :const:`PCM_NORMAL`
 
 
 .. method:: PCM.cardname()
@@ -150,14 +166,15 @@ PCM objects have the following methods:
 .. method:: PCM.setchannels(nchannels)
 
    Used to set the number of capture or playback channels. Common
-   values are: 1 = mono, 2 = stereo, and 6 = full 6 channel audio. Few
-   sound cards support more than 2 channels
+   values are: ``1`` = mono, ``2`` = stereo, and ``6`` = full 6 channel audio.
+   Few sound cards support more than 2 channels
 
 
 .. method:: PCM.setrate(rate)
 
-   Set the sample rate in Hz for the device. Typical values are 8000
-   (mainly used for telephony), 16000, 44100 (CD quality), and 96000.
+   Set the sample rate in Hz for the device. Typical values are ``8000``
+   (mainly used for telephony), ``16000``, ``44100`` (CD quality),
+   ``48000`` and ``96000``.
 
 
 .. method:: PCM.setformat(format)
@@ -167,52 +184,52 @@ PCM objects have the following methods:
 
    The following formats are provided by ALSA:
 
-   =====================  ===============
-          Format            Description
-   =====================  ===============
-   PCM_FORMAT_S8		  Signed 8 bit samples for each channel
-   PCM_FORMAT_U8		  Signed 8 bit samples for each channel
-   PCM_FORMAT_S16_LE	  Signed 16 bit samples for each channel Little Endian byte order)
-   PCM_FORMAT_S16_BE	  Signed 16 bit samples for each channel (Big Endian byte order)
-   PCM_FORMAT_U16_LE	  Unsigned 16 bit samples for each channel (Little Endian byte order)
-   PCM_FORMAT_U16_BE	  Unsigned 16 bit samples for each channel (Big Endian byte order)
-   PCM_FORMAT_S24_LE	  Signed 24 bit samples for each channel (Little Endian byte order)
-   PCM_FORMAT_S24_BE	  Signed 24 bit samples for each channel (Big Endian byte order)}
-   PCM_FORMAT_U24_LE	  Unsigned 24 bit samples for each channel (Little Endian byte order)
-   PCM_FORMAT_U24_BE	  Unsigned 24 bit samples for each channel (Big Endian byte order)
-   PCM_FORMAT_S32_LE	  Signed 32 bit samples for each channel (Little Endian byte order)
-   PCM_FORMAT_S32_BE	  Signed 32 bit samples for each channel (Big Endian byte order)
-   PCM_FORMAT_U32_LE	  Unsigned 32 bit samples for each channel (Little Endian byte order)
-   PCM_FORMAT_U32_BE	  Unsigned 32 bit samples for each channel (Big Endian byte order)
-   PCM_FORMAT_FLOAT_LE	  32 bit samples encoded as float (Little Endian byte order)
-   PCM_FORMAT_FLOAT_BE	  32 bit samples encoded as float (Big Endian byte order)
-   PCM_FORMAT_FLOAT64_LE  64 bit samples encoded as float (Little Endian byte order)
-   PCM_FORMAT_FLOAT64_BE  64 bit samples encoded as float (Big Endian byte order)
-   PCM_FORMAT_MU_LAW	  A logarithmic encoding (used by Sun .au files and telephony)
-   PCM_FORMAT_A_LAW		  Another logarithmic encoding
-   PCM_FORMAT_IMA_ADPCM	  A 4:1 compressed format defined by the Interactive Multimedia Association.
-   PCM_FORMAT_MPEG		  MPEG encoded audio?
-   PCM_FORMAT_GSM		  9600 bits/s constant rate encoding for speech
-   =====================  ===============
+   =========================  ===============
+          Format                Description
+   =========================  ===============
+   ``PCM_FORMAT_S8``          Signed 8 bit samples for each channel
+   ``PCM_FORMAT_U8``          Signed 8 bit samples for each channel
+   ``PCM_FORMAT_S16_LE``      Signed 16 bit samples for each channel Little Endian byte order)
+   ``PCM_FORMAT_S16_BE``      Signed 16 bit samples for each channel (Big Endian byte order)
+   ``PCM_FORMAT_U16_LE``      Unsigned 16 bit samples for each channel (Little Endian byte order)
+   ``PCM_FORMAT_U16_BE``      Unsigned 16 bit samples for each channel (Big Endian byte order)
+   ``PCM_FORMAT_S24_LE``      Signed 24 bit samples for each channel (Little Endian byte order)
+   ``PCM_FORMAT_S24_BE``      Signed 24 bit samples for each channel (Big Endian byte order)}
+   ``PCM_FORMAT_U24_LE``      Unsigned 24 bit samples for each channel (Little Endian byte order)
+   ``PCM_FORMAT_U24_BE``      Unsigned 24 bit samples for each channel (Big Endian byte order)
+   ``PCM_FORMAT_S32_LE``      Signed 32 bit samples for each channel (Little Endian byte order)
+   ``PCM_FORMAT_S32_BE``      Signed 32 bit samples for each channel (Big Endian byte order)
+   ``PCM_FORMAT_U32_LE``      Unsigned 32 bit samples for each channel (Little Endian byte order)
+   ``PCM_FORMAT_U32_BE``      Unsigned 32 bit samples for each channel (Big Endian byte order)
+   ``PCM_FORMAT_FLOAT_LE``    32 bit samples encoded as float (Little Endian byte order)
+   ``PCM_FORMAT_FLOAT_BE``    32 bit samples encoded as float (Big Endian byte order)
+   ``PCM_FORMAT_FLOAT64_LE``  64 bit samples encoded as float (Little Endian byte order)
+   ``PCM_FORMAT_FLOAT64_BE``  64 bit samples encoded as float (Big Endian byte order)
+   ``PCM_FORMAT_MU_LAW``      A logarithmic encoding (used by Sun .au files and telephony)
+   ``PCM_FORMAT_A_LAW``       Another logarithmic encoding
+   ``PCM_FORMAT_IMA_ADPCM``   A 4:1 compressed format defined by the Interactive Multimedia Association.
+   ``PCM_FORMAT_MPEG``        MPEG encoded audio?
+   ``PCM_FORMAT_GSM``         9600 bits/s constant rate encoding for speech
+   =========================  ===============
    
 
 .. method:: PCM.setperiodsize(period)
 
    Sets the actual period size in frames. Each write should consist of
    exactly this number of frames, and each read will return this
-   number of frames (unless the device is in ``PCM_NONBLOCK`` mode, in
+   number of frames (unless the device is in :const:`PCM_NONBLOCK` mode, in
    which case it may return nothing at all)
 
 
 .. method:: PCM.read()
 
-   In ``PCM_NORMAL`` mode, this function blocks until a full period is
+   In :const:`PCM_NORMAL` mode, this function blocks until a full period is
    available, and then returns a tuple (length,data) where *length* is
    the number of frames of captured data, and *data* is the captured
    sound frames as a string. The length of the returned data will be 
    periodsize\*framesize bytes.
 
-   In ``PCM_NONBLOCK`` mode, the call will not block, but will return
+   In :const:`PCM_NONBLOCK` mode, the call will not block, but will return
    ``(0,'')`` if no new period has become available since the last
    call to read.
 
@@ -224,20 +241,20 @@ PCM objects have the following methods:
    period. If less than 'period size' frames are provided, the actual
    playout will not happen until more data is written.
 
-   If the device is not in ``PCM_NONBLOCK`` mode, this call will block if
+   If the device is not in :const:`PCM_NONBLOCK` mode, this call will block if
    the kernel buffer is full, and until enough sound has been played
    to allow the sound data to be buffered. The call always returns the
    size of the data provided.
 
-   In ``PCM_NONBLOCK`` mode, the call will return immediately, with a
+   In :const:`PCM_NONBLOCK` mode, the call will return immediately, with a
    return value of zero, if the buffer is full. In this case, the data
    should be written at a later time.
 
 
-.. method:: PCM.pause([enable=1])
+.. method:: PCM.pause([enable=True])
 
-   If *enable* is 1, playback or capture is paused. If *enable* is 0,
-   playback/capture is resumed.
+   If *enable* is :const:`True`, playback or capture is paused.
+   Otherwise, playback/capture is resumed.
 
 **A few hints on using PCM devices for playback**
 
@@ -247,10 +264,10 @@ to PCM devices must *exactly* match the data rate of the device.
 If too little data is written to the device, it will underrun, and
 ugly clicking sounds will occur. Conversely, of too much data is
 written to the device, the write function will either block
-(``PCM_NORMAL`` mode) or return zero (``PCM_NONBLOCK`` mode).
+(:const:`PCM_NORMAL` mode) or return zero (:const:`PCM_NONBLOCK` mode).
 
 If your program does nothing but play sound, the best strategy is to put the
-device in ``PCM_NORMAL`` mode, and just write as much data to the device as
+device in :const:`PCM_NORMAL` mode, and just write as much data to the device as
 possible. This strategy can also be achieved by using a separate
 thread with the sole task of playing out sound.
 
@@ -275,32 +292,31 @@ Mixer Objects
 Mixer objects provides access to the ALSA mixer API.
 
 
-.. class:: Mixer(control='Master', id=0, device='default', cardindex=-1)
+.. class:: Mixer(control='Master', id=0, cardindex=-1, device='default')
 
-   *control* - specifies which control to manipulate using this mixer
-   object. The list of available controls can be found with the 
-   :mod:`alsaaudio`.\ :func:`mixers` function.  The default value is
-   'Master' - other common controls include 'Master Mono', 'PCM', 'Line', etc.
-
-   *id* - the id of the mixer control. Default is 0
-
-   *device* - the name of the device on which the mixer resides. The default is
-   'default'.
+   Arguments are:
    
-   *cardindex* - specifies which card should be used [#f3]_. If this argument
-   is given, the device name is constructed like this: `hw:<cardindex>` and
-   the `device` keyword argument is ignored. 0 is the
-   first sound card. 
+   * *control* - specifies which control to manipulate using this mixer
+     object. The list of available controls can be found with the 
+     :mod:`alsaaudio`.\ :func:`mixers` function.  The default value is
+     ``'Master'`` - other common controls may be ``'Master Mono'``, ``'PCM'``,
+     ``'Line'``, etc.
+
+   * *id* - the id of the mixer control. Default is ``0``.
+
+   * *cardindex* - specifies which card should be used. If this argument
+     is given, the device name is constructed like this: 'hw:*cardindex*' and
+     the `device` keyword argument is ignored. ``0`` is the
+     first sound card. 
+
+   * *device* - the name of the device on which the mixer resides. The default
+     value is ``'default'``.
    
-   *Changed in 0.8* The arguments for this function were changed in
-   version 0.8 and this change is not completely backward compatible.
-   Old versions accepted just the optional parameter *cardindex*.
-   The current version accepts either a device name or a cardindex.
+   *Changed in 0.8*:
+   
+   - The keyword argument `device` is new and can be used to select virtual
+     devices.
   
-   **Note:** For a list of available controls, you can also use **amixer**::
-      
-      amixer
-
 Mixer objects have the following methods:
 
 .. method:: Mixer.cardname()
@@ -311,7 +327,7 @@ Mixer objects have the following methods:
 .. method:: Mixer.mixer()
 
    Return the name of the specific mixer controlled by this object, For example
-   'Master' or 'PCM'
+   ``'Master'`` or ``'PCM'``
 
 
 .. method:: Mixer.mixerid()
@@ -395,10 +411,10 @@ Mixer objects have the following methods:
 
    Return the volume range of the ALSA mixer controlled by this object.
 
-   The optional *direction* argument can be either 'playback' or
-   'capture', which is relevant if the mixer can control both playback
-   and capture volume.  The default value is 'playback' if the mixer
-   has this capability, otherwise 'capture'
+   The optional *direction* argument can be either :const:`PCM_PLAYBACK` or
+   :const:`PCM_CAPTURE`, which is relevant if the mixer can control both
+   playback and capture volume.  The default value is :const:`PCM_PLAYBACK`
+   if the mixer has playback channels, otherwise it is :const:`PCM_CAPTURE`.
 
 
 .. method:: Mixer.getrec()
@@ -414,13 +430,13 @@ Mixer objects have the following methods:
    Returns a list with the current volume settings for each channel. The list
    elements are integer percentages.
 
-   The optional *direction* argument can be either 'playback' or
-   'capture', which is relevant if the mixer can control both playback
-   and capture volume. The default value is 'playback' if the mixer
-   has this capability, otherwise 'capture'
+   The optional *direction* argument can be either :const:`PCM_PLAYBACK` or
+   :const:`PCM_CAPTURE`, which is relevant if the mixer can control both
+   playback and capture volume. The default value is :const:`PCM_PLAYBACK`
+   if the mixer has playback channels, otherwise it is :const:`PCM_CAPTURE`.
 
 
-.. method:: Mixer.setvolume(volume,[channel], [direction])
+.. method:: Mixer.setvolume(volume, [channel], [direction])
 
    Change the current volume settings for this mixer. The *volume* argument
    controls the new volume setting as an integer percentage.
@@ -429,11 +445,10 @@ Mixer objects have the following methods:
    only for this channel. This assumes that the mixer can control the
    volume for the channels independently.
 
-   The optional *direction* argument can be either 'playback' or 'capture' is
-   relevant if the mixer has independent playback and capture volume
-   capabilities, and controls which of the volumes if changed. The
-   default is 'playback' if the mixer has this capability, otherwise 'capture'.
-
+   The optional *direction* argument can be either :const:`PCM_PLAYBACK` or
+   :const:`PCM_CAPTURE`, which is relevant if the mixer can control both
+   playback and capture volume. The default value is :const:`PCM_PLAYBACK`
+   if the mixer has playback channels, otherwise it is :const:`PCM_CAPTURE`.
 
 .. method:: Mixer.setmute(mute, [channel])
 
@@ -446,7 +461,7 @@ Mixer objects have the following methods:
    This method will fail if the mixer has no playback mute capabilities
 
 
-.. method:: Mixer.setrec(capture,[channel])
+.. method:: Mixer.setrec(capture, [channel])
 
    Sets the capture mute flag to a new value. The *capture* argument
    is either 0 for no capture, or 1 for capture.
@@ -466,7 +481,7 @@ Mixer objects have the following methods:
 The ALSA mixer API is extremely complicated - and hardly documented at all.
 :mod:`alsaaudio` implements a much simplified way to access this API. In
 designing the API I've had to make some choices which may limit what can and
-cannot be controlled through the API. However, If I had chosen to implement the
+cannot be controlled through the API. However, if I had chosen to implement the
 full API, I would have reexposed the horrible complexity/documentation ratio of
 the underlying API.  At least the :mod:`alsaaudio` API is easy to
 understand and use.
@@ -510,9 +525,9 @@ or::
    $ python
 
    >>> import alsaaudio
-   >>> alsaaudio.cards()
+   >>> alsaaudio.pcms()
 
-mixertest.py accepts the commandline options *-d <device> and
+mixertest.py accepts the commandline options *-d <device>* and
 *-c <cardindex>*. 
 
 playwav.py
@@ -599,5 +614,3 @@ argument::
 .. rubric:: Footnotes
 
 .. [#f1]   ALSA also allows ``PCM_ASYNC``, but this is not supported yet.
-.. [#f2] :mod:`alsaaudio` will leave any name alone that has a ':' (colon) in it.
-.. [#f3] This is inconsistent with the PCM objects, which use names, but it is consistent with aplay and amixer.

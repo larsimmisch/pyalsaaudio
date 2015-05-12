@@ -72,7 +72,7 @@ linkcheck:
 	      "or in linkcheck/output.txt."
 
 gh-pages: html
-	cp -r ./html/* gh-pages
+	cd gh-pages; git pull --rebase; cd ..; cp -r ./html/* gh-pages
 
 publish: gh-pages
 	cd gh-pages; git commit -a; git push; cd ..

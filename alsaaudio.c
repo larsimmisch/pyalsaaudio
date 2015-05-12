@@ -283,12 +283,14 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     long pcmtype;
     int pcmmode = 0;
     char *device = "default";
+    char *card = NULL;
     int cardidx = -1;
-    char hw_device[32];
-    char *kw[] = { "type", "mode", "device", "cardindex", NULL };
+    char hw_device[128];
+    char *kw[] = { "type", "mode", "device", "cardindex", "card", NULL };
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oizi", kw,
-                                     &pcmtypeobj, &pcmmode, &device, &cardidx))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oiziz", kw,
+                                     &pcmtypeobj, &pcmmode, &device,
+                                     &cardidx, &card))
         return NULL;
 
     if (cardidx >= 0) {
@@ -300,6 +302,20 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
             PyErr_Format(ALSAAudioError, "Invalid card number %d", cardidx);
             return NULL;
         }
+    }
+    else if (card) {
+        // The card kw argument is deprecated
+        PyErr_WarnEx(PyExc_DeprecationWarning,
+                     "The `card` keyword argument is deprecated. "
+                     "Please use `device` instead", 1);
+
+        // If we find a colon, we assume it is a real ALSA cardname
+        if (strchr(card, ':')) {
+            device = card;
+        }
+
+        snprintf(hw_device, sizeof(hw_device), "default:CARD=%s", card);
+        device = hw_device;
     }
 
     pcmtype = get_pcmtype(pcmtypeobj);
@@ -329,6 +345,7 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (res >= 0) {
         res = alsapcm_setup(self);
     }
+    
     if (res >= 0) {
         self->cardname = strdup(device);
     }
@@ -1033,10 +1050,10 @@ alsamixer_list(PyObject *self, PyObject *args, PyObject *kwds)
     char *device = "default";
     PyObject *result;
 
-    char *kw[] = { "device", "cardindex", NULL };
+    char *kw[] = { "cardindex", "device", NULL };
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|si", kw,
-                                     &device, &cardidx))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|is", kw,
+                                     &cardidx, &device))
         return NULL;
 
     if (cardidx >= 0) {
@@ -1106,11 +1123,12 @@ alsamixer_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     int id = 0;
     snd_mixer_elem_t *elem;
     int channel;
-    char *kw[] = { "control", "id", "device", "cardindex", NULL };
+    char *kw[] = { "control", "id", "cardindex", "device", NULL };
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|sisi", kw,
-                                     &control, &id, &device, &cardidx))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ziiz", kw,
+                                     &control, &id, &cardidx, &device)) {
         return NULL;
+    }
 
     if (cardidx >= 0) {
         if (cardidx < 32) {
@@ -1570,8 +1588,9 @@ alsamixer_getrange(alsamixer_t *self, PyObject *args)
     PyObject *pcmtypeobj = NULL;
     long pcmtype;
 
-    if (!PyArg_ParseTuple(args,"|O:getrange", &pcmtypeobj))
+    if (!PyArg_ParseTuple(args,"|O:getrange", &pcmtypeobj)) {
         return NULL;
+    }
 
     if (!self->handle)
     {

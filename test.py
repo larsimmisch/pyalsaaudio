@@ -9,7 +9,7 @@
 
 import unittest
 import alsaaudio
-
+import warnings
 
 # we can't test read and write well - these are tested otherwise
 PCMMethods = [('pcmtype', None),
@@ -92,12 +92,12 @@ class PCMTest(unittest.TestCase):
     def testPCM(self):
         "Open a PCM object on every device"
 
-        for device in alsaaudio.pcms():
-            pcm = alsaaudio.PCM(device=device)
+        for pd in alsaaudio.pcms():
+            pcm = alsaaudio.PCM(device=pd)
             pcm.close()
 
-        for device in alsaaudio.pcms(alsaaudio.PCM_CAPTURE):
-            pcm = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, device=device)
+        for pd in alsaaudio.pcms(alsaaudio.PCM_CAPTURE):
+            pcm = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, device=pd)
             pcm.close()
 
     def testPCMAll(self):
@@ -114,7 +114,6 @@ class PCMTest(unittest.TestCase):
 
         pcm.close()
 
-
     def testPCMClose(self):
         "Run all PCM methods on a closed object and verify it raises an error"
 
@@ -128,5 +127,19 @@ class PCMTest(unittest.TestCase):
             else:
                 self.assertRaises(alsaaudio.ALSAAudioError, f, pcm, *a)
 
+    def testPCMDeprecated(self):
+        with warnings.catch_warnings(record=True) as w:
+            # Cause all warnings to always be triggered.
+            warnings.simplefilter("always")
+
+            try:
+                pcm = alsaaudio.PCM(card='default')
+            except alsaaudio.ALSAAudioError:
+                pass
+                
+            # Verify we got a DepreciationWarning
+            assert len(w) == 1
+            assert issubclass(w[-1].category, DeprecationWarning)
+                
 if __name__ == '__main__':
     unittest.main()
