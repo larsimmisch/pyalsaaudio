@@ -45,11 +45,12 @@ First, get the sources and change to the source directory:
   $ cd pyalsaaudio
 ```
   
-To install, execute the following:
+Then, build:
 ```
   $ python setup.py build
 ```
-And then as root:
+  
+And install:
 ```
   $ sudo python setup.py install
 ```
