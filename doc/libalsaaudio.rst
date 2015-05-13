@@ -35,11 +35,8 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
 
 .. function:: pcms([type=PCM_PLAYBACK])
 
-   List available PCM objects by name.
+   List available PCM devices by name.
    
-   Items from this list can be used as the `device` keyword argument for the
-   :class:`PCM` constructor). 
-
    Arguments are:
 
    * *type* - can be either :const:`PCM_CAPTURE` or :const:`PCM_PLAYBACK`
@@ -59,10 +56,13 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
       $ arecord -L
 
    *New in 0.8*
-      
+
 .. function:: cards()
 
-   List the available cards by name.
+   List the available ALSA cards by name. This function is only moderately
+   useful. If you want to see a list of available PCM devices, use :func:`pcms`
+   instead.
+   
 
 .. function:: mixers(cardindex=-1, device='default')
 
@@ -508,12 +508,12 @@ Examples
 
 The following example are provided:
 
-* playwav.py
-* recordtest.py
-* playbacktest.py
-* mixertest.py
+* `playwav.py`
+* `recordtest.py`
+* `playbacktest.py`
+* `mixertest.py`
 
-All examples (except mixertest.py) accept the commandline option 
+All examples (except `mixertest.py`) accept the commandline option 
 *-c <cardname>*.
 
 To determine a valid card name, use the commandline ALSA player::
