@@ -31,7 +31,7 @@ To install pyalsaaudio via `pip` (or `easy_install`):
 
 ## Manual installation
 
-*Note:* the wrappers need a kernel with ALS support, and the
+*Note:* the wrappers need a kernel with ALSA support, and the
 ALSA library and headers. The installation of these varies from distribution
 to distribution.
 
