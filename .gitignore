@@ -1,4 +1,7 @@
 *.pyc
+*.so
 doc/gh-pages/
 doc/html/
 doc/doctrees/
+gh-pages/
+build/
