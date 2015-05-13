@@ -11,7 +11,7 @@ is currently fairly complete for PCM devices, and has some support for mixers.
 
 If you find bugs in the wrappers please open an issue in the issue tracker.
 Please don't send bug reports regarding ALSA specifically. There are several
-bugs in this api, and those should be reported to the ALSA team - not
+bugs in the ALSA API, and those should be reported to the ALSA team - not
 me.
 
 This software is licensed under the PSF license - the same one used
