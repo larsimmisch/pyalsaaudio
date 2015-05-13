@@ -5,7 +5,8 @@ For documentation, see http://larsimmisch.github.io/pyalsaaudio/
 > Author: Casper Wilstrup (cwi@aves.dk)  
 > Maintainer: Lars Immisch (lars@ibp.de)
 
-This package contains wrappers for accessing the ALSA api from Python. It
+This package contains wrappers for accessing the
+[ALSA](http://www.alsa-project.org/) API from Python. It
 is currently fairly complete for PCM devices, and has some support for mixers.
 
 If you find bugs in the wrappers please open an issue in the issue tracker.
