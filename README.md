@@ -34,7 +34,7 @@ To install pyalsaaudio via `pip` (or `easy_install`):
 *Note:* the wrappers need the ALSA library and headers.
 The installation of these varies from distribution to distribution.
 
-On Debian or Ubuntu, make sure to install `linasound2-dev`. On Arch,
+On Debian or Ubuntu, make sure to install `libasound2-dev`. On Arch,
 install `alsa-lib`. When in doubt, search your distribution for a
 package that contains `libasound.so` and `asoundlib.h`.
 
