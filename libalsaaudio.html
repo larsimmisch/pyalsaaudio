@@ -54,9 +54,7 @@
 <dl class="function">
 <dt id="alsaaudio.pcms">
 <tt class="descclassname">alsaaudio.</tt><tt class="descname">pcms</tt><big>(</big><span class="optional">[</span><em>type=PCM_PLAYBACK</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#alsaaudio.pcms" title="Permalink to this definition">¶</a></dt>
-<dd><p>List available PCM objects by name.</p>
-<p>Items from this list can be used as the <cite>device</cite> keyword argument for the
-<a class="reference internal" href="#alsaaudio.PCM" title="alsaaudio.PCM"><tt class="xref py py-class docutils literal"><span class="pre">PCM</span></tt></a> constructor).</p>
+<dd><p>List available PCM devices by name.</p>
 <p>Arguments are:</p>
 <ul class="simple">
 <li><em>type</em> - can be either <tt class="xref py py-const docutils literal"><span class="pre">PCM_CAPTURE</span></tt> or <tt class="xref py py-const docutils literal"><span class="pre">PCM_PLAYBACK</span></tt>
@@ -80,7 +78,9 @@ commandline:</p>
 <dl class="function">
 <dt id="alsaaudio.cards">
 <tt class="descclassname">alsaaudio.</tt><tt class="descname">cards</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.cards" title="Permalink to this definition">¶</a></dt>
-<dd><p>List the available cards by name.</p>
+<dd><p>List the available ALSA cards by name. This function is only moderately
+useful. If you want to see a list of available PCM devices, use <a class="reference internal" href="#alsaaudio.pcms" title="alsaaudio.pcms"><tt class="xref py py-func docutils literal"><span class="pre">pcms()</span></tt></a>
+instead.</p>
 </dd></dl>
 
 <dl class="function">
@@ -608,12 +608,12 @@ painful trial and error process.</p>
 <span id="pcm-example"></span><h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
 <p>The following example are provided:</p>
 <ul class="simple">
-<li>playwav.py</li>
-<li>recordtest.py</li>
-<li>playbacktest.py</li>
-<li>mixertest.py</li>
+<li><cite>playwav.py</cite></li>
+<li><cite>recordtest.py</cite></li>
+<li><cite>playbacktest.py</cite></li>
+<li><cite>mixertest.py</cite></li>
 </ul>
-<p>All examples (except mixertest.py) accept the commandline option
+<p>All examples (except <cite>mixertest.py</cite>) accept the commandline option
 <em>-c &lt;cardname&gt;</em>.</p>
 <p>To determine a valid card name, use the commandline ALSA player:</p>
 <div class="highlight-python"><div class="highlight"><pre>$ aplay -L
@@ -777,7 +777,7 @@ Channel 1 volume: 61%
     </div>
     <div class="footer">
         &copy; Copyright 2008-2009, Casper Wilstrup, Lars Immisch.
-      Last updated on May 13, 2015.
+      Last updated on May 14, 2015.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>
