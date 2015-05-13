@@ -1,5 +1,7 @@
 # PyAlsaAudio
 
+For documentation, see http://larsimmisch.github.io/pyalsaaudio/
+
 > Author: Casper Wilstrup (cwi@aves.dk)  
 > Maintainer: Lars Immisch (lars@ibp.de)
 
@@ -18,6 +20,16 @@ whatsoever.
 
 
 # Installation
+
+## PyPI
+
+To install pyalsaaudio via `pip` (or `easy_install`):
+
+```
+  $ pip install pyalsaaudio
+```
+
+## Manual installation
 
 *Note:* the wrappers need the ALSA library and headers.
 The installation of these varies from distribution to distribution.
