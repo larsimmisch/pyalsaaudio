@@ -40,6 +40,12 @@ package that contains `libasound.so` and `asoundlib.h`.
 
 Naturally you also need to use a kernel with ALSA support.
 
+First, get the sources and change to the source directory:
+```
+  $ git clone https://github.com/larsimmisch/pyalsaaudio.git
+  $ cd pyalsaaudio
+```
+  
 To install, execute the following:
 ```
   $ python setup.py build
@@ -55,8 +61,8 @@ distribution; it is also online on [http://larsimmisch.github.io/pyalsaaudio/](h
 
 There are some example programs included with the source:
 
-* `playwav.py` plays back a wav file
-* `playbacktest.py` plays back raw sound data read from stdin
-* `recordtest.py` captures sound from the microphone and writes
+* [playwav.py](https://github.com/larsimmisch/pyalsaaudio/blob/master/playwav.py) plays back a wav file
+* [playbacktest.py](https://github.com/larsimmisch/pyalsaaudio/blob/master/playbacktest.py) plays back raw sound data read from stdin
+* [recordtest.py](https://github.com/larsimmisch/pyalsaaudio/blob/master/recordtest.py) captures sound from the microphone and writes
 it raw to stdout.
-* `mixertest.py` can be used to manipulate the mixers.
+* [mixertest.py](https://github.com/larsimmisch/pyalsaaudio/blob/master/mixertest.py) can be used to manipulate the mixers.
