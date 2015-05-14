@@ -1,3 +1,6 @@
+Version 0.8.1:
+- document changes (this file)
+
 Version 0.8:
 - 'PCM()' has new 'device' and 'cardindex' keyword arguments.
 
