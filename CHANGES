@@ -1,3 +1,6 @@
+Version 0.8.2:
+- fix #3 (we cannot get the revision from git for pip installs)
+
 Version 0.8.1:
 - document changes (this file)
 
