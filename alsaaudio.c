@@ -21,6 +21,7 @@
 #define PyLong_AS_LONG PyInt_AS_LONG
 #endif
 #include <alsa/asoundlib.h>
+#include <alsa/version.h>
 #include <stdio.h>
 
 PyDoc_STRVAR(alsaaudio_module_doc,
@@ -2307,10 +2308,18 @@ PyObject *PyInit_alsaaudio(void)
     _EXPORT_INT(m, "PCM_FORMAT_IMA_ADPCM",SND_PCM_FORMAT_IMA_ADPCM);
     _EXPORT_INT(m, "PCM_FORMAT_MPEG",SND_PCM_FORMAT_MPEG);
     _EXPORT_INT(m, "PCM_FORMAT_GSM",SND_PCM_FORMAT_GSM);
+
+     /* DSD sample formats are included in ALSA 1.0.29 and higher
+      * define OVERRIDE_DSD_COMPILE to include DSD sample support
+      * if you use a patched ALSA lib version
+      */
+
+#if SND_LIB_VERSION >= 0x1001d || defined OVERRIDE_DSD_COMPILE
     _EXPORT_INT(m, "PCM_FORMAT_DSD_U8", SND_PCM_FORMAT_DSD_U8);
     _EXPORT_INT(m, "PCM_FORMAT_DSD_U16_LE", SND_PCM_FORMAT_DSD_U16_LE);
     _EXPORT_INT(m, "PCM_FORMAT_DSD_U32_LE", SND_PCM_FORMAT_DSD_U32_LE);
     _EXPORT_INT(m, "PCM_FORMAT_DSD_U32_BE", SND_PCM_FORMAT_DSD_U32_BE);
+#endif
 
     /* Mixer stuff */
     _EXPORT_INT(m, "MIXER_CHANNEL_ALL", MIXER_CHANNEL_ALL);
