@@ -721,7 +721,9 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
     if (res == -EPIPE)
     {
         /* EPIPE means overrun */
-        snd_pcm_prepare(self->handle);
+        res = snd_pcm_recover(self->handle, res, 1);
+        if (res >= 0)
+            res = snd_pcm_readi(self->handle, buffer, self->periodsize);
     }
     Py_END_ALLOW_THREADS
 
