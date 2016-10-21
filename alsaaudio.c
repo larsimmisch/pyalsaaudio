@@ -2116,6 +2116,38 @@ PyDoc_STRVAR(polldescriptors_doc,
 Return a list of file descriptors and event masks\n\
 suitable for use with poll to monitor changes on this mixer.");
 
+static PyObject *
+alsamixer_handleevents(alsamixer_t *self, PyObject *args)
+{
+    int handled;
+
+    if (!PyArg_ParseTuple(args,":handleevents"))
+        return NULL;
+
+    if (!self->handle)
+    {
+        PyErr_SetString(ALSAAudioError, "Mixer is closed");
+        return NULL;
+    }
+
+    handled = snd_mixer_handle_events(self->handle);
+    if (handled < 0)
+    {
+        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(handled),
+                     self->cardname);
+        return NULL;
+    }
+
+    return PyLong_FromLong(handled);
+}
+
+PyDoc_STRVAR(handleevents_doc,
+"handleevents() -> int\n\
+\n\
+Acknowledge events on the polldescriptors() file descriptors\n\
+to prevent subsequent polls from returning the same events again.\n\
+Returns the number of events that were acknowledged.");
+
 static PyMethodDef alsamixer_methods[] = {
     {"cardname", (PyCFunction)alsamixer_cardname, METH_VARARGS,
      mixer_cardname_doc},
@@ -2138,6 +2170,8 @@ static PyMethodDef alsamixer_methods[] = {
     {"setrec", (PyCFunction)alsamixer_setrec, METH_VARARGS, setrec_doc},
     {"polldescriptors", (PyCFunction)alsamixer_polldescriptors, METH_VARARGS,
      polldescriptors_doc},
+    {"handleevents", (PyCFunction)alsamixer_handleevents, METH_VARARGS,
+     handleevents_doc},
 
     {NULL, NULL}
 };
