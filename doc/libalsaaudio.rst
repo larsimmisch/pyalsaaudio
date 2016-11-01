@@ -476,6 +476,12 @@ Mixer objects have the following methods:
    Returns a tuple of (file descriptor, eventmask) that can be used to
    wait for changes on the mixer with *select.poll*.
 
+.. method:: Mixer.handleevents()
+
+   Acknowledge events on the *polldescriptors* file descriptors
+   to prevent subsequent polls from returning the same events again.
+   Returns the number of events that were acknowledged.
+
 **A rant on the ALSA Mixer API**
 
 The ALSA mixer API is extremely complicated - and hardly documented at all.
