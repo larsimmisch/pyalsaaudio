@@ -1950,6 +1950,7 @@ alsamixer_setmute(alsamixer_t *self, PyObject *args)
     int i;
     int mute = 0;
     int done = 0;
+    int ival;
     int channel = MIXER_CHANNEL_ALL;
     if (!PyArg_ParseTuple(args,"i|i:setmute", &mute, &channel))
         return NULL;
@@ -1974,7 +1975,8 @@ alsamixer_setmute(alsamixer_t *self, PyObject *args)
         {
             if (snd_mixer_selem_has_playback_channel(elem, i))
             {
-                snd_mixer_selem_set_playback_switch(elem, i, !mute);
+                snd_mixer_selem_get_playback_switch(elem, i, &ival);
+                snd_mixer_selem_set_playback_switch(elem, i, !mute, ival);
                 done++;
             }
         }
