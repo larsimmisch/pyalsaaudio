@@ -1745,6 +1745,60 @@ PyDoc_STRVAR(getenum_doc,
 Returns a a tuple. The first element is name of the active enumerated item, \n\
 the second a list available enumerated items.");
 
+
+static PyObject *
+alsamixer_setenum(alsamixer_t *self, PyObject *args)
+{
+    snd_mixer_elem_t *elem;
+    int index, count, rc;
+
+    if (!PyArg_ParseTuple(args, "i:setenum", &index))
+        return NULL;
+
+    if (!self->handle)
+    {
+        PyErr_SetString(ALSAAudioError, "Mixer is closed");
+        return NULL;
+    }
+
+    elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
+    if (!snd_mixer_selem_is_enumerated(elem)) {
+        PyErr_SetString(ALSAAudioError, "Not an enumerated control");
+        return NULL;
+    }
+
+    count = snd_mixer_selem_get_enum_items(elem);
+    if (count < 0)
+    {
+        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(count),
+                     self->cardname);
+        return NULL;
+    }
+
+    if (index < 0 || index >= count) {
+        PyErr_Format(ALSAAudioError, "Enum index out of range 0 <= %d < %d",
+                     index, count);
+        return NULL;
+    }
+
+    rc = snd_mixer_selem_set_enum_item(elem, 0, index);
+    if (rc)
+    {
+        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(rc),
+                     self->cardname);
+        return NULL;
+    }
+
+    Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(setenum_doc,
+"setenum(index) -> None\n\
+\n\
+Sets the value of the enum, where 'index' is an index into the list of\n\
+available enumerated items returned by getenum().");
+
+
 static PyObject *
 alsamixer_getmute(alsamixer_t *self, PyObject *args)
 {
@@ -2166,6 +2220,7 @@ static PyMethodDef alsamixer_methods[] = {
     {"getrec", (PyCFunction)alsamixer_getrec, METH_VARARGS, getrec_doc},
     {"setvolume", (PyCFunction)alsamixer_setvolume, METH_VARARGS,
      setvolume_doc},
+    {"setenum", (PyCFunction)alsamixer_setenum, METH_VARARGS, setenum_doc},
     {"setmute", (PyCFunction)alsamixer_setmute, METH_VARARGS, setmute_doc},
     {"setrec", (PyCFunction)alsamixer_setrec, METH_VARARGS, setrec_doc},
     {"polldescriptors", (PyCFunction)alsamixer_polldescriptors, METH_VARARGS,
