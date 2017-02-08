@@ -171,6 +171,76 @@ PyDoc_STRVAR(cards_doc,
 \n\
 List the available card ids.");
 
+
+static PyObject *
+alsacard_list_indexes(PyObject *self, PyObject *args)
+{
+    int rc;
+    int card = -1;
+    PyObject *result = NULL;
+
+    if (!PyArg_ParseTuple(args,":card_indexes"))
+        return NULL;
+
+    result = PyList_New(0);
+
+    for (rc = snd_card_next(&card); !rc && (card >= 0);
+         rc = snd_card_next(&card))
+    {
+        PyObject *item = PyInt_FromLong(card);
+
+        PyList_Append(result, item);
+        Py_DECREF(item);
+    }
+
+    return result;
+}
+
+PyDoc_STRVAR(card_indexes_doc,
+"card_indexes()\n\
+\n\
+List the available card indexes.");
+
+
+static PyObject *
+alsacard_name(PyObject *self, PyObject *args)
+{
+    int err, card;
+    PyObject *result = NULL;
+    char *name = NULL, *longname = NULL;
+
+    if (!PyArg_ParseTuple(args,"i:card_name", &card))
+        return NULL;
+
+    err = snd_card_get_name(card, &name);
+    if (err < 0) {
+        PyErr_Format(ALSAAudioError, "%s [%d]", snd_strerror(err), card);
+        goto exit;
+    }
+
+    err = snd_card_get_longname(card, &longname);
+    if (err < 0) {
+        PyErr_Format(ALSAAudioError, "%s [%d]", snd_strerror(err), card);
+        goto exit;
+    }
+
+    result = PyTuple_New(2);
+    PyTuple_SetItem(result, 0, PyUnicode_FromString(name));
+    PyTuple_SetItem(result, 1, PyUnicode_FromString(longname));
+
+exit:
+    free(name);
+    free(longname);
+
+    return result;
+}
+
+PyDoc_STRVAR(card_name_doc,
+"card_name(card_index) -> Tuple of (name, longname)\n\
+\n\
+Return the card name and long name for card 'card_index'.");
+
+
 static PyObject *
 alsapcm_list(PyObject *self, PyObject *args)
 {
@@ -2291,6 +2361,8 @@ static PyTypeObject ALSAMixerType = {
 /******************************************/
 
 static PyMethodDef alsaaudio_methods[] = {
+    { "card_indexes", (PyCFunction)alsacard_list_indexes, METH_VARARGS, card_indexes_doc},
+    { "card_name", (PyCFunction)alsacard_name, METH_VARARGS, card_name_doc},
     { "cards", (PyCFunction)alsacard_list, METH_VARARGS, cards_doc},
     { "pcms", (PyCFunction)alsapcm_list, METH_VARARGS, pcms_doc},
     { "mixers", (PyCFunction)alsamixer_list, METH_VARARGS|METH_KEYWORDS, mixers_doc},

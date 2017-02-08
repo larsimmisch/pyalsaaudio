@@ -23,6 +23,12 @@ import sys
 import getopt
 import alsaaudio
 
+def list_cards():
+    print("Available sound cards:")
+    for i in alsaaudio.card_indexes():
+        (name, longname) = alsaaudio.card_name(i)
+        print("  %d: %s (%s)" % (i, name, longname))
+
 def list_mixers(kwargs):
     print("Available mixer controls:")
     for m in alsaaudio.mixers(**kwargs):
@@ -112,6 +118,8 @@ if __name__ == '__main__':
             kwargs = { 'device': a }
         else:
             usage()
+
+    list_cards()
 
     if not len(args):
         list_mixers(kwargs)
