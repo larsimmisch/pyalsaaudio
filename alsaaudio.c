@@ -171,6 +171,76 @@ PyDoc_STRVAR(cards_doc,
 \n\
 List the available card ids.");
 
+
+static PyObject *
+alsacard_list_indexes(PyObject *self, PyObject *args)
+{
+    int rc;
+    int card = -1;
+    PyObject *result = NULL;
+
+    if (!PyArg_ParseTuple(args,":card_indexes"))
+        return NULL;
+
+    result = PyList_New(0);
+
+    for (rc = snd_card_next(&card); !rc && (card >= 0);
+         rc = snd_card_next(&card))
+    {
+        PyObject *item = PyInt_FromLong(card);
+
+        PyList_Append(result, item);
+        Py_DECREF(item);
+    }
+
+    return result;
+}
+
+PyDoc_STRVAR(card_indexes_doc,
+"card_indexes()\n\
+\n\
+List the available card indexes.");
+
+
+static PyObject *
+alsacard_name(PyObject *self, PyObject *args)
+{
+    int err, card;
+    PyObject *result = NULL;
+    char *name = NULL, *longname = NULL;
+
+    if (!PyArg_ParseTuple(args,"i:card_name", &card))
+        return NULL;
+
+    err = snd_card_get_name(card, &name);
+    if (err < 0) {
+        PyErr_Format(ALSAAudioError, "%s [%d]", snd_strerror(err), card);
+        goto exit;
+    }
+
+    err = snd_card_get_longname(card, &longname);
+    if (err < 0) {
+        PyErr_Format(ALSAAudioError, "%s [%d]", snd_strerror(err), card);
+        goto exit;
+    }
+
+    result = PyTuple_New(2);
+    PyTuple_SetItem(result, 0, PyUnicode_FromString(name));
+    PyTuple_SetItem(result, 1, PyUnicode_FromString(longname));
+
+exit:
+    free(name);
+    free(longname);
+
+    return result;
+}
+
+PyDoc_STRVAR(card_name_doc,
+"card_name(card_index) -> Tuple of (name, longname)\n\
+\n\
+Return the card name and long name for card 'card_index'.");
+
+
 static PyObject *
 alsapcm_list(PyObject *self, PyObject *args)
 {
@@ -1745,6 +1815,60 @@ PyDoc_STRVAR(getenum_doc,
 Returns a a tuple. The first element is name of the active enumerated item, \n\
 the second a list available enumerated items.");
 
+
+static PyObject *
+alsamixer_setenum(alsamixer_t *self, PyObject *args)
+{
+    snd_mixer_elem_t *elem;
+    int index, count, rc;
+
+    if (!PyArg_ParseTuple(args, "i:setenum", &index))
+        return NULL;
+
+    if (!self->handle)
+    {
+        PyErr_SetString(ALSAAudioError, "Mixer is closed");
+        return NULL;
+    }
+
+    elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
+    if (!snd_mixer_selem_is_enumerated(elem)) {
+        PyErr_SetString(ALSAAudioError, "Not an enumerated control");
+        return NULL;
+    }
+
+    count = snd_mixer_selem_get_enum_items(elem);
+    if (count < 0)
+    {
+        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(count),
+                     self->cardname);
+        return NULL;
+    }
+
+    if (index < 0 || index >= count) {
+        PyErr_Format(ALSAAudioError, "Enum index out of range 0 <= %d < %d",
+                     index, count);
+        return NULL;
+    }
+
+    rc = snd_mixer_selem_set_enum_item(elem, 0, index);
+    if (rc)
+    {
+        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(rc),
+                     self->cardname);
+        return NULL;
+    }
+
+    Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(setenum_doc,
+"setenum(index) -> None\n\
+\n\
+Sets the value of the enum, where 'index' is an index into the list of\n\
+available enumerated items returned by getenum().");
+
+
 static PyObject *
 alsamixer_getmute(alsamixer_t *self, PyObject *args)
 {
@@ -2166,6 +2290,7 @@ static PyMethodDef alsamixer_methods[] = {
     {"getrec", (PyCFunction)alsamixer_getrec, METH_VARARGS, getrec_doc},
     {"setvolume", (PyCFunction)alsamixer_setvolume, METH_VARARGS,
      setvolume_doc},
+    {"setenum", (PyCFunction)alsamixer_setenum, METH_VARARGS, setenum_doc},
     {"setmute", (PyCFunction)alsamixer_setmute, METH_VARARGS, setmute_doc},
     {"setrec", (PyCFunction)alsamixer_setrec, METH_VARARGS, setrec_doc},
     {"polldescriptors", (PyCFunction)alsamixer_polldescriptors, METH_VARARGS,
@@ -2236,6 +2361,8 @@ static PyTypeObject ALSAMixerType = {
 /******************************************/
 
 static PyMethodDef alsaaudio_methods[] = {
+    { "card_indexes", (PyCFunction)alsacard_list_indexes, METH_VARARGS, card_indexes_doc},
+    { "card_name", (PyCFunction)alsacard_name, METH_VARARGS, card_name_doc},
     { "cards", (PyCFunction)alsacard_list, METH_VARARGS, cards_doc},
     { "pcms", (PyCFunction)alsapcm_list, METH_VARARGS, pcms_doc},
     { "mixers", (PyCFunction)alsamixer_list, METH_VARARGS|METH_KEYWORDS, mixers_doc},
