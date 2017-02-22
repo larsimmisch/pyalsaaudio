@@ -40,23 +40,23 @@ def play(device, f):
 
 
 def usage():
-    print('usage: playwav.py [-c <card>] <file>', file=sys.stderr)
+    print('usage: playwav.py [-d <device>] <file>', file=sys.stderr)
     sys.exit(2)
 
 if __name__ == '__main__':
 
-    card = 'default'
+    device = 'default'
 
-    opts, args = getopt.getopt(sys.argv[1:], 'c:')
+    opts, args = getopt.getopt(sys.argv[1:], 'd:')
     for o, a in opts:
-        if o == '-c':
-            card = a
+        if o == '-d':
+            device = a
 
     if not args:
         usage()
         
     f = wave.open(args[0], 'rb')
-    device = alsaaudio.PCM(card=card)
+    device = alsaaudio.PCM(device=device)
 
     play(device, f)
 
