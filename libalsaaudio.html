@@ -586,6 +586,14 @@ changed. The default is to set the capture flag for all channels.</p>
 wait for changes on the mixer with <em>select.poll</em>.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="alsaaudio.Mixer.handleevents">
+<tt class="descclassname">Mixer.</tt><tt class="descname">handleevents</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.Mixer.handleevents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Acknowledge events on the <em>polldescriptors</em> file descriptors
+to prevent subsequent polls from returning the same events again.
+Returns the number of events that were acknowledged.</p>
+</dd></dl>
+
 <p><strong>A rant on the ALSA Mixer API</strong></p>
 <p>The ALSA mixer API is extremely complicated - and hardly documented at all.
 <a class="reference internal" href="#module-alsaaudio" title="alsaaudio (Linux)"><tt class="xref py py-mod docutils literal"><span class="pre">alsaaudio</span></tt></a> implements a much simplified way to access this API. In
@@ -776,8 +784,8 @@ Channel 1 volume: 61%
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2008-2009, Casper Wilstrup, Lars Immisch.
-      Last updated on May 16, 2015.
+        &copy; Copyright 2008-20017, Casper Wilstrup, Lars Immisch.
+      Last updated on Feb 22, 2017.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>
