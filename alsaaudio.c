@@ -826,7 +826,11 @@ frames as bytes (or a string in Python 2.x). The length of the returned data\n\
  will be periodsize*framesize bytes.\n\
 \n\
 In PCM_NONBLOCK mode, the call will not block, but will return (0,'')\n\
-if no new period has become available since the last call to read.");
+if no new period has become available since the last call to read.\n\
+\n\
+In case of an overrun, this function will return a negative size: -EPIPE.\n\
+This indicates that data was lost, even if the operation itself succeeded.\n\
+Try using a larger periodsize");
 
 
 static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)

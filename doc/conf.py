@@ -13,7 +13,7 @@
 
 import sys, os
 
-sys.path.append('..')
+sys.path.insert(0, '..')
 from setup import pyalsa_version
 
 # If your extensions are in another directory, add it here. If the directory
@@ -39,7 +39,7 @@ master_doc = 'index'
 
 # General substitutions.
 project = u'alsaaudio'
-copyright = u'2008-2009, Casper Wilstrup, Lars Immisch'
+copyright = u'2008-20017, Casper Wilstrup, Lars Immisch'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
