@@ -4,19 +4,11 @@
 It is fairly complete for PCM devices and Mixer access.
 '''
 
-from distutils.core import setup
-from distutils.extension import Extension
+from setuptools import setup
+from setuptools.extension import Extension
 from sys import version
 
-pyalsa_version = '0.8.2'
-
-# patch distutils if it's too old to cope with the "classifiers" or
-# "download_url" keywords
-from sys import version
-if version < '2.2.3':
-    from distutils.dist import DistributionMetadata
-    DistributionMetadata.classifiers = None
-    DistributionMetadata.download_url = None
+pyalsa_version = '0.8.3'
 
 if __name__ == '__main__':
     setup(
