@@ -20,6 +20,11 @@
 #define PyLong_Check PyInt_Check
 #define PyLong_AS_LONG PyInt_AS_LONG
 #endif
+
+#if PY_MAJOR_VERSION < 3
+    #define PyLong_FromLong PyInt_FromLong
+#endif
+
 #include <alsa/asoundlib.h>
 #include <alsa/version.h>
 #include <stdio.h>
@@ -187,7 +192,7 @@ alsacard_list_indexes(PyObject *self, PyObject *args)
     for (rc = snd_card_next(&card); !rc && (card >= 0);
          rc = snd_card_next(&card))
     {
-        PyObject *item = PyInt_FromLong(card);
+        PyObject *item = PyLong_FromLong(card);
 
         PyList_Append(result, item);
         Py_DECREF(item);
