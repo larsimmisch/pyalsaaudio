@@ -33,7 +33,7 @@ wish (even commercial purposes). There is no warranty whatsoever.
    currently fairly complete for PCM devices and Mixer access. MIDI sequencer
    support is low on our priority list, but volunteers are welcome.
 
-   If you find bugs in the wrappers please use the SourceForge bug tracker. 
+   If you find bugs in the wrappers please use thegithub issue tracker. 
    Please don't send bug reports regarding ALSA specifically. There are several
    bugs in this API, and those should be reported to the ALSA team - not me.
 
