@@ -30,13 +30,15 @@ def play(device, f):
     else:
         raise ValueError('Unsupported format')
 
-    device.setperiodsize(320)
+    periodsize = f.getframerate() / 8
+
+    device.setperiodsize(periodsize)
     
-    data = f.readframes(320)
+    data = f.readframes(periodsize)
     while data:
         # Read data from stdin
         device.write(data)
-        data = f.readframes(320)
+        data = f.readframes(periodsize)
 
 
 def usage():
