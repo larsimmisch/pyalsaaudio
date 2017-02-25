@@ -6,30 +6,50 @@
 
 from __future__ import print_function
 
+import sys
 from threading import Thread
-from queue import Queue, Empty
+from multiprocessing import Queue
+
+if sys.version_info[0] < 3:
+    from Queue import Empty
+else:
+    from queue import Empty
+
 from math import pi, sin
 import struct
 import alsaaudio
 
-sampling_rate = 44100
+sampling_rate = 48000
+
 format = alsaaudio.PCM_FORMAT_S16_LE
 framesize = 2 # bytes per frame for the values above
+channels = 2
 
-def digitize(s):
-    if s > 1.0 or s < -1.0:
-        raise ValueError
-        
-    return struct.pack('h', int(s * 32767)) 
+def nearest_frequency(frequency):
+    # calculate the nearest frequency where the wave form fits into the buffer
+    # in other words, select f so that sampling_rate/f is an integer
+    return float(sampling_rate)/int(sampling_rate/frequency)
 
-def generate(frequency):
-    # generate a buffer with a sine wave of frequency
-    size = int(sampling_rate / frequency)
-    buffer = bytes()
-    for i in range(size):
-        buffer = buffer + digitize(sin(i/(2 * pi)))
+def generate(frequency, duration = 0.125):
+    # generate a buffer with a sine wave of `frequency`
+    # that is approximately `duration` seconds long
 
-    return buffer
+    # the buffersize we approximately want
+    target_size = int(sampling_rate * channels * duration)
+
+    # the length of a full sine wave at the frequency
+    cycle_size = int(sampling_rate / frequency)
+
+    # number of full cycles we can fit into target_size
+    factor = int(target_size / cycle_size)
+
+    size = max(int(cycle_size * factor), 1)
+    
+    sine = [ int(32767 * sin(2 * pi * frequency * i / sampling_rate)) \
+             for i in range(size)]
+             
+    return struct.pack('%dh' % size, *sine)
+                                                                                  
 
 class SinePlayer(Thread):
     
@@ -37,7 +57,7 @@ class SinePlayer(Thread):
         Thread.__init__(self)
         self.setDaemon(True)
         self.device = alsaaudio.PCM()
-        self.device.setchannels(1)
+        self.device.setchannels(channels)
         self.device.setformat(format)
         self.device.setrate(sampling_rate)
         self.queue = Queue()
@@ -47,19 +67,15 @@ class SinePlayer(Thread):
         '''This is called outside of the player thread'''
         # we generate the buffer in the calling thread for less
         # latency when switching frequencies
-        
 
-        # More than 100 writes/s are pushing it - play multiple buffers
-        # for higher frequencies
+        if frequency > sampling_rate / 2:
+            raise ValueError('maximum frequency is %d' % (sampling_rate / 2))
 
-        factor = int(frequency/100.0)
-        if factor == 0:
-            factor = 1
-        
-        buf = generate(frequency) * factor
-        print('factor: %d, frames: %d' % (factor, len(buf) / framesize))
+        f = nearest_frequency(frequency)
+        print('nearest frequency: %f' % f)
 
-        self.queue.put( buf)
+        buf = generate(f)
+        self.queue.put(buf)
                         
     def run(self):
         buffer = None
