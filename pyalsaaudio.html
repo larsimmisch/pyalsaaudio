@@ -131,23 +131,31 @@ ship with ALSA kernels.</p>
 </div>
 <div class="section" id="testing">
 <h1>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h1>
-<p>First of all, run:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ python test.py
+<p>Make sure that <tt class="code docutils literal"><span class="pre">aplay</span></tt> plays a file through the soundcard you want, then
+try:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ python playwav.py &lt;filename.wav&gt;
 </pre></div>
 </div>
-<p>This is a small test suite that mostly performs consistency tests. If
-it fails, please file a <a class="reference external" href="https://github.com/larsimmisch/pyalsaaudio/issues">bug report</a>.</p>
+<p>If <tt class="code docutils literal"><span class="pre">aplay</span></tt> needs a device argument, like
+<tt class="code docutils literal"><span class="pre">aplay</span> <span class="pre">-D</span> <span class="pre">hw:CARD=sndrpihifiberry,DEV=0</span></tt>, use:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ python playwav.py -d hw:CARD=sndrpihifiberry,DEV=0 &lt;filename.wav&gt;
+</pre></div>
+</div>
 <p>To test PCM recordings (on your default soundcard), verify your
 microphone works, then do:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ python recordtest.py &lt;filename&gt;
+<div class="highlight-python"><div class="highlight"><pre>$ python recordtest.py -d &lt;device&gt; &lt;filename&gt;
 </pre></div>
 </div>
 <p>Speak into the microphone, and interrupt the recording at any time
 with <tt class="docutils literal"><span class="pre">Ctl-C</span></tt>.</p>
 <p>Play back the recording with:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ python playbacktest.py &lt;filename&gt;
+<div class="highlight-python"><div class="highlight"><pre>$ python playbacktest.py-d &lt;device&gt;  &lt;filename&gt;
 </pre></div>
 </div>
+<p>There is a minimal test suite in <tt class="code docutils literal"><span class="pre">test.py</span></tt>, but it is
+a bit dependent on the ALSA configuration and may fail without indicating
+a real problem.</p>
+<p>If you find bugs/problems, please file a <a class="reference external" href="https://github.com/larsimmisch/pyalsaaudio/issues">bug report</a>.</p>
 </div>
 
 
@@ -215,7 +223,7 @@ with <tt class="docutils literal"><span class="pre">Ctl-C</span></tt>.</p>
     </div>
     <div class="footer">
         &copy; Copyright 2008-20017, Casper Wilstrup, Lars Immisch.
-      Last updated on Feb 24, 2017.
+      Last updated on Feb 25, 2017.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>
