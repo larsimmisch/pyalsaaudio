@@ -110,25 +110,32 @@ And then as root:  ---   ::
 Testing
 *******
 
-First of all, run::
-   
-   $ python test.py
+Make sure that :code:`aplay` plays a file through the soundcard you want, then
+try::
 
-This is a small test suite that mostly performs consistency tests. If
-it fails, please file a `bug report
-<https://github.com/larsimmisch/pyalsaaudio/issues>`_.
+  $ python playwav.py <filename.wav>
+
+If :code:`aplay` needs a device argument, like
+:code:`aplay -D hw:CARD=sndrpihifiberry,DEV=0`, use::
+
+   $ python playwav.py -d hw:CARD=sndrpihifiberry,DEV=0 <filename.wav>
 
 To test PCM recordings (on your default soundcard), verify your
 microphone works, then do::
 
-   $ python recordtest.py <filename>
+   $ python recordtest.py -d <device> <filename>
 
 Speak into the microphone, and interrupt the recording at any time
 with ``Ctl-C``.
 
 Play back the recording with::
 
-   $ python playbacktest.py <filename>
+   $ python playbacktest.py-d <device>  <filename>
 
+There is a minimal test suite in :code:`test.py`, but it is
+a bit dependent on the ALSA configuration and may fail without indicating
+a real problem.
 
+If you find bugs/problems, please file a `bug report
+<https://github.com/larsimmisch/pyalsaaudio/issues>`_.
 
