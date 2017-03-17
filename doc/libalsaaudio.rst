@@ -233,6 +233,9 @@ PCM objects have the following methods:
    ``(0,'')`` if no new period has become available since the last
    call to read.
 
+   In case of an overrun, this function will return a negative size: :const:`-EPIPE`.
+   This indicates that data was lost, even if the operation itself succeeded.
+   Try using a larger periodsize;
 
 .. method:: PCM.write(data)
 
