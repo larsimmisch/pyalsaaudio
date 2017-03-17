@@ -306,6 +306,9 @@ periodsize*framesize bytes.</p>
 <p>In <tt class="xref py py-const docutils literal"><span class="pre">PCM_NONBLOCK</span></tt> mode, the call will not block, but will return
 <tt class="docutils literal"><span class="pre">(0,'')</span></tt> if no new period has become available since the last
 call to read.</p>
+<p>In case of an overrun, this function will return a negative size: <tt class="xref py py-const docutils literal"><span class="pre">-EPIPE</span></tt>.
+This indicates that data was lost, even if the operation itself succeeded.
+Try using a larger periodsize;</p>
 </dd></dl>
 
 <dl class="method">
@@ -785,7 +788,7 @@ Channel 1 volume: 61%
     </div>
     <div class="footer">
         &copy; Copyright 2008-20017, Casper Wilstrup, Lars Immisch.
-      Last updated on Feb 24, 2017.
+      Last updated on Mar 17, 2017.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>
