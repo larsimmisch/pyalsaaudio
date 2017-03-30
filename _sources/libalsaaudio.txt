@@ -262,10 +262,12 @@ PCM objects have the following methods:
 
 .. method:: PCM.polldescriptors()
 
-   Returns a tuple of (file descriptor, eventmask) that can be used to
+   Returns a tuple of *(file descriptor, eventmask)* that can be used to
    wait for changes on the mixer with *select.poll*.
 
-   The *eventmask* value is compatible with *poll.register*.
+   The *eventmask* value is compatible with `poll.register`__
+
+__ http://https://docs.python.org/library/select.html#poll-objects
 
 **A few hints on using PCM devices for playback**
 
@@ -484,10 +486,12 @@ Mixer objects have the following methods:
 
 .. method:: Mixer.polldescriptors()
 
-   Returns a tuple of (file descriptor, eventmask) that can be used to
+   Returns a tuple of *(file descriptor, eventmask)* that can be used to
    wait for changes on the mixer with *select.poll*.
 
-   The *eventmask* value is compatible with *poll.register*.
+   The *eventmask* value is compatible with `poll.register`__
+
+__ http://https://docs.python.org/library/select.html#poll-objects
 
 .. method:: Mixer.handleevents()
 
