@@ -1,22 +1,32 @@
+.. alsaaudio documentation documentation master file, created by
+   sphinx-quickstart on Thu Mar 30 23:52:21 2017.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
 alsaaudio documentation
-=======================
+===================================================
 
 .. toctree::
    :maxdepth: 2
+   :caption: Contents:
 
    pyalsaaudio
    terminology
    libalsaaudio
 
+Download
+========
 
-Github pages
-=================
-
-* `Project page <https://github.com/larsimmisch/pyalsaaudio/>`_
 * `Download from pypi <https://pypi.python.org/pypi/pyalsaaudio>`_
-* `Bug tracker <https://github.com/larsimmisch/pyalsaaudio/issues>`_
+  
+      
+Github
+======
 
+* `Github repository <https://github.com/larsimmisch/pyalsaaudio/>`_
+* `Github Bug tracker <https://github.com/larsimmisch/pyalsaaudio/issues>`_
 
+ 
 Indices and tables
 ==================
 
@@ -24,3 +34,5 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+    
+  
