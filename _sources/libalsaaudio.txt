@@ -265,9 +265,10 @@ PCM objects have the following methods:
    Returns a tuple of *(file descriptor, eventmask)* that can be used to
    wait for changes on the mixer with *select.poll*.
 
-   The *eventmask* value is compatible with `poll.register`__
+   The *eventmask* value is compatible with `poll.register`__ in the Python 
+   :const:`select` module.
 
-__ http://https://docs.python.org/library/select.html#poll-objects
+__ poll_objects_
 
 **A few hints on using PCM devices for playback**
 
@@ -489,9 +490,10 @@ Mixer objects have the following methods:
    Returns a tuple of *(file descriptor, eventmask)* that can be used to
    wait for changes on the mixer with *select.poll*.
 
-   The *eventmask* value is compatible with `poll.register`__
+   The *eventmask* value is compatible with `poll.register`__ in the Python 
+   :const:`select` module.
 
-__ http://https://docs.python.org/library/select.html#poll-objects
+__ poll_objects_
 
 .. method:: Mixer.handleevents()
 
@@ -637,3 +639,5 @@ argument::
 .. rubric:: Footnotes
 
 .. [#f1]   ALSA also allows ``PCM_ASYNC``, but this is not supported yet.
+
+.. _poll_objects: http://docs.python.org/library/select.html#poll-objects

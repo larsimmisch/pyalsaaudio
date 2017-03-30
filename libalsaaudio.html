@@ -339,7 +339,8 @@ Otherwise, playback/capture is resumed.</p>
 <tt class="descclassname">PCM.</tt><tt class="descname">polldescriptors</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.PCM.polldescriptors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a tuple of <em>(file descriptor, eventmask)</em> that can be used to
 wait for changes on the mixer with <em>select.poll</em>.</p>
-<p>The <em>eventmask</em> value is compatible with <a class="reference external" href="http://https://docs.python.org/library/select.html#poll-objects">poll.register</a></p>
+<p>The <em>eventmask</em> value is compatible with <a class="reference external" href="http://docs.python.org/library/select.html#poll-objects">poll.register</a> in the Python
+<tt class="xref py py-const docutils literal"><span class="pre">select</span></tt> module.</p>
 </dd></dl>
 
 <p><strong>A few hints on using PCM devices for playback</strong></p>
@@ -595,7 +596,8 @@ changed. The default is to set the capture flag for all channels.</p>
 <tt class="descclassname">Mixer.</tt><tt class="descname">polldescriptors</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.Mixer.polldescriptors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a tuple of <em>(file descriptor, eventmask)</em> that can be used to
 wait for changes on the mixer with <em>select.poll</em>.</p>
-<p>The <em>eventmask</em> value is compatible with <a class="reference external" href="http://https://docs.python.org/library/select.html#poll-objects">poll.register</a></p>
+<p>The <em>eventmask</em> value is compatible with <a class="reference external" href="http://docs.python.org/library/select.html#poll-objects">poll.register</a> in the Python
+<tt class="xref py py-const docutils literal"><span class="pre">select</span></tt> module.</p>
 </dd></dl>
 
 <dl class="method">
