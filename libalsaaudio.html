@@ -334,6 +334,14 @@ should be written at a later time.</p>
 Otherwise, playback/capture is resumed.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="alsaaudio.PCM.polldescriptors">
+<tt class="descclassname">PCM.</tt><tt class="descname">polldescriptors</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.PCM.polldescriptors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a tuple of (file descriptor, eventmask) that can be used to
+wait for changes on the mixer with <em>select.poll</em>.</p>
+<p>The <em>eventmask</em> value is compatible with <em>poll.register</em>.</p>
+</dd></dl>
+
 <p><strong>A few hints on using PCM devices for playback</strong></p>
 <p>The most common reason for problems with playback of PCM audio is that writes
 to PCM devices must <em>exactly</em> match the data rate of the device.</p>
@@ -587,6 +595,7 @@ changed. The default is to set the capture flag for all channels.</p>
 <tt class="descclassname">Mixer.</tt><tt class="descname">polldescriptors</tt><big>(</big><big>)</big><a class="headerlink" href="#alsaaudio.Mixer.polldescriptors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a tuple of (file descriptor, eventmask) that can be used to
 wait for changes on the mixer with <em>select.poll</em>.</p>
+<p>The <em>eventmask</em> value is compatible with <em>poll.register</em>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -788,7 +797,7 @@ Channel 1 volume: 61%
     </div>
     <div class="footer">
         &copy; Copyright 2008-20017, Casper Wilstrup, Lars Immisch.
-      Last updated on Mar 17, 2017.
+      Last updated on Mar 30, 2017.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

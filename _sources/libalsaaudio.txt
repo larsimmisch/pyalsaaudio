@@ -259,6 +259,14 @@ PCM objects have the following methods:
    If *enable* is :const:`True`, playback or capture is paused.
    Otherwise, playback/capture is resumed.
 
+
+.. method:: PCM.polldescriptors()
+
+   Returns a tuple of (file descriptor, eventmask) that can be used to
+   wait for changes on the mixer with *select.poll*.
+
+   The *eventmask* value is compatible with *poll.register*.
+
 **A few hints on using PCM devices for playback**
 
 The most common reason for problems with playback of PCM audio is that writes 
@@ -478,6 +486,8 @@ Mixer objects have the following methods:
 
    Returns a tuple of (file descriptor, eventmask) that can be used to
    wait for changes on the mixer with *select.poll*.
+
+   The *eventmask* value is compatible with *poll.register*.
 
 .. method:: Mixer.handleevents()
 
