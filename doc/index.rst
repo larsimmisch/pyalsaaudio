@@ -23,8 +23,8 @@ Download
 Github
 ======
 
-* `Github repository <https://github.com/larsimmisch/pyalsaaudio/>`_
-* `Github Bug tracker <https://github.com/larsimmisch/pyalsaaudio/issues>`_
+* `Repository <https://github.com/larsimmisch/pyalsaaudio/>`_
+* `Bug tracker <https://github.com/larsimmisch/pyalsaaudio/issues>`_
 
  
 Indices and tables
