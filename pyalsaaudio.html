@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Introduction &mdash; alsaaudio 0.8.4 documentation</title>
+    <title>Introduction &#8212; alsaaudio 0.8.4 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -17,40 +17,31 @@
         VERSION:     '0.8.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="alsaaudio 0.8.4 documentation" href="index.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="PCM Terminology and Concepts" href="terminology.html" />
-    <link rel="prev" title="alsaaudio documentation" href="index.html" /> 
+    <link rel="prev" title="alsaaudio documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
   </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="terminology.html" title="PCM Terminology and Concepts"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="index.html" title="alsaaudio documentation"
-             accesskey="P">previous</a> |</li>
-        <li><a href="index.html">alsaaudio 0.8.4 documentation</a> &raquo;</li> 
-      </ul>
-    </div>  
+  <body role="document">
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="introduction">
 <h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
@@ -121,38 +112,38 @@ default in Linux kernel 2.6 and later. If you are using kernel version 2.4 you
 may need to install the ALSA patches yourself - although most distributions
 ship with ALSA kernels.</p>
 <p>To install, execute the following:  &#8212;</p>
-<div class="highlight-python"><div class="highlight"><pre>$ python setup.py build
+<div class="highlight-default"><div class="highlight"><pre>$ python setup.py build
 </pre></div>
 </div>
 <p>And then as root:  &#8212;</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># python setup.py install</span>
+<div class="highlight-default"><div class="highlight"><pre><span class="c"># python setup.py install</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="testing">
 <h1>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h1>
-<p>Make sure that <tt class="code docutils literal"><span class="pre">aplay</span></tt> plays a file through the soundcard you want, then
+<p>Make sure that <code class="code docutils literal"><span class="pre">aplay</span></code> plays a file through the soundcard you want, then
 try:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ python playwav.py &lt;filename.wav&gt;
+<div class="highlight-default"><div class="highlight"><pre>$ python playwav.py &lt;filename.wav&gt;
 </pre></div>
 </div>
-<p>If <tt class="code docutils literal"><span class="pre">aplay</span></tt> needs a device argument, like
-<tt class="code docutils literal"><span class="pre">aplay</span> <span class="pre">-D</span> <span class="pre">hw:CARD=sndrpihifiberry,DEV=0</span></tt>, use:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ python playwav.py -d hw:CARD=sndrpihifiberry,DEV=0 &lt;filename.wav&gt;
+<p>If <code class="code docutils literal"><span class="pre">aplay</span></code> needs a device argument, like
+<code class="code docutils literal"><span class="pre">aplay</span> <span class="pre">-D</span> <span class="pre">hw:CARD=sndrpihifiberry,DEV=0</span></code>, use:</p>
+<div class="highlight-default"><div class="highlight"><pre>$ python playwav.py -d hw:CARD=sndrpihifiberry,DEV=0 &lt;filename.wav&gt;
 </pre></div>
 </div>
 <p>To test PCM recordings (on your default soundcard), verify your
 microphone works, then do:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ python recordtest.py -d &lt;device&gt; &lt;filename&gt;
+<div class="highlight-default"><div class="highlight"><pre>$ python recordtest.py -d &lt;device&gt; &lt;filename&gt;
 </pre></div>
 </div>
 <p>Speak into the microphone, and interrupt the recording at any time
-with <tt class="docutils literal"><span class="pre">Ctl-C</span></tt>.</p>
+with <code class="docutils literal"><span class="pre">Ctl-C</span></code>.</p>
 <p>Play back the recording with:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ python playbacktest.py-d &lt;device&gt;  &lt;filename&gt;
+<div class="highlight-default"><div class="highlight"><pre>$ python playbacktest.py-d &lt;device&gt;  &lt;filename&gt;
 </pre></div>
 </div>
-<p>There is a minimal test suite in <tt class="code docutils literal"><span class="pre">test.py</span></tt>, but it is
+<p>There is a minimal test suite in <code class="code docutils literal"><span class="pre">test.py</span></code>, but it is
 a bit dependent on the ALSA configuration and may fail without indicating
 a real problem.</p>
 <p>If you find bugs/problems, please file a <a class="reference external" href="https://github.com/larsimmisch/pyalsaaudio/issues">bug report</a>.</p>
@@ -162,7 +153,7 @@ a real problem.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
@@ -174,57 +165,50 @@ a real problem.</p>
 <li><a class="reference internal" href="#installation">Installation</a></li>
 <li><a class="reference internal" href="#testing">Testing</a></li>
 </ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="index.html"
-                        title="previous chapter">alsaaudio documentation</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="terminology.html"
-                        title="next chapter">PCM Terminology and Concepts</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/pyalsaaudio.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">alsaaudio documentation</a></li>
+      <li>Next: <a href="terminology.html" title="next chapter">PCM Terminology and Concepts</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pyalsaaudio.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="terminology.html" title="PCM Terminology and Concepts"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="index.html" title="alsaaudio documentation"
-             >previous</a> |</li>
-        <li><a href="index.html">alsaaudio 0.8.4 documentation</a> &raquo;</li> 
-      </ul>
-    </div>
     <div class="footer">
-        &copy; Copyright 2008-20017, Casper Wilstrup, Lars Immisch.
-      Last updated on Feb 25, 2017.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      &copy;2008-20017, Casper Wilstrup, Lars Immisch.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/pyalsaaudio.rst.txt"
+          rel="nofollow">Page source</a>
     </div>
+
+    
+
+    
   </body>
 </html>
