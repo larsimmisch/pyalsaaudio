@@ -259,6 +259,17 @@ PCM objects have the following methods:
    If *enable* is :const:`True`, playback or capture is paused.
    Otherwise, playback/capture is resumed.
 
+
+.. method:: PCM.polldescriptors()
+
+   Returns a tuple of *(file descriptor, eventmask)* that can be used to
+   wait for changes on the mixer with *select.poll*.
+
+   The *eventmask* value is compatible with `poll.register`__ in the Python 
+   :const:`select` module.
+
+__ poll_objects_
+
 **A few hints on using PCM devices for playback**
 
 The most common reason for problems with playback of PCM audio is that writes 
@@ -476,8 +487,13 @@ Mixer objects have the following methods:
 
 .. method:: Mixer.polldescriptors()
 
-   Returns a tuple of (file descriptor, eventmask) that can be used to
+   Returns a tuple of *(file descriptor, eventmask)* that can be used to
    wait for changes on the mixer with *select.poll*.
+
+   The *eventmask* value is compatible with `poll.register`__ in the Python 
+   :const:`select` module.
+
+__ poll_objects_
 
 .. method:: Mixer.handleevents()
 
@@ -623,3 +639,5 @@ argument::
 .. rubric:: Footnotes
 
 .. [#f1]   ALSA also allows ``PCM_ASYNC``, but this is not supported yet.
+
+.. _poll_objects: http://docs.python.org/library/select.html#poll-objects
