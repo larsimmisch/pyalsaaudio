@@ -46,7 +46,7 @@ Data rate
 
    At the other end of the scale, 96000 Hz, 6 channel sound with 64
    bit (8 bytes) samples has a data rate of 96000 \* 6 \* 8 = 4608
-   kb/s (almost 5 Mb sound data per second)
+   kb/s (almost 5 MB sound data per second)
 
 Period
    When the hardware processes data this is done in chunks of frames. The time
