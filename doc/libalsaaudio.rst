@@ -193,10 +193,10 @@ PCM objects have the following methods:
    ``PCM_FORMAT_S16_BE``      Signed 16 bit samples for each channel (Big Endian byte order)
    ``PCM_FORMAT_U16_LE``      Unsigned 16 bit samples for each channel (Little Endian byte order)
    ``PCM_FORMAT_U16_BE``      Unsigned 16 bit samples for each channel (Big Endian byte order)
-   ``PCM_FORMAT_S24_LE``      Signed 24 bit samples for each channel (Little Endian byte order)
-   ``PCM_FORMAT_S24_BE``      Signed 24 bit samples for each channel (Big Endian byte order)}
-   ``PCM_FORMAT_U24_LE``      Unsigned 24 bit samples for each channel (Little Endian byte order)
-   ``PCM_FORMAT_U24_BE``      Unsigned 24 bit samples for each channel (Big Endian byte order)
+   ``PCM_FORMAT_S24_LE``      Signed 24 bit samples for each channel (Little Endian byte order in 4 bytes)
+   ``PCM_FORMAT_S24_BE``      Signed 24 bit samples for each channel (Big Endian byte order in 4 bytes)
+   ``PCM_FORMAT_U24_LE``      Unsigned 24 bit samples for each channel (Little Endian byte order in 4 bytes)
+   ``PCM_FORMAT_U24_BE``      Unsigned 24 bit samples for each channel (Big Endian byte order in 4 bytes)
    ``PCM_FORMAT_S32_LE``      Signed 32 bit samples for each channel (Little Endian byte order)
    ``PCM_FORMAT_S32_BE``      Signed 32 bit samples for each channel (Big Endian byte order)
    ``PCM_FORMAT_U32_LE``      Unsigned 32 bit samples for each channel (Little Endian byte order)
@@ -210,6 +210,10 @@ PCM objects have the following methods:
    ``PCM_FORMAT_IMA_ADPCM``   A 4:1 compressed format defined by the Interactive Multimedia Association.
    ``PCM_FORMAT_MPEG``        MPEG encoded audio?
    ``PCM_FORMAT_GSM``         9600 bits/s constant rate encoding for speech
+   ``PCM_FORMAT_S24_3LE``     Signed 24 bit samples for each channel (Little Endian byte order in 3 bytes)
+   ``PCM_FORMAT_S24_3BE``     Signed 24 bit samples for each channel (Big Endian byte order in 3 bytes)
+   ``PCM_FORMAT_U24_3LE``     Unsigned 24 bit samples for each channel (Little Endian byte order in 3 bytes)
+   ``PCM_FORMAT_U24_3BE``     Unsigned 24 bit samples for each channel (Big Endian byte order in 3 bytes)
    =========================  ===============
    
 

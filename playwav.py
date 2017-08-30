@@ -24,7 +24,7 @@ def play(device, f):
     elif f.getsampwidth() == 2:
         device.setformat(alsaaudio.PCM_FORMAT_S16_LE)
     elif f.getsampwidth() == 3:
-        device.setformat(alsaaudio.PCM_FORMAT_S24_LE)
+        device.setformat(alsaaudio.PCM_FORMAT_S24_3LE)
     elif f.getsampwidth() == 4:
         device.setformat(alsaaudio.PCM_FORMAT_S32_LE)
     else:
