@@ -443,31 +443,35 @@ Mixer objects have the following methods:
    This method will fail if the mixer has no capture switch capabilities.
 
 
-.. method:: Mixer.getvolume([direction])
+.. method:: Mixer.getvolume(direction=PCM_PLAYBACK, unit=Percent)
 
    Returns a list with the current volume settings for each channel. The list
-   elements are integer percentages.
+   elements are percentages or dB values, depending on *unit*.
 
-   The optional *direction* argument can be either :const:`PCM_PLAYBACK` or
+   The *direction* argument can be either :const:`PCM_PLAYBACK` or
    :const:`PCM_CAPTURE`, which is relevant if the mixer can control both
    playback and capture volume. The default value is :const:`PCM_PLAYBACK`
    if the mixer has playback channels, otherwise it is :const:`PCM_CAPTURE`.
 
 
-.. method:: Mixer.setvolume(volume, [channel], [direction])
+.. method:: Mixer.setvolume(volume, channel=MIXER_CHANNEL_ALL, direction=PCM_PLAYBACK, unit=Percent)
 
    Change the current volume settings for this mixer. The *volume* argument
-   controls the new volume setting as an integer percentage.
+   controls the new volume setting as either a percentage or a dB value. Both
+   integer and floating point values can be given.
 
-   If the optional argument *channel* is present, the volume is set
-   only for this channel. This assumes that the mixer can control the
-   volume for the channels independently.
+   The *channel* argument can be used to restrict the channels for which the volume is
+   set. By default, the volume of all channels is adjusted. This assumes that the mixer
+   can control the volume for the channels independently.
 
-   The optional *direction* argument can be either :const:`PCM_PLAYBACK` or
+   The *direction* argument can be either :const:`PCM_PLAYBACK` or
    :const:`PCM_CAPTURE`, which is relevant if the mixer can control both
    playback and capture volume. The default value is :const:`PCM_PLAYBACK`
    if the mixer has playback channels, otherwise it is :const:`PCM_CAPTURE`.
 
+   The *unit* argument determines how the volume value is interpreted, as a prcentage
+   or as a dB value.
+   
 .. method:: Mixer.setmute(mute, [channel])
 
    Sets the mute flag to a new value. The *mute* argument is either 0 for not

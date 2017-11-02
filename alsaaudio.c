@@ -77,6 +77,12 @@ typedef struct {
     snd_mixer_t *handle;
 } alsamixer_t;
 
+typedef enum {
+    unit_percent,
+    unit_dB,
+    unit_last
+} volume_unit_t;   
+
 /******************************************/
 /* PCM object wrapper                   */
 /******************************************/
@@ -1567,21 +1573,19 @@ Possible values in this list are:\n\
  - 'Capture Exclusive'\n");
 
 
-static int alsamixer_getpercentage(long min, long max, long value)
+static double alsamixer_getpercentage(long min, long max, long value)
 {
     /* Convert from number in range to percentage */
     int range = max - min;
-    int tmp;
 
     if (range == 0)
         return 0;
 
     value -= min;
-    tmp = rint((double)value/(double)range * 100);
-    return tmp;
+    return (double)value/(double)range * 100.0;
 }
 
-static long alsamixer_getphysvolume(long min, long max, int percentage)
+static long alsamixer_getphysvolume(long min, long max, double percentage)
 {
     /* Convert from percentage to number in range */
     int range = max - min;
@@ -1590,32 +1594,40 @@ static long alsamixer_getphysvolume(long min, long max, int percentage)
     if (range == 0)
         return 0;
 
-    tmp = rint((double)range * ((double)percentage*.01)) + min;
+    tmp = rint((double)range * (percentage * .01)) + min;
     return tmp;
 }
 
 static PyObject *
-alsamixer_getvolume(alsamixer_t *self, PyObject *args)
+alsamixer_getvolume(alsamixer_t *self, PyObject *args, PyObject *kw)
 {
     snd_mixer_elem_t *elem;
     int channel;
     long ival;
-    PyObject *pcmtypeobj = NULL;
-    long pcmtype;
+    PyObject *dirobj = NULL;
+    long dir;
+    int unit = unit_percent;
     PyObject *result;
     PyObject *item;
 
-    if (!PyArg_ParseTuple(args,"|O:getvolume", &pcmtypeobj))
+    static char *kwlist[] = { "channel", "direction", "unit", NULL };
+    
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "|Oi:getvolume", kwlist, &dirobj, &unit))
         return NULL;
+
+    if (unit >= unit_last) {
+        PyErr_SetString(PyExc_ValueError, "unit must be 'percent' or 'dB'");
+        return NULL;
+    }
+    
+    dir = get_pcmtype(dirobj);
+    if (dir < 0) {
+        return NULL;
+    }
 
     if (!self->handle)
     {
         PyErr_SetString(ALSAAudioError, "Mixer is closed");
-        return NULL;
-    }
-
-    pcmtype = get_pcmtype(pcmtypeobj);
-    if (pcmtype < 0) {
         return NULL;
     }
 
@@ -1624,23 +1636,36 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args)
     result = PyList_New(0);
 
     for (channel = 0; channel <= SND_MIXER_SCHN_LAST; channel++) {
-        if (pcmtype == SND_PCM_STREAM_PLAYBACK &&
+        if (dir == SND_PCM_STREAM_PLAYBACK &&
             snd_mixer_selem_has_playback_channel(elem, channel))
         {
-            snd_mixer_selem_get_playback_volume(elem, channel, &ival);
-            item = PyLong_FromLong(alsamixer_getpercentage(self->pmin,
-                                                           self->pmax,
-                                                           ival));
+            if (unit == unit_percent) {
+                snd_mixer_selem_get_playback_volume(elem, channel, &ival);
+                item = PyFloat_FromDouble(alsamixer_getpercentage(self->pmin,
+                                                                  self->pmax,
+                                                                  ival));
+            }
+            else {
+                snd_mixer_selem_get_playback_dB(elem, channel, &ival);
+                item = PyFloat_FromDouble(ival / 100.0);
+            }
             PyList_Append(result, item);
             Py_DECREF(item);
         }
-        else if (pcmtype == SND_PCM_STREAM_CAPTURE
+        else if (dir == SND_PCM_STREAM_CAPTURE
                  && snd_mixer_selem_has_capture_channel(elem, channel)
-                 && snd_mixer_selem_has_capture_volume(elem)) {
-            snd_mixer_selem_get_capture_volume(elem, channel, &ival);
-            item = PyLong_FromLong(alsamixer_getpercentage(self->cmin,
-                                                           self->cmax,
-                                                           ival));
+                 && snd_mixer_selem_has_capture_volume(elem))
+        {
+            if (unit == unit_percent) {
+                snd_mixer_selem_get_capture_volume(elem, channel, &ival);
+                item = PyFloat_FromDouble(alsamixer_getpercentage(self->cmin,
+                                                                  self->cmax,
+                                                                  ival));
+            }
+            else {
+                snd_mixer_selem_get_capture_dB(elem, channel, &ival);
+                item = PyFloat_FromDouble(ival / 100.0);
+            }
             PyList_Append(result, item);
             Py_DECREF(item);
         }
@@ -1650,15 +1675,17 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args)
 }
 
 PyDoc_STRVAR(getvolume_doc,
-"getvolume([pcmtype]) -> List of volume settings (int)\n\
+"getvolume(direction=PCM_PLAYBACK, unit=Percent) -> List of volume settings (float)\n\
 \n\
 Returns a list with the current volume settings for each channel.\n\
-The list elements are integer percentages.\n\
+The list elements are float percentages.\n\
 \n\
-The optional 'pcmtype' argument can be either PCM_PLAYBACK or\n\
+The 'direction' argument can be either PCM_PLAYBACK or\n\
 PCM_CAPTURE, which is relevant if the mixer can control both\n\
 playback and capture volume. The default value is PCM_PLAYBACK\n\
-if the mixer has this capability, otherwise PCM_CAPTURE");
+if the mixer has this capability, otherwise PCM_CAPTURE\
+\n\
+The optional 'unit' argument can be either 'percent' or 'dB'.");
 
 
 static PyObject *
@@ -1984,29 +2011,53 @@ This method will fail if the mixer has no capture switch capabilities.");
 
 
 static PyObject *
-alsamixer_setvolume(alsamixer_t *self, PyObject *args)
+alsamixer_setvolume(alsamixer_t *self, PyObject *args, PyObject *kw)
 {
     snd_mixer_elem_t *elem;
     int i;
-    long volume;
+    double volume = 0.0;
+    PyObject *volumeobj = NULL;
     int physvolume;
-    PyObject *pcmtypeobj = NULL;
-    long pcmtype;
+    PyObject *dirobj = NULL;
+    long dir;
+    int unit = unit_percent; 
     int channel = MIXER_CHANNEL_ALL;
     int done = 0;
 
-    if (!PyArg_ParseTuple(args,"l|iO:setvolume", &volume, &channel,
-                          &pcmtypeobj))
-        return NULL;
-
-    if (volume < 0 || volume > 100)
-    {
-        PyErr_SetString(ALSAAudioError, "Volume must be between 0 and 100");
+    static char *kwlist[] = { "channel", "direction", "unit", NULL };
+    
+    
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "O|iOi:setvolume", kwlist, &volumeobj, &channel,
+                                     &dirobj, &unit)) {
         return NULL;
     }
 
-    pcmtype = get_pcmtype(pcmtypeobj);
-    if (pcmtype < 0) {
+    // unit 
+    if (unit >= unit_last) {
+        PyErr_SetString(PyExc_ValueError, "unit must be 'percent' or 'dB'");
+        return NULL;
+    }
+
+    if (PyLong_Check(volumeobj)) {
+        volume = (double)PyLong_AsLong(volumeobj);
+    }
+    else if (PyFloat_Check(volumeobj)) {
+        volume = PyFloat_AsDouble(volumeobj);
+    }
+    else {
+        PyErr_SetString(PyExc_ValueError, "Volume must be integer or float");
+        return NULL;
+    }
+    
+    if (unit == unit_percent && (volume < 0.0 || volume > 100.0))
+    {
+        PyErr_SetString(PyExc_ValueError, "Volume in percent must be between 0 and 100");
+        return NULL;
+    }
+
+    // pcmtype
+    dir = get_pcmtype(dirobj);
+    if (dir < 0) {
         return NULL;
     }
 
@@ -2015,41 +2066,51 @@ alsamixer_setvolume(alsamixer_t *self, PyObject *args)
         PyErr_SetString(ALSAAudioError, "Mixer is closed");
         return NULL;
     }
-
+    
     elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
 
-    if (!pcmtypeobj || (pcmtypeobj == Py_None))
+    if (!dirobj || (dirobj == Py_None))
     {
         if (self->pchannels)
-            pcmtype = SND_PCM_STREAM_PLAYBACK;
+            dir = SND_PCM_STREAM_PLAYBACK;
         else
-            pcmtype = SND_PCM_STREAM_CAPTURE;
+            dir = SND_PCM_STREAM_CAPTURE;
     }
 
     for (i = 0; i <= SND_MIXER_SCHN_LAST; i++)
     {
         if (channel == -1 || channel == i)
         {
-            if (pcmtype == SND_PCM_STREAM_PLAYBACK &&
+            if (dir == SND_PCM_STREAM_PLAYBACK &&
                 snd_mixer_selem_has_playback_channel(elem, i)) {
-                physvolume = alsamixer_getphysvolume(self->pmin,
-                                                     self->pmax, volume);
-                snd_mixer_selem_set_playback_volume(elem, i, physvolume);
+                if (unit == unit_percent) {
+                    physvolume = alsamixer_getphysvolume(self->pmin,
+                                                         self->pmax, volume);
+                    snd_mixer_selem_set_playback_volume(elem, i, physvolume);
+                }
+                else {
+                    snd_mixer_selem_set_playback_dB(elem, i, (long)(volume * 100.0), 0);
+                }
                 done++;
             }
-            else if (pcmtype == SND_PCM_STREAM_CAPTURE
+            else if (dir == SND_PCM_STREAM_CAPTURE
                      && snd_mixer_selem_has_capture_channel(elem, i)
                      && snd_mixer_selem_has_capture_volume(elem))
             {
-                physvolume = alsamixer_getphysvolume(self->cmin, self->cmax,
-                                                     volume);
-                snd_mixer_selem_set_capture_volume(elem, i, physvolume);
+                if (unit == unit_percent) {
+                    physvolume = alsamixer_getphysvolume(self->cmin, self->cmax,
+                                                         volume);
+                    snd_mixer_selem_set_capture_volume(elem, i, physvolume);
+                }
+                else {
+                    snd_mixer_selem_set_capture_dB(elem, i, (long)(volume * 100), 0);
+                }
                 done++;
             }
         }
     }
 
-    if(!done)
+    if (!done)
     {
         PyErr_Format(ALSAAudioError, "No such channel [%s]",
                      self->cardname);
@@ -2061,19 +2122,21 @@ alsamixer_setvolume(alsamixer_t *self, PyObject *args)
 }
 
 PyDoc_STRVAR(setvolume_doc,
-"setvolume(volume[[, channel] [, pcmtype]])\n\
+"setvolume(volume, channel=MIXER_CHANNEL_ALL, direction=PCM_PLAYBACK, unit='percent')\n\
 \n\
 Change the current volume settings for this mixer. The volume argument\n\
-controls the new volume setting as an integer percentage.\n\
+controls the new volume setting as a percentage.\n\
 If the optional argument channel is present, the volume is set only for\n\
 this channel. This assumes that the mixer can control the volume for the\n\
 channels independently.\n\
 \n\
-The optional direction argument can be either PCM_PLAYBACK or PCM_CAPTURE.\n\
+The optional 'direction' argument can be either PCM_PLAYBACK or PCM_CAPTURE.\n\
 It is relevant if the mixer has independent playback and capture volume\n\
 capabilities, and controls which of the volumes will be changed.\n\
-The default is 'playback' if the mixer has this capability, otherwise\n\
-'capture'.");
+The default is PCM_PLAYBACK if the mixer has this capability, otherwise\n\
+PCM_CAPTURE.\n\
+\n\
+The optional 'unit' argument can be either 'percent' (the default) or 'dB'.");
 
 
 static PyObject *
@@ -2084,6 +2147,7 @@ alsamixer_setmute(alsamixer_t *self, PyObject *args)
     int mute = 0;
     int done = 0;
     int channel = MIXER_CHANNEL_ALL;
+    
     if (!PyArg_ParseTuple(args,"i|i:setmute", &mute, &channel))
         return NULL;
 
@@ -2291,13 +2355,13 @@ static PyMethodDef alsamixer_methods[] = {
      switchcap_doc},
     {"volumecap", (PyCFunction)alsamixer_volumecap, METH_VARARGS,
      volumecap_doc},
-    {"getvolume", (PyCFunction)alsamixer_getvolume, METH_VARARGS,
+    {"getvolume", (PyCFunction)alsamixer_getvolume, METH_VARARGS | METH_KEYWORDS,
      getvolume_doc},
     {"getrange", (PyCFunction)alsamixer_getrange, METH_VARARGS, getrange_doc},
     {"getenum", (PyCFunction)alsamixer_getenum, METH_VARARGS, getenum_doc},
     {"getmute", (PyCFunction)alsamixer_getmute, METH_VARARGS, getmute_doc},
     {"getrec", (PyCFunction)alsamixer_getrec, METH_VARARGS, getrec_doc},
-    {"setvolume", (PyCFunction)alsamixer_setvolume, METH_VARARGS,
+    {"setvolume", (PyCFunction)alsamixer_setvolume, METH_VARARGS | METH_KEYWORDS,
      setvolume_doc},
     {"setenum", (PyCFunction)alsamixer_setenum, METH_VARARGS, setenum_doc},
     {"setmute", (PyCFunction)alsamixer_setmute, METH_VARARGS, setmute_doc},
@@ -2446,6 +2510,9 @@ PyObject *PyInit_alsaaudio(void)
 
     Py_INCREF(ALSAAudioError);
     PyModule_AddObject(m, "ALSAAudioError", ALSAAudioError);
+
+    _EXPORT_INT(m, "Percent", unit_percent);
+    _EXPORT_INT(m, "dB", unit_dB);
 
     _EXPORT_INT(m, "PCM_PLAYBACK",SND_PCM_STREAM_PLAYBACK);
     _EXPORT_INT(m, "PCM_CAPTURE",SND_PCM_STREAM_CAPTURE);
