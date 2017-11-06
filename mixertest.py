@@ -46,13 +46,17 @@ def show_mixer(name, kwargs):
     print("Capabilities: %s %s" % (' '.join(mixer.volumecap()),
                                    ' '.join(mixer.switchcap())))
     volumes = mixer.getvolume()
-    for i in range(len(volumes)):
-        print("Channel %i volume: %i%%" % (i,volumes[i]))
-        
+    for i, v in enumerate(volumes):
+        print("Channel %i volume: %.02f%%" % (i, v))
+
+    volumes = mixer.getvolume(unit=alsaaudio.dB)
+    for i, v in enumerate(volumes):
+        print("Channel %i volume: %.02fdB" % (i, v))
+
     try:
         mutes = mixer.getmute()
-        for i in range(len(mutes)):
-            if mutes[i]:
+        for i, m in enumerate(mutes):
+            if m:
                 print("Channel %i is muted" % i)
     except alsaaudio.ALSAAudioError:
         # May not support muting
@@ -60,8 +64,8 @@ def show_mixer(name, kwargs):
 
     try:
         recs = mixer.getrec()
-        for i in range(len(recs)):
-            if recs[i]:
+        for i, r in enumerate(recs):
+            if r:
                 print("Channel %i is recording" % i)
     except alsaaudio.ALSAAudioError:
         # May not support recording

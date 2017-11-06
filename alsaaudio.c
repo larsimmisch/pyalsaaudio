@@ -1610,7 +1610,7 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args, PyObject *kw)
     PyObject *result;
     PyObject *item;
 
-    static char *kwlist[] = { "channel", "direction", "unit", NULL };
+    static char *kwlist[] = { "direction", "unit", NULL };
     
     if (!PyArg_ParseTupleAndKeywords(args, kw, "|Oi:getvolume", kwlist, &dirobj, &unit))
         return NULL;
@@ -1646,7 +1646,13 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args, PyObject *kw)
                                                                   ival));
             }
             else {
-                snd_mixer_selem_get_playback_dB(elem, channel, &ival);
+                int rc = snd_mixer_selem_get_playback_dB(elem, channel, &ival);
+                if (rc < 0) {
+                    PyErr_Format(ALSAAudioError,
+                                 "snd_mixer_selem_get_playback_dB failed: %d",
+                                 rc);
+                    return NULL;
+                }
                 item = PyFloat_FromDouble(ival / 100.0);
             }
             PyList_Append(result, item);
