@@ -1585,6 +1585,18 @@ static double alsamixer_getpercentage(long min, long max, long value)
     return (double)value/(double)range * 100.0;
 }
 
+static double alsamixer_getdB(long min, long max, long value)
+{
+    /* Convert from number in range to dB */
+    int range = max - min;
+
+    if (range == 0)
+        return 0;
+
+    value -= min;
+    return log10((double)value/range) * 60.0;
+}
+
 static long alsamixer_getphysvolume(long min, long max, double percentage)
 {
     /* Convert from percentage to number in range */
@@ -1639,21 +1651,14 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args, PyObject *kw)
         if (dir == SND_PCM_STREAM_PLAYBACK &&
             snd_mixer_selem_has_playback_channel(elem, channel))
         {
+            snd_mixer_selem_get_playback_volume(elem, channel, &ival);
             if (unit == unit_percent) {
-                snd_mixer_selem_get_playback_volume(elem, channel, &ival);
-                item = PyFloat_FromDouble(alsamixer_getpercentage(self->pmin,
-                                                                  self->pmax,
-                                                                  ival));
+                item = PyFloat_FromDouble(
+                    alsamixer_getpercentage(self->pmin, self->pmax, ival));
             }
             else {
-                int rc = snd_mixer_selem_get_playback_dB(elem, channel, &ival);
-                if (rc < 0) {
-                    PyErr_Format(ALSAAudioError,
-                                 "snd_mixer_selem_get_playback_dB failed: %d",
-                                 rc);
-                    return NULL;
-                }
-                item = PyFloat_FromDouble(ival / 100.0);
+                item = PyFloat_FromDouble(
+                    alsamixer_getdB(self->pmin, self->pmax, ival));
             }
             PyList_Append(result, item);
             Py_DECREF(item);
@@ -1662,15 +1667,14 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args, PyObject *kw)
                  && snd_mixer_selem_has_capture_channel(elem, channel)
                  && snd_mixer_selem_has_capture_volume(elem))
         {
+            snd_mixer_selem_get_capture_volume(elem, channel, &ival);
             if (unit == unit_percent) {
-                snd_mixer_selem_get_capture_volume(elem, channel, &ival);
-                item = PyFloat_FromDouble(alsamixer_getpercentage(self->cmin,
-                                                                  self->cmax,
-                                                                  ival));
+                item = PyFloat_FromDouble(
+                    alsamixer_getpercentage(self->cmin, self->cmax, ival));
             }
             else {
-                snd_mixer_selem_get_capture_dB(elem, channel, &ival);
-                item = PyFloat_FromDouble(ival / 100.0);
+                item = PyFloat_FromDouble(
+                    alsamixer_getdB(self->cmin, self->cmax, ival));
             }
             PyList_Append(result, item);
             Py_DECREF(item);
