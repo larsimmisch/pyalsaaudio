@@ -950,6 +950,43 @@ PyDoc_STRVAR(pause_doc,
 If enable is 1, playback or capture is paused. If enable is 0,\n\
 playback/capture is resumed.");
 
+
+static PyObject *alsapcm_drop(alsapcm_t *self)
+{
+    int res;
+
+    if (!self->handle) {
+        PyErr_SetString(ALSAAudioError, "PCM device is closed");
+        return NULL;
+    }
+
+    res = snd_pcm_drop(self->handle);
+
+    if (res < 0)
+    {
+        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
+                     self->cardname);
+
+        return NULL;
+    }
+    
+    res = snd_pcm_prepare(self->handle);
+    if (res < 0)
+    {
+        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
+                     self->cardname);
+
+        return NULL;
+    }
+    
+    return PyLong_FromLong(res);
+}
+
+PyDoc_STRVAR(drop_doc,
+"drop(enable=1)\n\
+\n\
+stop current read and drop residual packet");
+
 static PyObject *
 alsapcm_polldescriptors(alsapcm_t *self, PyObject *args)
 {
@@ -1023,6 +1060,7 @@ static PyMethodDef alsapcm_methods[] = {
     {"read", (PyCFunction)alsapcm_read, METH_VARARGS, read_doc},
     {"write", (PyCFunction)alsapcm_write, METH_VARARGS, write_doc},
     {"pause", (PyCFunction)alsapcm_pause, METH_VARARGS, pause_doc},
+    {"drop", (PyCFunction)alsapcm_drop, METH_VARARGS, drop_doc},
     {"close", (PyCFunction)alsapcm_close, METH_VARARGS, pcm_close_doc},
     {"polldescriptors", (PyCFunction)alsapcm_polldescriptors, METH_VARARGS,
      pcm_polldescriptors_doc},
