@@ -767,6 +767,7 @@ static PyObject *
 alsapcm_read(alsapcm_t *self, PyObject *args)
 {
     int res;
+    int size;
     char buffer[8000];
 
     if (self->framesize * self->periodsize > 8000) {
@@ -814,10 +815,12 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
         }
     }
 
+    size = res < 0 ? 0 : res*self->framesize;
+
 #if PY_MAJOR_VERSION < 3
-    return Py_BuildValue("is#", res, buffer, res*self->framesize);
+    return Py_BuildValue("is#", res, buffer, size);
 #else
-    return Py_BuildValue("iy#", res, buffer, res*self->framesize);
+    return Py_BuildValue("iy#", res, buffer, size);
 #endif
 }
 

@@ -1,3 +1,7 @@
+Version XXXXX:
+- Return an empty string/bytestring when 'read()' detects an
+  overrun. Previously the returned data was undefined.
+
 Version 0.8.2:
 - fix #3 (we cannot get the revision from git for pip installs)
 
