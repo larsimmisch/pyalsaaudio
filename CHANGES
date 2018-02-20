@@ -1,8 +1,17 @@
-Version 0.8.3:
+Version 0.8.5:
 - Return an empty string/bytestring when 'read()' detects an 
   overrun. Previously the returned data was undefined (contributed by @jcea)
 
 - Unlimited setperiod buffer size when reading frames (contributed by @jcea)
+
+Version 0.8.4:
+- Fix Python3 API usage broken in 0.8.3
+
+Version 0.8.3:
+- Add DSD sample formats (contributed by @lintweaker)
+- Add Mixer.handleevents() to acknowledge events identified by select.poll (contributed by @PaulSD)
+- Add functions for listing cards and their names (contributed by @chrisdiamand)
+- Add a method for setting enums (contributed by @chrisdiamand)
 
 Version 0.8.2:
 - fix #3 (we cannot get the revision from git for pip installs)
