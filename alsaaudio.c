@@ -767,14 +767,9 @@ static PyObject *
 alsapcm_read(alsapcm_t *self, PyObject *args)
 {
     int res;
-    char buffer[8000];
-
-    if (self->framesize * self->periodsize > 8000) {
-
-        PyErr_SetString(ALSAAudioError,"Capture data too large. "
-                        "Try decreasing period size");
-        return NULL;
-    }
+    int size = self->framesize * self->periodsize;
+    PyObject *buffer_obj, *tuple_obj, *res_obj;
+    char *buffer;
 
     if (!PyArg_ParseTuple(args,":read"))
         return NULL;
@@ -790,6 +785,18 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
                      self->cardname);
         return NULL;
     }
+
+#if PY_MAJOR_VERSION < 3
+    buffer_obj = PyString_FromStringAndSize(NULL, size);
+    if (!buffer_obj)
+        return NULL;
+    buffer = PyString_AS_STRING(buffer_obj);
+#else
+    buffer_obj = PyBytes_FromStringAndSize(NULL, size);
+    if (!buffer_obj)
+        return NULL;
+    buffer = PyBytes_AS_STRING(buffer_obj);
+#endif
 
     Py_BEGIN_ALLOW_THREADS
     res = snd_pcm_readi(self->handle, buffer, self->periodsize);
@@ -810,15 +817,39 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
             PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
                          self->cardname);
 
+            Py_DECREF(buffer_obj);
             return NULL;
         }
     }
 
+    if (res <= 0) {
 #if PY_MAJOR_VERSION < 3
-    return Py_BuildValue("is#", res, buffer, res*self->framesize);
+        /* If the following fails, it will free the object */
+        if (_PyString_Resize(&buffer_obj, 0))
+            return NULL;
 #else
-    return Py_BuildValue("iy#", res, buffer, res*self->framesize);
+        /* If the following fails, it will free the object */
+        if (_PyBytes_Resize(&buffer_obj, 0))
+            return NULL;
 #endif
+    }
+
+    res_obj = PyLong_FromLong(res);
+    if (!res_obj) {
+        Py_DECREF(buffer_obj);
+        return NULL;
+    }
+    tuple_obj = PyTuple_New(2);
+    if (!tuple_obj) {
+        Py_DECREF(buffer_obj);
+        Py_DECREF(res_obj);
+        return NULL;
+    }
+    /* Steal reference counts */
+    PyTuple_SET_ITEM(tuple_obj, 0, res_obj);
+    PyTuple_SET_ITEM(tuple_obj, 1, buffer_obj);
+
+    return tuple_obj;
 }
 
 PyDoc_STRVAR(read_doc,
