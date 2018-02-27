@@ -743,7 +743,6 @@ alsapcm_setperiodsize(alsapcm_t *self, PyObject *args)
         return NULL;
     }
 
-    self->periodsize = periodsize;
     res = alsapcm_setup(self);
     if (res < 0)
     {
@@ -752,6 +751,8 @@ alsapcm_setperiodsize(alsapcm_t *self, PyObject *args)
 
         return NULL;
     }
+
+    self->periodsize = periodsize;
     return PyLong_FromLong(self->periodsize);
 }
 
