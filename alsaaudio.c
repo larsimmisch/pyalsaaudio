@@ -638,8 +638,9 @@ Returns the name of the sound card used by this PCM object.");
 static PyObject *
 alsapcm_setchannels(alsapcm_t *self, PyObject *args)
 {
-    int channels;
+    int channels, saved;
     int res;
+    
     if (!PyArg_ParseTuple(args,"i:setchannels", &channels))
         return NULL;
 
@@ -648,10 +649,12 @@ alsapcm_setchannels(alsapcm_t *self, PyObject *args)
         return NULL;
     }
 
+    saved = self->channels;
     self->channels = channels;
     res = alsapcm_setup(self);
     if (res < 0)
     {
+        self->channels = saved;
         PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
                      self->cardname);
         return NULL;
@@ -671,7 +674,7 @@ Few sound cards support more than 2 channels.");
 static PyObject *
 alsapcm_setrate(alsapcm_t *self, PyObject *args)
 {
-    int rate;
+    int rate, saved;
     int res;
     if (!PyArg_ParseTuple(args,"i:setrate", &rate))
         return NULL;
@@ -682,10 +685,12 @@ alsapcm_setrate(alsapcm_t *self, PyObject *args)
         return NULL;
     }
 
+    saved = self->rate;
     self->rate = rate;
     res = alsapcm_setup(self);
     if (res < 0)
     {
+        self->rate = saved;
         PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
                      self->cardname);
         return NULL;
@@ -703,7 +708,7 @@ Set the sample rate in Hz for the device. Typical values are\n\
 static PyObject *
 alsapcm_setformat(alsapcm_t *self, PyObject *args)
 {
-    int format;
+    int format, saved;
     int res;
     if (!PyArg_ParseTuple(args,"i:setformat", &format))
         return NULL;
@@ -714,10 +719,12 @@ alsapcm_setformat(alsapcm_t *self, PyObject *args)
         return NULL;
     }
 
+    saved = self->format;
     self->format = format;
     res = alsapcm_setup(self);
     if (res < 0)
     {
+        self->format = saved;
         PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
                      self->cardname);
         return NULL;
@@ -731,28 +738,33 @@ PyDoc_STRVAR(setformat_doc,
 static PyObject *
 alsapcm_setperiodsize(alsapcm_t *self, PyObject *args)
 {
-    int periodsize;
+    int periodsize, saved;
     int res;
 
     if (!PyArg_ParseTuple(args,"i:setperiodsize", &periodsize))
         return NULL;
 
+    
     if (!self->handle)
     {
         PyErr_SetString(ALSAAudioError, "PCM device is closed");
         return NULL;
     }
 
+    saved = self->periodsize;
+    self->periodsize = periodsize;
     res = alsapcm_setup(self);
     if (res < 0)
     {
+        self->periodsize = saved;
         PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
                      self->cardname);
 
+        
+        
         return NULL;
     }
 
-    self->periodsize = periodsize;
     return PyLong_FromLong(self->periodsize);
 }
 
