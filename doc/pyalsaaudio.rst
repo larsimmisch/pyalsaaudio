@@ -75,7 +75,7 @@ development at the time - and neither are very feature complete.
 I wrote PyAlsaAudio to fill this gap. My long term goal is to have the module
 included in the standard Python library, but that looks currently unlikely.
 
-PyAlsaAudio hass full support for sound capture, playback of sound, as well as
+PyAlsaAudio has full support for sound capture, playback of sound, as well as
 the ALSA Mixer API.
 
 MIDI support is not available, and since I don't own any MIDI hardware, it's
