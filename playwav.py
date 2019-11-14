@@ -30,7 +30,7 @@ def play(device, f):
     else:
         raise ValueError('Unsupported format')
 
-    periodsize = f.getframerate() / 8
+    periodsize = f.getframerate() // 8
 
     device.setperiodsize(periodsize)
     
