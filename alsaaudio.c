@@ -440,6 +440,7 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static void alsapcm_dealloc(alsapcm_t *self)
 {
     if (self->handle) {
+        snd_pcm_pause(self->handle, 1);
         snd_pcm_drain(self->handle);
         snd_pcm_close(self->handle);
     }
