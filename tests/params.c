@@ -59,6 +59,7 @@ static const snd_pcm_format_t formats[] = {
 };
 
 static const unsigned int rates[] = {
+		4000,
 		5512,
 		8000,
 		11025,
@@ -164,7 +165,7 @@ int main(int argc, char *argv[])
 
 	printf("Formats:");
 	for (int i = 0; i < info.nFormats; ++i) {
-		printf(" %s", snd_pcm_format_name(formats[i]));
+		printf("%s ", snd_pcm_format_name(info.formats[i]));
 	}
 	putchar('\n');
 	printf("Rates:");
@@ -178,7 +179,7 @@ int main(int argc, char *argv[])
 		printf(" %u", info.channels[i]);
 	}
 	putchar('\n');
-	/*
+
 
 	err = snd_pcm_open(&pcm, device_name, SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK);
 	if (err < 0) {
@@ -205,8 +206,10 @@ int main(int argc, char *argv[])
 
 	printf("Formats:");
 	for (i = 0; i < ARRAY_SIZE(formats); ++i) {
-		if (!snd_pcm_hw_params_test_format(pcm, hw_params, formats[i]))
+		if (!snd_pcm_hw_params_test_format(pcm, hw_params, formats[i])) {
 			printf(" %s", snd_pcm_format_name(formats[i]));
+		}
+
 	}
 	putchar('\n');
 
@@ -289,7 +292,7 @@ int main(int argc, char *argv[])
 
 	snd_pcm_close(pcm);
 
-	 */
+
 	return 0;
 }
 
