@@ -1,0 +1,9 @@
+*.pyc
+*.so
+MANIFEST
+doc/gh-pages/
+doc/html/
+doc/doctrees/
+gh-pages/
+build/
+dist/
