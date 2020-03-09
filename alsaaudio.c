@@ -31,60 +31,61 @@
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof *(a))
 static const snd_pcm_format_t ALSAFormats[] = {
-		SND_PCM_FORMAT_S8,
-		SND_PCM_FORMAT_U8,
-		SND_PCM_FORMAT_S16_LE,
-		SND_PCM_FORMAT_S16_BE,
-		SND_PCM_FORMAT_U16_LE,
-		SND_PCM_FORMAT_U16_BE,
-		SND_PCM_FORMAT_S24_LE,
-		SND_PCM_FORMAT_S24_BE,
-		SND_PCM_FORMAT_U24_LE,
-		SND_PCM_FORMAT_U24_BE,
-		SND_PCM_FORMAT_S32_LE,
-		SND_PCM_FORMAT_S32_BE,
-		SND_PCM_FORMAT_U32_LE,
-		SND_PCM_FORMAT_U32_BE,
-		SND_PCM_FORMAT_FLOAT_LE,
-		SND_PCM_FORMAT_FLOAT_BE,
-		SND_PCM_FORMAT_FLOAT64_LE,
-		SND_PCM_FORMAT_FLOAT64_BE,
-		SND_PCM_FORMAT_IEC958_SUBFRAME_LE,
-		SND_PCM_FORMAT_IEC958_SUBFRAME_BE,
-		SND_PCM_FORMAT_MU_LAW,
-		SND_PCM_FORMAT_A_LAW,
-		SND_PCM_FORMAT_IMA_ADPCM,
-		SND_PCM_FORMAT_MPEG,
-		SND_PCM_FORMAT_GSM,
-		SND_PCM_FORMAT_SPECIAL,
-		SND_PCM_FORMAT_S24_3LE,
-		SND_PCM_FORMAT_S24_3BE,
-		SND_PCM_FORMAT_U24_3LE,
-		SND_PCM_FORMAT_U24_3BE,
-		SND_PCM_FORMAT_S20_3LE,
-		SND_PCM_FORMAT_S20_3BE,
-		SND_PCM_FORMAT_U20_3LE,
-		SND_PCM_FORMAT_U20_3BE,
-		SND_PCM_FORMAT_S18_3LE,
-		SND_PCM_FORMAT_S18_3BE,
-		SND_PCM_FORMAT_U18_3LE,
-		SND_PCM_FORMAT_U18_3BE
+    SND_PCM_FORMAT_S8,
+    SND_PCM_FORMAT_U8,
+    SND_PCM_FORMAT_S16_LE,
+    SND_PCM_FORMAT_S16_BE,
+    SND_PCM_FORMAT_U16_LE,
+    SND_PCM_FORMAT_U16_BE,
+    SND_PCM_FORMAT_S24_LE,
+    SND_PCM_FORMAT_S24_BE,
+    SND_PCM_FORMAT_U24_LE,
+    SND_PCM_FORMAT_U24_BE,
+    SND_PCM_FORMAT_S32_LE,
+    SND_PCM_FORMAT_S32_BE,
+    SND_PCM_FORMAT_U32_LE,
+    SND_PCM_FORMAT_U32_BE,
+    SND_PCM_FORMAT_FLOAT_LE,
+    SND_PCM_FORMAT_FLOAT_BE,
+    SND_PCM_FORMAT_FLOAT64_LE,
+    SND_PCM_FORMAT_FLOAT64_BE,
+    SND_PCM_FORMAT_IEC958_SUBFRAME_LE,
+    SND_PCM_FORMAT_IEC958_SUBFRAME_BE,
+    SND_PCM_FORMAT_MU_LAW,
+    SND_PCM_FORMAT_A_LAW,
+    SND_PCM_FORMAT_IMA_ADPCM,
+    SND_PCM_FORMAT_MPEG,
+    SND_PCM_FORMAT_GSM,
+    SND_PCM_FORMAT_SPECIAL,
+    SND_PCM_FORMAT_S24_3LE,
+    SND_PCM_FORMAT_S24_3BE,
+    SND_PCM_FORMAT_U24_3LE,
+    SND_PCM_FORMAT_U24_3BE,
+    SND_PCM_FORMAT_S20_3LE,
+    SND_PCM_FORMAT_S20_3BE,
+    SND_PCM_FORMAT_U20_3LE,
+    SND_PCM_FORMAT_U20_3BE,
+    SND_PCM_FORMAT_S18_3LE,
+    SND_PCM_FORMAT_S18_3BE,
+    SND_PCM_FORMAT_U18_3LE,
+    SND_PCM_FORMAT_U18_3BE
 };
+
 static const unsigned ALSARates[] = {
-		4000,
-		5512,
-		8000,
-		11025,
-		16000,
-		22050,
-		32000,
-		44100,
-		48000,
-		64000,
-		88200,
-		96000,
-		176400,
-		192000
+    4000,
+    5512,
+    8000,
+    11025,
+    16000,
+    22050,
+    32000,
+    44100,
+    48000,
+    64000,
+    88200,
+    96000,
+    176400,
+    192000
 };
 
 PyDoc_STRVAR(alsaaudio_module_doc,
@@ -635,31 +636,33 @@ alsapcm_dumpinfo(alsapcm_t *self, PyObject *args)
 
 
 static PyObject *
-alsapcm_getformats(alsapcm_t *self, PyObject *args) {
-	snd_pcm_t *pcm = self->handle;
-		if (!pcm) {
-			PyErr_SetString(ALSAAudioError, "PCM device is closed");
-		    return NULL;
-		}
-		snd_pcm_hw_params_t *params;
-		snd_pcm_hw_params_alloca(&params);
-		int err = snd_pcm_hw_params_any(pcm, params);
-		if (err < 0) {
-			PyErr_SetString(ALSAAudioError, "Cannot get hardware parameters");
-			return NULL;
-		}
+alsapcm_getformats(alsapcm_t *self, PyObject *args)
+{
+    snd_pcm_t *pcm = self->handle;
+    if (!pcm) {
+        PyErr_SetString(ALSAAudioError, "PCM device is closed");
+        return NULL;
+    }
 
-	PyObject *fmts = PyDict_New();
-	for (int i = 0; i < ARRAY_SIZE(ALSAFormats); ++i) {
-		snd_pcm_format_t format = ALSAFormats[i];
-		if (!snd_pcm_hw_params_test_format(pcm, params, format)) {
-			const char *name = snd_pcm_format_name(format);
-			PyObject *pname=PyUnicode_FromString(name);
-			PyObject *value=PyLong_FromLong((long)format);
-			PyDict_SetItem(fmts,pname,value);
-		}
-	}
-	return fmts;
+    snd_pcm_hw_params_t *params;
+    snd_pcm_hw_params_alloca(&params);
+    int err = snd_pcm_hw_params_any(pcm, params);
+    if (err < 0) {
+        PyErr_SetString(ALSAAudioError, "Cannot get hardware parameters");
+        return NULL;
+    }
+
+    PyObject *fmts = PyDict_New();
+    for (int i = 0; i < ARRAY_SIZE(ALSAFormats); ++i) {
+        snd_pcm_format_t format = ALSAFormats[i];
+        if (!snd_pcm_hw_params_test_format(pcm, params, format)) {
+            const char *name = snd_pcm_format_name(format);
+            PyObject *pname=PyUnicode_FromString(name);
+            PyObject *value=PyLong_FromLong((long)format);
+            PyDict_SetItem(fmts,pname,value);
+        }
+    }
+    return fmts;
 }
 
 PyDoc_STRVAR(getformats_doc,
@@ -668,31 +671,35 @@ PyDoc_STRVAR(getformats_doc,
 Returns dictionary of supported format codes keyed by their standard ALSA names.");
 
 static PyObject *
-alsapcm_getratemaxmin(alsapcm_t *self, PyObject *args) {
-	snd_pcm_t *pcm = self->handle;
-	if (!pcm) {
-		PyErr_SetString(ALSAAudioError, "PCM device is closed");
-	    return NULL;
-	}
-	snd_pcm_hw_params_t *params;
-	snd_pcm_hw_params_alloca(&params);
-	int err = snd_pcm_hw_params_any(pcm, params);
-	if (err < 0) {
-		PyErr_SetString(ALSAAudioError, "Cannot get hardware parameters");
-		return NULL;
-	}
-	unsigned min,max;
-	if(snd_pcm_hw_params_get_rate_min(params, &min,NULL)<0) {
-		PyErr_SetString(ALSAAudioError, "Cannot get minimum supported bitrate");
-		return NULL;
-	}
-	if(snd_pcm_hw_params_get_rate_max(params, &max,NULL)<0) {
-		PyErr_SetString(ALSAAudioError, "Cannot get maximum supported bitrate");
-		return NULL;
-	}
-	PyObject *minp=PyLong_FromLong(min);
-	PyObject *maxp=PyLong_FromLong(max);
-	return PyTuple_Pack(2,minp,maxp);
+alsapcm_getratemaxmin(alsapcm_t *self, PyObject *args)
+{
+    snd_pcm_t *pcm = self->handle;
+    if (!pcm) {
+        PyErr_SetString(ALSAAudioError, "PCM device is closed");
+        return NULL;
+    }
+
+    snd_pcm_hw_params_t *params;
+    snd_pcm_hw_params_alloca(&params);
+    int err = snd_pcm_hw_params_any(pcm, params);
+    if (err < 0) {
+        PyErr_SetString(ALSAAudioError, "Cannot get hardware parameters");
+        return NULL;
+    }
+
+    unsigned min,max;
+    if (snd_pcm_hw_params_get_rate_min(params, &min,NULL)<0) {
+        PyErr_SetString(ALSAAudioError, "Cannot get minimum supported bitrate");
+        return NULL;
+    }
+    if (snd_pcm_hw_params_get_rate_max(params, &max,NULL)<0) {
+        PyErr_SetString(ALSAAudioError, "Cannot get maximum supported bitrate");
+        return NULL;
+    }
+    
+    PyObject *minp=PyLong_FromLong(min);
+    PyObject *maxp=PyLong_FromLong(max);
+    return PyTuple_Pack(2, minp, maxp);
 }
 
 PyDoc_STRVAR(getratebounds_doc,
@@ -701,47 +708,51 @@ PyDoc_STRVAR(getratebounds_doc,
 Returns the card's minimum and maximum supported sample rates as a tuple.");
 
 static PyObject *
-alsapcm_getrates(alsapcm_t *self, PyObject *args) {
-	snd_pcm_t *pcm = self->handle;
-	if (!pcm) {
-		PyErr_SetString(ALSAAudioError, "PCM device is closed");
-	    return NULL;
-	}
-	snd_pcm_hw_params_t *params;
-	snd_pcm_hw_params_alloca(&params);
-	int err = snd_pcm_hw_params_any(pcm, params);
-	if (err < 0) {
-		PyErr_SetString(ALSAAudioError, "Cannot get hardware parameters");
-		return NULL;
-	}
-	unsigned min,max;
-	if(snd_pcm_hw_params_get_rate_min(params, &min,NULL)<0) {
-		PyErr_SetString(ALSAAudioError, "Cannot get minimum supported bitrate");
-		return NULL;
-	}
-	if(snd_pcm_hw_params_get_rate_max(params, &max,NULL)<0) {
-		PyErr_SetString(ALSAAudioError, "Cannot get maximum supported bitrate");
-		return NULL;
-	}
-	if(min==max) {
-		return PyLong_FromLong(min);
-	}
-	else if(!snd_pcm_hw_params_test_rate(pcm, params, min + 1, 0)) {
-		PyObject *minp=PyLong_FromLong(min);
-		PyObject *maxp=PyLong_FromLong(max);
-		return PyTuple_Pack(2,minp,maxp);
-	}
-	else {
-		PyObject *rates=PyList_New(0);
-		for(int i=0;i<ARRAY_SIZE(ALSARates);i++) {
-			unsigned rate=ALSARates[i];
-			if(!snd_pcm_hw_params_test_rate(pcm, params, rate,0)) {
-				PyObject *prate=PyLong_FromLong(rate);
-				PyList_Append(rates,prate);
-			}
-		}
-		return rates;
-	}
+alsapcm_getrates(alsapcm_t *self, PyObject *args)
+{
+    snd_pcm_t *pcm = self->handle;
+    if (!pcm) {
+        PyErr_SetString(ALSAAudioError, "PCM device is closed");
+        return NULL;
+    }
+
+    snd_pcm_hw_params_t *params;
+    snd_pcm_hw_params_alloca(&params);
+    int err = snd_pcm_hw_params_any(pcm, params);
+    if (err < 0) {
+        PyErr_SetString(ALSAAudioError, "Cannot get hardware parameters");
+        return NULL;
+    }
+    
+    unsigned min, max;
+    if (snd_pcm_hw_params_get_rate_min(params, &min, NULL) <0 ) {
+        PyErr_SetString(ALSAAudioError, "Cannot get minimum supported bitrate");
+        return NULL;
+    }
+    if (snd_pcm_hw_params_get_rate_max(params, &max, NULL) < 0) {
+        PyErr_SetString(ALSAAudioError, "Cannot get maximum supported bitrate");
+        return NULL;
+    }
+    
+    if (min == max) {
+        return PyLong_FromLong(min);
+    }
+    else if (!snd_pcm_hw_params_test_rate(pcm, params, min + 1, 0)) {
+        PyObject *minp=PyLong_FromLong(min);
+        PyObject *maxp=PyLong_FromLong(max);
+        return PyTuple_Pack(2,minp,maxp);
+    }
+    else {
+        PyObject *rates=PyList_New(0);
+        for(int i=0; i<ARRAY_SIZE(ALSARates); i++) {
+            unsigned rate = ALSARates[i];
+            if (!snd_pcm_hw_params_test_rate(pcm, params, rate, 0)) {
+                PyObject *prate=PyLong_FromLong(rate);
+                PyList_Append(rates,prate);
+            }
+        }
+        return rates;
+    }
 }
 
 PyDoc_STRVAR(getrates_doc,
@@ -756,43 +767,48 @@ There are three cases:\n\
 - Card supports a collection of well-known rates: returns a list of the supported rates");
 
 static PyObject *
-alsapcm_getchannels(alsapcm_t *self,PyObject *args) {
-	snd_pcm_t *pcm = self->handle;
-		if (!pcm) {
-			PyErr_SetString(ALSAAudioError, "PCM device is closed");
-		    return NULL;
-		}
-		snd_pcm_hw_params_t *params;
-		snd_pcm_hw_params_alloca(&params);
-		int err = snd_pcm_hw_params_any(pcm, params);
-		if (err < 0) {
-			PyErr_SetString(ALSAAudioError, "Cannot get hardware parameters");
-			return NULL;
-		}
-	unsigned min,max;
-	if(snd_pcm_hw_params_get_channels_min(params, &min)<0) {
-			PyErr_SetString(ALSAAudioError, "Cannot get minimum supported number of channels");
-			return NULL;
-		}
-		if(snd_pcm_hw_params_get_channels_max(params, &max)<0) {
-			PyErr_SetString(ALSAAudioError, "Cannot get maximum supported number of channels");
-			return NULL;
-		}
+alsapcm_getchannels(alsapcm_t *self,PyObject *args)
+{
+    snd_pcm_t *pcm = self->handle;
+    if (!pcm) {
+        PyErr_SetString(ALSAAudioError, "PCM device is closed");
+        return NULL;
+    }
 
-		PyObject *out=PyList_New(0);
+    snd_pcm_hw_params_t *params;
+    snd_pcm_hw_params_alloca(&params);
+    int err = snd_pcm_hw_params_any(pcm, params);
+    if (err < 0) {
+        PyErr_SetString(ALSAAudioError, "Cannot get hardware parameters");
+        return NULL;
+    }
 
-		for(unsigned ch=min;ch<=max;++ch) {
-			if (!snd_pcm_hw_params_test_channels(pcm, params, ch)) {
-				PyObject *pch=PyLong_FromLong(ch);
-				PyList_Append(out,pch);
-			}
-		}
-		return out;
+    unsigned min, max;
+    if (snd_pcm_hw_params_get_channels_min(params, &min) < 0) {
+        PyErr_SetString(ALSAAudioError, "Cannot get minimum supported number of channels");
+        return NULL;
+    }
+
+    if (snd_pcm_hw_params_get_channels_max(params, &max) < 0) {
+        PyErr_SetString(ALSAAudioError, "Cannot get maximum supported number of channels");
+        return NULL;
+    }
+
+    PyObject *out = PyList_New(0);
+    for (unsigned ch=min;ch<=max;++ch) {
+        if (!snd_pcm_hw_params_test_channels(pcm, params, ch)) {
+            PyObject *pch=PyLong_FromLong(ch);
+            PyList_Append(out,pch);
+        }
+    }
+    return out;
 }
+
 PyDoc_STRVAR(getchannels_doc,
 "getchannels() -> [int]\n\
 \n\
 Returns list of supported channel numbers.");
+
 
 static PyObject *
 alsapcm_pcmtype(alsapcm_t *self, PyObject *args)
@@ -1323,10 +1339,10 @@ static PyMethodDef alsapcm_methods[] = {
     {"setperiodsize", (PyCFunction)alsapcm_setperiodsize, METH_VARARGS,
      setperiodsize_doc},
     {"dumpinfo", (PyCFunction)alsapcm_dumpinfo, METH_VARARGS},
-	{"getformats", (PyCFunction)alsapcm_getformats, METH_VARARGS, getformats_doc},
-	{"getratebounds", (PyCFunction)alsapcm_getratemaxmin, METH_VARARGS, getratebounds_doc},
-	{"getrates", (PyCFunction)alsapcm_getrates, METH_VARARGS, getrates_doc},
-	{"getchannels", (PyCFunction)alsapcm_getchannels, METH_VARARGS, getchannels_doc},
+    {"getformats", (PyCFunction)alsapcm_getformats, METH_VARARGS, getformats_doc},
+    {"getratebounds", (PyCFunction)alsapcm_getratemaxmin, METH_VARARGS, getratebounds_doc},
+    {"getrates", (PyCFunction)alsapcm_getrates, METH_VARARGS, getrates_doc},
+    {"getchannels", (PyCFunction)alsapcm_getchannels, METH_VARARGS, getchannels_doc},
     {"read", (PyCFunction)alsapcm_read, METH_VARARGS, read_doc},
     {"write", (PyCFunction)alsapcm_write, METH_VARARGS, write_doc},
     {"pause", (PyCFunction)alsapcm_pause, METH_VARARGS, pause_doc},
@@ -1380,14 +1396,14 @@ static PyTypeObject ALSAPCMType = {
     0,                              /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT,             /* tp_flags */
     "ALSA PCM device.",             /* tp_doc */
-    0,					          /* tp_traverse */
-    0,					          /* tp_clear */
-    0,					          /* tp_richcompare */
-    0,					          /* tp_weaklistoffset */
-    0,					          /* tp_iter */
-    0,					          /* tp_iternext */
-    alsapcm_methods,		          /* tp_methods */
-    0,			                  /* tp_members */
+    0,                            /* tp_traverse */
+    0,                            /* tp_clear */
+    0,                            /* tp_richcompare */
+    0,                            /* tp_weaklistoffset */
+    0,                            /* tp_iter */
+    0,                            /* tp_iternext */
+    alsapcm_methods,                  /* tp_methods */
+    0,                            /* tp_members */
 };
 
 
@@ -2662,14 +2678,14 @@ static PyTypeObject ALSAMixerType = {
     0,                              /* tp_as_buffer*/
     Py_TPFLAGS_DEFAULT,             /* tp_flags */
     "ALSA Mixer Control.",          /* tp_doc */
-    0,					          /* tp_traverse */
-    0,					          /* tp_clear */
-    0,					          /* tp_richcompare */
-    0,					          /* tp_weaklistoffset */
-    0,					          /* tp_iter */
-    0,					          /* tp_iternext */
-    alsamixer_methods,		      /* tp_methods */
-    0,			                  /* tp_members */
+    0,                            /* tp_traverse */
+    0,                            /* tp_clear */
+    0,                            /* tp_richcompare */
+    0,                            /* tp_weaklistoffset */
+    0,                            /* tp_iter */
+    0,                            /* tp_iternext */
+    alsamixer_methods,            /* tp_methods */
+    0,                            /* tp_members */
 };
 
 
