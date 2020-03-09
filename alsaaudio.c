@@ -358,74 +358,26 @@ PyDoc_STRVAR(pcms_doc,
 \n\
 List the available PCM devices");
 
-static int alsapcm_setup(alsapcm_t *self)
-{
-    int res,dir;
-    unsigned int val;
-    snd_pcm_format_t fmt;
-    snd_pcm_uframes_t frames;
-    snd_pcm_hw_params_t *hwparams;
-
-    /* Allocate a hwparam structure on the stack,
-       and fill it with configuration space */
-    snd_pcm_hw_params_alloca(&hwparams);
-    res = snd_pcm_hw_params_any(self->handle, hwparams);
-    if (res < 0)
-        return res;
-
-    /* Fill it with default values.
-
-       We don't care if any of this fails - we'll read the actual values
-       back out.
-     */
-    snd_pcm_hw_params_any(self->handle, hwparams);
-    snd_pcm_hw_params_set_access(self->handle, hwparams,
-                                 SND_PCM_ACCESS_RW_INTERLEAVED);
-    snd_pcm_hw_params_set_format(self->handle, hwparams, self->format);
-    snd_pcm_hw_params_set_channels(self->handle, hwparams,
-                                   self->channels);
-
-    dir = 0;
-    snd_pcm_hw_params_set_rate(self->handle, hwparams, self->rate, dir);
-    snd_pcm_hw_params_set_period_size(self->handle, hwparams,
-                                      self->periodsize, dir);
-    snd_pcm_hw_params_set_periods(self->handle, hwparams, 4, 0);
-
-    /* Write it to the device */
-    res = snd_pcm_hw_params(self->handle, hwparams);
-
-    /* Query current settings. These may differ from the requested values,
-       which should therefore be sync'ed with actual values */
-    snd_pcm_hw_params_current(self->handle, hwparams);
-
-    snd_pcm_hw_params_get_format(hwparams, &fmt); self->format = fmt;
-    snd_pcm_hw_params_get_channels(hwparams, &val); self->channels = val;
-    snd_pcm_hw_params_get_rate(hwparams, &val, &dir); self->rate = val;
-    snd_pcm_hw_params_get_period_size(hwparams, &frames, &dir);
-    self->periodsize = (int) frames;
-
-    self->framesize = self->channels * snd_pcm_hw_params_get_sbits(hwparams)/8;
-
-    return res;
-}
-
 static PyObject *
 alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    int res;
     alsapcm_t *self;
     PyObject *pcmtypeobj = NULL;
     long pcmtype;
     int pcmmode = 0;
+    unsigned int rate = 48000;
+    unsigned int channels = 2;
+    snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
     char *device = "default";
     char *card = NULL;
     int cardidx = -1;
     char hw_device[128];
-    char *kw[] = { "type", "mode", "device", "cardindex", "card", NULL };
-
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oisiz", kw,
+    int latency = 200;
+    char *kw[] = { "type", "mode", "device", "cardindex", "card", "format", "rate", "channels", "latency", NULL };
+    
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oisiziiii", kw,
                                      &pcmtypeobj, &pcmmode, &device,
-                                     &cardidx, &card))
+                                     &cardidx, &card, &rate, &format, &channels, &latency))
         return NULL;
 
     if (cardidx >= 0) {
@@ -458,29 +410,9 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         return NULL;
     }
 
-    if (pcmmode < 0 || pcmmode > SND_PCM_ASYNC) {
-        PyErr_SetString(ALSAAudioError, "Invalid PCM mode");
-        return NULL;
-    }
-
-    if (!(self = (alsapcm_t *)PyObject_New(alsapcm_t, &ALSAPCMType)))
-        return NULL;
-
-    self->handle = 0;
-    self->pcmtype = pcmtype;
-    self->pcmmode = pcmmode;
-    self->channels = 2;
-    self->rate = 44100;
-    self->format = SND_PCM_FORMAT_S16_LE;
-    self->periodsize = 32;
-
     res = snd_pcm_open(&(self->handle), device, self->pcmtype,
                        self->pcmmode);
-
-    if (res >= 0) {
-        res = alsapcm_setup(self);
-    }
-    
+   
     if (res >= 0) {
         self->cardname = strdup(device);
     }
@@ -872,148 +804,6 @@ PyDoc_STRVAR(cardname_doc,
 \n\
 Returns the name of the sound card used by this PCM object.");
 
-
-static PyObject *
-alsapcm_setchannels(alsapcm_t *self, PyObject *args)
-{
-    int channels, saved;
-    int res;
-    
-    if (!PyArg_ParseTuple(args,"i:setchannels", &channels))
-        return NULL;
-
-    if (!self->handle) {
-        PyErr_SetString(ALSAAudioError, "PCM device is closed");
-        return NULL;
-    }
-
-    saved = self->channels;
-    self->channels = channels;
-    res = alsapcm_setup(self);
-    if (res < 0)
-    {
-        self->channels = saved;
-        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
-                     self->cardname);
-        return NULL;
-    }
-    return PyLong_FromLong(self->channels);
-}
-
-PyDoc_STRVAR(setchannels_doc,
-"setchannels(numchannels)\n\
-\n\
-Used to set the number of capture or playback channels. Common values\n\
-are: 1 = mono, 2 = stereo, and 6 = full 6 channel audio.\n\
-\n\
-Few sound cards support more than 2 channels.");
-
-
-static PyObject *
-alsapcm_setrate(alsapcm_t *self, PyObject *args)
-{
-    int rate, saved;
-    int res;
-    if (!PyArg_ParseTuple(args,"i:setrate", &rate))
-        return NULL;
-
-    if (!self->handle)
-    {
-        PyErr_SetString(ALSAAudioError, "PCM device is closed");
-        return NULL;
-    }
-
-    saved = self->rate;
-    self->rate = rate;
-    res = alsapcm_setup(self);
-    if (res < 0)
-    {
-        self->rate = saved;
-        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
-                     self->cardname);
-        return NULL;
-    }
-    return PyLong_FromLong(self->rate);
-}
-
-PyDoc_STRVAR(setrate_doc,
-"setrate(rate)\n\
-\n\
-Set the sample rate in Hz for the device. Typical values are\n\
-8000 (telephony), 11025, 44100 (CD), 48000 (DVD audio) and 96000");
-
-
-static PyObject *
-alsapcm_setformat(alsapcm_t *self, PyObject *args)
-{
-    int format, saved;
-    int res;
-    if (!PyArg_ParseTuple(args,"i:setformat", &format))
-        return NULL;
-
-    if (!self->handle)
-    {
-        PyErr_SetString(ALSAAudioError, "PCM device is closed");
-        return NULL;
-    }
-
-    saved = self->format;
-    self->format = format;
-    res = alsapcm_setup(self);
-    if (res < 0)
-    {
-        self->format = saved;
-        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
-                     self->cardname);
-        return NULL;
-    }
-    return PyLong_FromLong(self->format);
-}
-
-PyDoc_STRVAR(setformat_doc,
-"setformat(rate)\n");
-
-static PyObject *
-alsapcm_setperiodsize(alsapcm_t *self, PyObject *args)
-{
-    int periodsize, saved;
-    int res;
-
-    if (!PyArg_ParseTuple(args,"i:setperiodsize", &periodsize))
-        return NULL;
-
-    
-    if (!self->handle)
-    {
-        PyErr_SetString(ALSAAudioError, "PCM device is closed");
-        return NULL;
-    }
-
-    saved = self->periodsize;
-    self->periodsize = periodsize;
-    res = alsapcm_setup(self);
-    if (res < 0)
-    {
-        self->periodsize = saved;
-        PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
-                     self->cardname);
-
-        
-        
-        return NULL;
-    }
-
-    return PyLong_FromLong(self->periodsize);
-}
-
-PyDoc_STRVAR(setperiodsize_doc,
-"setperiodsize(period) -> int\n\
-\n\
-Sets the actual period size in frames. Each write should consist of\n\
-exactly this number of frames, and each read will return this number of\n\
-frames (unless the device is in PCM_NONBLOCK mode, in which case it\n\
-may return nothing at all).");
-
 static PyObject *
 alsapcm_read(alsapcm_t *self, PyObject *args)
 {
@@ -1332,12 +1122,6 @@ static PyMethodDef alsapcm_methods[] = {
     {"pcmtype", (PyCFunction)alsapcm_pcmtype, METH_VARARGS, pcmtype_doc},
     {"pcmmode", (PyCFunction)alsapcm_pcmmode, METH_VARARGS, pcmmode_doc},
     {"cardname", (PyCFunction)alsapcm_cardname, METH_VARARGS, cardname_doc},
-    {"setchannels", (PyCFunction)alsapcm_setchannels, METH_VARARGS,
-     setchannels_doc },
-    {"setrate", (PyCFunction)alsapcm_setrate, METH_VARARGS, setrate_doc},
-    {"setformat", (PyCFunction)alsapcm_setformat, METH_VARARGS, setformat_doc},
-    {"setperiodsize", (PyCFunction)alsapcm_setperiodsize, METH_VARARGS,
-     setperiodsize_doc},
     {"dumpinfo", (PyCFunction)alsapcm_dumpinfo, METH_VARARGS},
     {"getformats", (PyCFunction)alsapcm_getformats, METH_VARARGS, getformats_doc},
     {"getratebounds", (PyCFunction)alsapcm_getratemaxmin, METH_VARARGS, getratebounds_doc},
