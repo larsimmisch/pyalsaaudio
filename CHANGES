@@ -1,3 +1,15 @@
+Version 0.8.6:
+- Added four methods to the 'PCM' class to allow users to get detailed information about the device:
+
+  - 'getformats()' returns a dictionary of name / value pairs, one for each of the card's
+    supported formats - e.g. '{"U8": 1, "S16_LE": 2}',
+  - 'getchannels()' returns a list of the supported channel numbers, e.g. '[1, 2]',
+  - 'getrates()' returns supported sample rates for the device, e.g. '[48000]',
+  - 'getratebounds()' returns the device's official minimum and maximum supported 
+    sample rates as a tuple, e.g. '(4000, 48000)'.
+  
+  (contributed by @jdstmporter)
+
 Version 0.8.5:
 - Return an empty string/bytestring when 'read()' detects an 
   overrun. Previously the returned data was undefined (contributed by @jcea)

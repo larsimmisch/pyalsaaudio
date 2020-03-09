@@ -8,7 +8,7 @@ from setuptools import setup
 from setuptools.extension import Extension
 from sys import version
 
-pyalsa_version = '0.8.5'
+pyalsa_version = '0.8.6'
 
 if __name__ == '__main__':
     setup(
