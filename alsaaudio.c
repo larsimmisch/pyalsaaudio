@@ -653,7 +653,7 @@ alsapcm_getformats(alsapcm_t *self, PyObject *args)
     }
 
     PyObject *fmts = PyDict_New();
-    for (int i = 0; i < ARRAY_SIZE(ALSAFormats); ++i) {
+    for (size_t i = 0; i < ARRAY_SIZE(ALSAFormats); ++i) {
         snd_pcm_format_t format = ALSAFormats[i];
         if (!snd_pcm_hw_params_test_format(pcm, params, format)) {
             const char *name = snd_pcm_format_name(format);
@@ -744,7 +744,7 @@ alsapcm_getrates(alsapcm_t *self, PyObject *args)
     }
     else {
         PyObject *rates=PyList_New(0);
-        for(int i=0; i<ARRAY_SIZE(ALSARates); i++) {
+        for (size_t i=0; i<ARRAY_SIZE(ALSARates); i++) {
             unsigned rate = ALSARates[i];
             if (!snd_pcm_hw_params_test_rate(pcm, params, rate, 0)) {
                 PyObject *prate=PyLong_FromLong(rate);

@@ -8,7 +8,9 @@ Version 0.8.6:
   - 'getratebounds()' returns the device's official minimum and maximum supported 
     sample rates as a tuple, e.g. '(4000, 48000)'.
   
-  (contributed by @jdstmporter)
+  (#82 contributed by @jdstmporter)
+
+- Prevent hang on close after capturing audio (#80 contributed by @daym)
 
 Version 0.8.5:
 - Return an empty string/bytestring when 'read()' detects an 
