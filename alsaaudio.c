@@ -107,7 +107,7 @@ typedef struct {
 
     // Configurable parameters
     int channels;
-    int rate;
+    unsigned int rate;
     int format;
     snd_pcm_uframes_t periodsize;
     int framesize;
@@ -370,8 +370,9 @@ static int alsapcm_setup(alsapcm_t *self)
        and fill it with configuration space */
     snd_pcm_hw_params_alloca(&hwparams);
     res = snd_pcm_hw_params_any(self->handle, hwparams);
-    if (res < 0)
+    if (res < 0) {
         return res;
+    }
 
     /* Fill it with default values.
 
@@ -386,10 +387,11 @@ static int alsapcm_setup(alsapcm_t *self)
                                    self->channels);
 
     dir = 0;
-    snd_pcm_hw_params_set_rate(self->handle, hwparams, self->rate, dir);
-    snd_pcm_hw_params_set_period_size(self->handle, hwparams,
-                                      self->periodsize, dir);
-    snd_pcm_hw_params_set_periods(self->handle, hwparams, 4, 0);
+    unsigned int periods = 4;
+    snd_pcm_hw_params_set_rate_near(self->handle, hwparams, &self->rate, &dir);
+    snd_pcm_hw_params_set_period_size_near(self->handle, hwparams,
+                                           &self->periodsize, &dir);
+    snd_pcm_hw_params_set_periods_near(self->handle, hwparams, &periods, &dir);
 
     /* Write it to the device */
     res = snd_pcm_hw_params(self->handle, hwparams);
@@ -687,7 +689,7 @@ alsapcm_getratemaxmin(alsapcm_t *self, PyObject *args)
         return NULL;
     }
 
-    unsigned min,max;
+    unsigned min, max;
     if (snd_pcm_hw_params_get_rate_min(params, &min,NULL)<0) {
         PyErr_SetString(ALSAAudioError, "Cannot get minimum supported bitrate");
         return NULL;
