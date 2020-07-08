@@ -108,7 +108,7 @@ PCM objects in :mod:`alsaaudio` can play or capture (record) PCM
 sound through speakers or a microphone. The PCM constructor takes the
 following arguments:
 
-.. class:: PCM(type=PCM_PLAYBACK, mode=PCM_NORMAL, device='default', cardindex=-1)
+.. class:: PCM(type=PCM_PLAYBACK, mode=PCM_NORMAL, rate=44100, channels=2, format=PCM_FORMAT_S16_LE, periodsize=32, device='default', cardindex=-1)
 
    This class is used to represent a PCM device (either for playback and
    recording). The arguments are:
@@ -117,6 +117,10 @@ following arguments:
      (default).  
    * *mode* - can be either :const:`PCM_NONBLOCK`, or :const:`PCM_NORMAL`
      (default). 
+   * *rate* - the sampling rate. The default value is 44100.
+   * *channels* - the number of channels. The default value is 2 (stereo).
+   * *format* - the data format. The default value is :const:`PCM_FORMAT_S16_LE`,
+   * *periodsize - the period size. The default value is 32. Each write should consist of *periodsize* frames.
    * *device* - the name of the PCM device that should be used (for example
      a value from the output of :func:`pcms`). The default value is
      ``'default'``.
@@ -125,12 +129,11 @@ following arguments:
      the `device` keyword argument is ignored.
      ``0`` is the first hardware sound card.
 
-   This will construct a PCM object with these default settings:
+   This will construct a PCM object with the given settings.
 
-   * Sample format: :const:`PCM_FORMAT_S16_LE`
-   * Rate: 44100 Hz 
-   * Channels: 2
-   * Period size: 32 frames
+   *Changed in 0.9:*
+
+   - Added optional arguments `rate`, `channels`, `format` and `periodsize`.
 
    *Changed in 0.8:*
    

@@ -423,11 +423,16 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     char *card = NULL;
     int cardidx = -1;
     char hw_device[128];
-    char *kw[] = { "type", "mode", "device", "cardindex", "card", NULL };
+    int rate = 44100;
+    int channels = 2;
+    int format = SND_PCM_FORMAT_S16_LE;
+    int periodsize = 32;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oisiz", kw,
+    char *kw[] = { "type", "mode", "device", "cardindex", "card", "rate", "channels", "format", "periodsize", NULL };
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oisiziiii", kw,
                                      &pcmtypeobj, &pcmmode, &device,
-                                     &cardidx, &card))
+                                     &cardidx, &card, &rate, &channels, &format, &periodsize))
         return NULL;
 
     if (cardidx >= 0) {
@@ -471,10 +476,10 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     self->handle = 0;
     self->pcmtype = pcmtype;
     self->pcmmode = pcmmode;
-    self->channels = 2;
-    self->rate = 44100;
-    self->format = SND_PCM_FORMAT_S16_LE;
-    self->periodsize = 32;
+    self->channels = channels;
+    self->rate = rate;
+    self->format = format;
+    self->periodsize = periodsize;
 
     res = snd_pcm_open(&(self->handle), device, self->pcmtype,
                        self->pcmmode);
