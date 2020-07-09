@@ -116,7 +116,8 @@ following arguments:
      (default).  
    * *mode* - can be either :const:`PCM_NONBLOCK`, or :const:`PCM_NORMAL`
      (default). 
-   * *rate* - the sampling rate. The default value is 44100.
+   * *rate* - the sampling rate in Hz. Typical values are ``8000``
+    (mainly used for telephony), ``16000``, ``44100`` (default), ``48000`` and ``96000``.
    * *channels* - the number of channels. The default value is 2 (stereo).
    * *format* - the data format. This controls how the PCM device interprets data for playback, and how data is encoded in captures. 
      The default value is :const:`PCM_FORMAT_S16_LE`.

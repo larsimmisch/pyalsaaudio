@@ -914,6 +914,8 @@ alsapcm_setchannels(alsapcm_t *self, PyObject *args)
 PyDoc_STRVAR(setchannels_doc,
 "setchannels(numchannels)\n\
 \n\
+Deprecated since 0.9\n\
+\n\
 Used to set the number of capture or playback channels. Common values\n\
 are: 1 = mono, 2 = stereo, and 6 = full 6 channel audio.\n\
 \n\
@@ -955,6 +957,8 @@ alsapcm_setrate(alsapcm_t *self, PyObject *args)
 PyDoc_STRVAR(setrate_doc,
 "setrate(rate)\n\
 \n\
+Deprecated since 0.9\n\
+\n\
 Set the sample rate in Hz for the device. Typical values are\n\
 8000 (telephony), 11025, 44100 (CD), 48000 (DVD audio) and 96000");
 
@@ -992,7 +996,9 @@ alsapcm_setformat(alsapcm_t *self, PyObject *args)
 }
 
 PyDoc_STRVAR(setformat_doc,
-"setformat(rate)\n");
+"setformat(rate)\n\
+\n\
+Deprecated since 0.9");
 
 static PyObject *
 alsapcm_setperiodsize(alsapcm_t *self, PyObject *args)
@@ -1029,6 +1035,8 @@ alsapcm_setperiodsize(alsapcm_t *self, PyObject *args)
 
 PyDoc_STRVAR(setperiodsize_doc,
 "setperiodsize(period) -> int\n\
+\n\
+Deprecated since 0.9\n\
 \n\
 Sets the actual period size in frames. Each write should consist of\n\
 exactly this number of frames, and each read will return this number of\n\

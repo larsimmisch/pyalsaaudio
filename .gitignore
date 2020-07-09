@@ -4,6 +4,8 @@ MANIFEST
 doc/gh-pages/
 doc/html/
 doc/doctrees/
+doc/_build/
 gh-pages/
 build/
 dist/
+.vscode/
