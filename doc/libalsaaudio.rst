@@ -63,7 +63,6 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
    useful. If you want to see a list of available PCM devices, use :func:`pcms`
    instead.
    
-
 .. function:: mixers(cardindex=-1, device='default')
 
    List the available mixers. The arguments are:
@@ -119,76 +118,11 @@ following arguments:
      (default). 
    * *rate* - the sampling rate. The default value is 44100.
    * *channels* - the number of channels. The default value is 2 (stereo).
-   * *format* - the data format. The default value is :const:`PCM_FORMAT_S16_LE`,
-   * *periodsize - the period size. The default value is 32. Each write should consist of *periodsize* frames.
-   * *device* - the name of the PCM device that should be used (for example
-     a value from the output of :func:`pcms`). The default value is
-     ``'default'``.
-   * *cardindex* - the card index. If this argument is given, the device name
-     is constructed as 'hw:*cardindex*' and
-     the `device` keyword argument is ignored.
-     ``0`` is the first hardware sound card.
-
-   This will construct a PCM object with the given settings.
-
-   *Changed in 0.9:*
-
-   - Added optional arguments `rate`, `channels`, `format` and `periodsize`.
-
-   *Changed in 0.8:*
+   * *format* - the data format. This controls how the PCM device interprets data for playback, and how data is encoded in captures. 
+     The default value is :const:`PCM_FORMAT_S16_LE`.
    
-   - The `card` keyword argument is still supported,
-     but deprecated. Please use `device` instead.
-
-   - The keyword argument `cardindex` was added.
-
-   The `card` keyword is deprecated because it guesses the real ALSA
-   name of the card. This was always fragile and broke some legitimate usecases.
-   
-     
-PCM objects have the following methods:
-
-
-.. method:: PCM.pcmtype()
-
-   Returns the type of PCM object. Either :const:`PCM_CAPTURE` or
-   :const:`PCM_PLAYBACK`.
-
-
-.. method:: PCM.pcmmode()
-
-   Return the mode of the PCM object. One of :const:`PCM_NONBLOCK`,
-   :const:`PCM_ASYNC`, or :const:`PCM_NORMAL`
-
-
-.. method:: PCM.cardname()
-
-   Return the name of the sound card used by this PCM object.
-
-
-.. method:: PCM.setchannels(nchannels)
-
-   Used to set the number of capture or playback channels. Common
-   values are: ``1`` = mono, ``2`` = stereo, and ``6`` = full 6 channel audio.
-   Few sound cards support more than 2 channels
-
-
-.. method:: PCM.setrate(rate)
-
-   Set the sample rate in Hz for the device. Typical values are ``8000``
-   (mainly used for telephony), ``16000``, ``44100`` (CD quality),
-   ``48000`` and ``96000``.
-
-
-.. method:: PCM.setformat(format)
-
-   The sound *format* of the device. Sound format controls how the PCM device
-   interpret data for playback, and how data is encoded in captures.
-
-   The following formats are provided by ALSA:
-
    =========================  ===============
-          Format                Description
+        Format                Description
    =========================  ===============
    ``PCM_FORMAT_S8``          Signed 8 bit samples for each channel
    ``PCM_FORMAT_U8``          Signed 8 bit samples for each channel
@@ -218,15 +152,66 @@ PCM objects have the following methods:
    ``PCM_FORMAT_U24_3LE``     Unsigned 24 bit samples for each channel (Little Endian byte order in 3 bytes)
    ``PCM_FORMAT_U24_3BE``     Unsigned 24 bit samples for each channel (Big Endian byte order in 3 bytes)
    =========================  ===============
+
+   * *periodsize* - the period size in frames. Each write should consist of *periodsize* frames. The default value is 32.
+   * *device* - the name of the PCM device that should be used (for example
+     a value from the output of :func:`pcms`). The default value is
+     ``'default'``.
+   * *cardindex* - the card index. If this argument is given, the device name
+     is constructed as 'hw:*cardindex*' and
+     the `device` keyword argument is ignored.
+     ``0`` is the first hardware sound card.
+
+   This will construct a PCM object with the given settings.
+
+   *Changed in 0.9:*
+
+   - Added the optional named parameters `rate`, `channels`, `format` and `periodsize`.
+
+   *Changed in 0.8:*
    
+   - The `card` keyword argument is still supported,
+     but deprecated. Please use `device` instead.
+
+   - The keyword argument `cardindex` was added.
+
+   The `card` keyword is deprecated because it guesses the real ALSA
+   name of the card. This was always fragile and broke some legitimate usecases.
+   
+     
+PCM objects have the following methods:
+
+.. method:: PCM.pcmtype()
+
+   Returns the type of PCM object. Either :const:`PCM_CAPTURE` or
+   :const:`PCM_PLAYBACK`.
+
+
+.. method:: PCM.pcmmode()
+
+   Return the mode of the PCM object. One of :const:`PCM_NONBLOCK`,
+   :const:`PCM_ASYNC`, or :const:`PCM_NORMAL`
+
+
+.. method:: PCM.cardname()
+
+   Return the name of the sound card used by this PCM object.
+
+.. method:: PCM.setchannels(nchannels)
+
+   .. deprecated:: 0.9 Use the `channels` named argument to :func:`PCM`.
+
+.. method:: PCM.setrate(rate)
+
+   .. deprecated:: 0.9 Use the `rate` named argument to :func:`PCM`.
+
+.. method:: PCM.setformat(format)
+   
+   .. deprecated:: 0.9 Use the `format` named argument to :func:`PCM`.
 
 .. method:: PCM.setperiodsize(period)
 
-   Sets the actual period size in frames. Each write should consist of
-   exactly this number of frames, and each read will return this
-   number of frames (unless the device is in :const:`PCM_NONBLOCK` mode, in
-   which case it may return nothing at all)
-
+   .. deprecated:: 0.9 Use the `periodsize` named argument to :func:`PCM`.
 
 .. method:: PCM.read()
 

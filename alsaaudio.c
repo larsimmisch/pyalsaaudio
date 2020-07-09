@@ -885,7 +885,11 @@ alsapcm_setchannels(alsapcm_t *self, PyObject *args)
 {
     int channels, saved;
     int res;
-    
+
+    PyErr_WarnEx(PyExc_DeprecationWarning,
+                 "This function is deprecated. "
+                 "Please use the named parameter `channels` to `PCM()` instead", 1);
+
     if (!PyArg_ParseTuple(args,"i:setchannels", &channels))
         return NULL;
 
@@ -921,8 +925,13 @@ alsapcm_setrate(alsapcm_t *self, PyObject *args)
 {
     int rate, saved;
     int res;
+
     if (!PyArg_ParseTuple(args,"i:setrate", &rate))
         return NULL;
+
+    PyErr_WarnEx(PyExc_DeprecationWarning,
+                 "This function is deprecated. "
+                 "Please use the named parameter `channels` to `PCM()` instead", 1);
 
     if (!self->handle)
     {
@@ -955,6 +964,11 @@ alsapcm_setformat(alsapcm_t *self, PyObject *args)
 {
     int format, saved;
     int res;
+
+    PyErr_WarnEx(PyExc_DeprecationWarning,
+                 "This function is deprecated. "
+                 "Please use the named parameter `format` to `PCM()` instead", 1);
+
     if (!PyArg_ParseTuple(args,"i:setformat", &format))
         return NULL;
 
