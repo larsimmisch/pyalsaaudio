@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+# -*- mode: python; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-
 
 ## playbacktest.py
 ##
@@ -38,18 +39,11 @@ if __name__ == '__main__':
 
     f = open(args[0], 'rb')
 
-    # Open the device in playback mode. 
-    out = alsaaudio.PCM(alsaaudio.PCM_PLAYBACK, device=device)
-
-    # Set attributes: Mono, 44100 Hz, 16 bit little endian frames
-    out.setchannels(1)
-    out.setrate(44100)
-    out.setformat(alsaaudio.PCM_FORMAT_S16_LE)
-
+    # Open the device in playback mode in Mono, 44100 Hz, 16 bit little endian frames
     # The period size controls the internal number of frames per period.
     # The significance of this parameter is documented in the ALSA api.
-    out.setperiodsize(160)
 
+    out = alsaaudio.PCM(alsaaudio.PCM_PLAYBACK, channels=1, rate=44100, format=alsaaudio.PCM_FORMAT_S16_LE, periodsize=160, device=device)
     # Read data from stdin
     data = f.read(320)
     while data:
