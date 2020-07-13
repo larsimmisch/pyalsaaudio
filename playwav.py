@@ -27,10 +27,12 @@ def play(device, f):
 	else:
 		raise ValueError('Unsupported format')
 
-	print('%d channels, %d sampling rate\n' % (f.getnchannels(),
-											   f.getframerate()))
-
 	periodsize = f.getframerate() // 8
+
+	print('%d channels, %d sampling rate, format %d, periodsize %d\n' % (f.getnchannels(),
+																		 f.getframerate(),
+																		 format,
+																		 periodsize))
 
 	device = alsaaudio.PCM(channels=f.getnchannels(), rate=f.getframerate(), format=format, periodsize=periodsize, device=device)
 	
