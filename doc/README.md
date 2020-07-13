@@ -1,3 +1,22 @@
+# Make a new release
+
+Update the version in setup.py
+
+    pyalsa_version = '0.9.0'
+
+Commit and push the update.
+
+Create and push a tag naming the version (i.e. 0.9.0):
+
+    git tag 0.9.0
+    git push origin 0.9.0
+
+Upload the package:
+
+    python3 setup.py sdist
+
+Don't forget to update the documentation.
+
 # Publish the documentation
 
 The documentation is published through the `gh-pages` branch.
