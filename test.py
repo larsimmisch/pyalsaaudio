@@ -135,9 +135,9 @@ class PCMTest(unittest.TestCase):
 				pass
 				
 			# Verify we got a DepreciationWarning
-			assert len(w) == 1
-			assert issubclass(w[-1].category, DeprecationWarning)
-		
+			self.assertEqual(len(w), 1, "PCM(card='default') expected a warning" )
+			self.assertTrue(issubclass(w[-1].category, DeprecationWarning), "PCM(card='default') expected a DeprecationWarning")
+
 		for m, a in PCMDeprecatedMethods:
 			with warnings.catch_warnings(record=True) as w:
 				# Cause all warnings to always be triggered.
@@ -152,8 +152,9 @@ class PCMTest(unittest.TestCase):
 					f(pcm, *a)
 
 				# Verify we got a DepreciationWarning
-				assert len(w) == 1
-				assert issubclass(w[-1].category, DeprecationWarning)
+				method = "%s%s" % (m, str(a))
+				self.assertEqual(len(w), 1, method + " expected a warning")
+				self.assertTrue(issubclass(w[-1].category, DeprecationWarning), method + " expected a DeprecationWarning")
 
 if __name__ == '__main__':
 	unittest.main()
