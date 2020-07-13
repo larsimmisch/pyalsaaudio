@@ -1,29 +1,18 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>PCM Terminology and Concepts &#8212; alsaaudio documentation 0.8.4 documentation</title>
-    
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCM Terminology and Concepts &#8212; alsaaudio documentation 0.9.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.8.4',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="alsaaudio" href="libalsaaudio.html" />
@@ -34,22 +23,22 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">
+  </head><body>
   
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="pcm-terminology-and-concepts">
 <h1>PCM Terminology and Concepts<a class="headerlink" href="#pcm-terminology-and-concepts" title="Permalink to this headline">¶</a></h1>
 <p>In order to use PCM devices it is useful to be familiar with some concepts and
 terminology.</p>
-<dl class="docutils">
-<dt>Sample</dt>
-<dd><p class="first">PCM audio, whether it is input or output, consists of <em>samples</em>.
+<dl>
+<dt>Sample</dt><dd><p>PCM audio, whether it is input or output, consists of <em>samples</em>.
 A single sample represents the amplitude of one channel of sound
 at a certain point in time. A lot of individual samples are
 necessary to represent actual sound; for CD audio, 44100 samples
@@ -58,40 +47,36 @@ are taken every second.</p>
 bit precision. The specific format of each sample can also vary -
 they can be big endian byte integers, little endian byte integers, or
 floating point numbers.</p>
-<p class="last">Musically, the sample size determines the dynamic range. The
+<p>Musically, the sample size determines the dynamic range. The
 dynamic range is the difference between the quietest and the
 loudest signal that can be resproduced.</p>
 </dd>
-<dt>Frame</dt>
-<dd>A frame consists of exactly one sample per channel. If there is only one
+<dt>Frame</dt><dd><p>A frame consists of exactly one sample per channel. If there is only one
 channel (Mono sound) a frame is simply a single sample. If the sound is
-stereo, each frame consists of two samples, etc.</dd>
-<dt>Frame size</dt>
-<dd><dl class="first last docutils">
-<dt>This is the size in bytes of each frame. This can vary a lot: if each sample</dt>
-<dd><dl class="first last docutils">
-<dt>is 8 bits, and we&#8217;re handling mono sound, the frame size is one byte.</dt>
-<dd>Similarly in 6 channel audio with 64 bit floating point samples, the frame
-size is 48 bytes</dd>
-</dl>
+stereo, each frame consists of two samples, etc.</p>
+</dd>
+<dt>Frame size</dt><dd><dl class="simple">
+<dt>This is the size in bytes of each frame. This can vary a lot: if each sample</dt><dd><dl class="simple">
+<dt>is 8 bits, and we’re handling mono sound, the frame size is one byte.</dt><dd><p>Similarly in 6 channel audio with 64 bit floating point samples, the frame
+size is 48 bytes</p>
 </dd>
 </dl>
 </dd>
-<dt>Rate</dt>
-<dd>PCM sound consists of a flow of sound frames. The sound rate controls how
+</dl>
+</dd>
+<dt>Rate</dt><dd><p>PCM sound consists of a flow of sound frames. The sound rate controls how
 often the current frame is replaced. For example, a rate of 8000 Hz
-means that a new frame is played or captured 8000 times per second.</dd>
-<dt>Data rate</dt>
-<dd><p class="first">This is the number of bytes, which must be recorded or provided per
+means that a new frame is played or captured 8000 times per second.</p>
+</dd>
+<dt>Data rate</dt><dd><p>This is the number of bytes, which must be recorded or provided per
 second at a certain frame size and rate.</p>
 <p>8000 Hz mono sound with 8 bit (1 byte) samples has a data rate of
 8000  * 1 * 1 = 8 kb/s or 64kbit/s. This is typically used for telephony.</p>
-<p class="last">At the other end of the scale, 96000 Hz, 6 channel sound with 64
+<p>At the other end of the scale, 96000 Hz, 6 channel sound with 64
 bit (8 bytes) samples has a data rate of 96000 * 6 * 8 = 4608
 kb/s (almost 5 MB sound data per second)</p>
 </dd>
-<dt>Period</dt>
-<dd>When the hardware processes data this is done in chunks of frames. The time
+<dt>Period</dt><dd><p>When the hardware processes data this is done in chunks of frames. The time
 interval between each processing (A/D or D/A conversion) is known
 as the period.
 The size of the period has direct implication on the latency of the
@@ -101,14 +86,15 @@ larger period sizes. With ALSA, the CPU utilization is not impacted
 much by the period size, since the kernel layer buffers multiple
 periods internally, so each period generates an interrupt and a
 memory copy, but userspace can be slower and read or write multiple
-periods at the same time.</dd>
-<dt>Period size</dt>
-<dd>This is the size of each period in Hz. <em>Not bytes, but Hz!.</em> In
-<a class="reference internal" href="libalsaaudio.html#module-alsaaudio" title="alsaaudio (Linux)"><code class="xref py py-mod docutils literal"><span class="pre">alsaaudio</span></code></a> the period size is set directly, and it is
+periods at the same time.</p>
+</dd>
+<dt>Period size</dt><dd><p>This is the size of each period in Hz. <em>Not bytes, but Hz!.</em> In
+<a class="reference internal" href="libalsaaudio.html#module-alsaaudio" title="alsaaudio (Linux)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">alsaaudio</span></code></a> the period size is set directly, and it is
 therefore important to understand the significance of this
 number. If the period size is configured to for example 32,
 each write should contain exactly 32 frames of sound data, and each
-read will return either 32 frames of data or nothing at all.</dd>
+read will return either 32 frames of data or nothing at all.</p>
+</dd>
 </dl>
 <p>Once you understand these concepts, you will be ready to use the PCM API. Read
 on.</p>
@@ -116,35 +102,58 @@ on.</p>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper"><div class="relations">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">alsaaudio documentation</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="pyalsaaudio.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pyalsaaudio.html#what-is-alsa">What is ALSA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pyalsaaudio.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pyalsaaudio.html#testing">Testing</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">PCM Terminology and Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="libalsaaudio.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">alsaaudio</span></code></a></li>
+</ul>
+
+<div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="pyalsaaudio.html" title="previous chapter">Introduction</a></li>
-      <li>Next: <a href="libalsaaudio.html" title="next chapter"><code class="docutils literal"><span class="pre">alsaaudio</span></code></a></li>
+      <li>Next: <a href="libalsaaudio.html" title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">alsaaudio</span></code></a></li>
   </ul></li>
 </ul>
 </div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/terminology.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
     </form>
+    </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>
@@ -153,8 +162,8 @@ on.</p>
       &copy;2017, Lars Immisch & Casper Wilstrup.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="_sources/terminology.rst.txt"

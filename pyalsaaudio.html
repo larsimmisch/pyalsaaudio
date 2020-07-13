@@ -1,29 +1,18 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Introduction &#8212; alsaaudio documentation 0.8.4 documentation</title>
-    
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introduction &#8212; alsaaudio documentation 0.9.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.8.4',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="PCM Terminology and Concepts" href="terminology.html" />
@@ -34,27 +23,26 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">
+  </head><body>
   
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="introduction">
 <h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Author:</th><td class="field-body">Casper Wilstrup &lt;<a class="reference external" href="mailto:cwi&#37;&#52;&#48;aves&#46;dk">cwi<span>&#64;</span>aves<span>&#46;</span>dk</a>&gt;</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Author:</th><td class="field-body">Lars Immisch &lt;<a class="reference external" href="mailto:lars&#37;&#52;&#48;ibp&#46;de">lars<span>&#64;</span>ibp<span>&#46;</span>de</a>&gt;</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Author</dt>
+<dd class="field-odd"><p>Casper Wilstrup &lt;<a class="reference external" href="mailto:cwi&#37;&#52;&#48;aves&#46;dk">cwi<span>&#64;</span>aves<span>&#46;</span>dk</a>&gt;</p>
+</dd>
+<dt class="field-even">Author</dt>
+<dd class="field-even"><p>Lars Immisch &lt;<a class="reference external" href="mailto:lars&#37;&#52;&#48;ibp&#46;de">lars<span>&#64;</span>ibp<span>&#46;</span>de</a>&gt;</p>
+</dd>
+</dl>
 <p id="front">This software is licensed under the PSF license - the same one used by the
 majority of the python distribution. Basically you can use it for anything you
 wish (even commercial purposes). There is no warranty whatsoever.</p>
@@ -64,7 +52,7 @@ wish (even commercial purposes). There is no warranty whatsoever.</p>
 currently fairly complete for PCM devices and Mixer access. MIDI sequencer
 support is low on our priority list, but volunteers are welcome.</p>
 <p>If you find bugs in the wrappers please use thegithub issue tracker.
-Please don&#8217;t send bug reports regarding ALSA specifically. There are several
+Please don’t send bug reports regarding ALSA specifically. There are several
 bugs in this API, and those should be reported to the ALSA team - not me.</p>
 </div>
 </div>
@@ -74,13 +62,13 @@ bugs in this API, and those should be reported to the ALSA team - not me.</p>
 functionality to the Linux operating system.</p>
 <p>Logically ALSA consists of these components:</p>
 <ul class="simple">
-<li>A set of kernel drivers. &#8212;  These drivers are responsible for handling the
+<li><p>A set of kernel drivers. —  These drivers are responsible for handling the
 physical sound  hardware from within the Linux kernel, and have been the
-standard sound implementation in Linux since kernel version 2.5</li>
-<li>A kernel level API for manipulating the ALSA devices.</li>
-<li>A user-space C library for simplified access to the sound hardware from
+standard sound implementation in Linux since kernel version 2.5</p></li>
+<li><p>A kernel level API for manipulating the ALSA devices.</p></li>
+<li><p>A user-space C library for simplified access to the sound hardware from
 userspace applications. This library is called <em>libasound</em> and is required by
-all ALSA capable applications.</li>
+all ALSA capable applications.</p></li>
 </ul>
 <p>More information about ALSA may be found on the project homepage
 <a class="reference external" href="http://www.alsa-project.org">http://www.alsa-project.org</a></p>
@@ -89,14 +77,14 @@ all ALSA capable applications.</li>
 <p>The older Linux sound API (OSS) which is now deprecated is well supported from
 the standard Python library, through the ossaudiodev module. No native ALSA
 support exists in the standard library.</p>
-<p>There are a few other &#8220;ALSA for Python&#8221; projects available, including at least
+<p>There are a few other “ALSA for Python” projects available, including at least
 two different projects called pyAlsa. Neither of these seem to be under active
 development at the time - and neither are very feature complete.</p>
 <p>I wrote PyAlsaAudio to fill this gap. My long term goal is to have the module
 included in the standard Python library, but that looks currently unlikely.</p>
-<p>PyAlsaAudio hass full support for sound capture, playback of sound, as well as
+<p>PyAlsaAudio has full support for sound capture, playback of sound, as well as
 the ALSA Mixer API.</p>
-<p>MIDI support is not available, and since I don&#8217;t own any MIDI hardware, it&#8217;s
+<p>MIDI support is not available, and since I don’t own any MIDI hardware, it’s
 difficult for me to implement it. Volunteers to work on this would be greatly
 appreciated.</p>
 </div>
@@ -111,39 +99,39 @@ and need the ALSA headers for compilation.  Verify that you have
 default in Linux kernel 2.6 and later. If you are using kernel version 2.4 you
 may need to install the ALSA patches yourself - although most distributions
 ship with ALSA kernels.</p>
-<p>To install, execute the following:  &#8212;</p>
-<div class="highlight-default"><div class="highlight"><pre>$ python setup.py build
+<p>To install, execute the following:  —</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python setup.py build
 </pre></div>
 </div>
-<p>And then as root:  &#8212;</p>
-<div class="highlight-default"><div class="highlight"><pre><span class="c"># python setup.py install</span>
+<p>And then as root:  —</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># python setup.py install</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="testing">
 <h1>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h1>
-<p>Make sure that <code class="code docutils literal"><span class="pre">aplay</span></code> plays a file through the soundcard you want, then
+<p>Make sure that <code class="code docutils literal notranslate"><span class="pre">aplay</span></code> plays a file through the soundcard you want, then
 try:</p>
-<div class="highlight-default"><div class="highlight"><pre>$ python playwav.py &lt;filename.wav&gt;
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python playwav.py &lt;filename.wav&gt;
 </pre></div>
 </div>
-<p>If <code class="code docutils literal"><span class="pre">aplay</span></code> needs a device argument, like
-<code class="code docutils literal"><span class="pre">aplay</span> <span class="pre">-D</span> <span class="pre">hw:CARD=sndrpihifiberry,DEV=0</span></code>, use:</p>
-<div class="highlight-default"><div class="highlight"><pre>$ python playwav.py -d hw:CARD=sndrpihifiberry,DEV=0 &lt;filename.wav&gt;
+<p>If <code class="code docutils literal notranslate"><span class="pre">aplay</span></code> needs a device argument, like
+<code class="code docutils literal notranslate"><span class="pre">aplay</span> <span class="pre">-D</span> <span class="pre">hw:CARD=sndrpihifiberry,DEV=0</span></code>, use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python playwav.py -d hw:CARD=sndrpihifiberry,DEV=0 &lt;filename.wav&gt;
 </pre></div>
 </div>
 <p>To test PCM recordings (on your default soundcard), verify your
 microphone works, then do:</p>
-<div class="highlight-default"><div class="highlight"><pre>$ python recordtest.py -d &lt;device&gt; &lt;filename&gt;
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python recordtest.py -d &lt;device&gt; &lt;filename&gt;
 </pre></div>
 </div>
 <p>Speak into the microphone, and interrupt the recording at any time
-with <code class="docutils literal"><span class="pre">Ctl-C</span></code>.</p>
+with <code class="docutils literal notranslate"><span class="pre">Ctl-C</span></code>.</p>
 <p>Play back the recording with:</p>
-<div class="highlight-default"><div class="highlight"><pre>$ python playbacktest.py-d &lt;device&gt;  &lt;filename&gt;
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python playbacktest.py-d &lt;device&gt;  &lt;filename&gt;
 </pre></div>
 </div>
-<p>There is a minimal test suite in <code class="code docutils literal"><span class="pre">test.py</span></code>, but it is
+<p>There is a minimal test suite in <code class="code docutils literal notranslate"><span class="pre">test.py</span></code>, but it is
 a bit dependent on the ALSA configuration and may fail without indicating
 a real problem.</p>
 <p>If you find bugs/problems, please file a <a class="reference external" href="https://github.com/larsimmisch/pyalsaaudio/issues">bug report</a>.</p>
@@ -151,20 +139,34 @@ a real problem.</p>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Introduction</a></li>
-<li><a class="reference internal" href="#what-is-alsa">What is ALSA</a><ul>
-<li><a class="reference internal" href="#alsa-and-python">ALSA and Python</a></li>
+<h1 class="logo"><a href="index.html">alsaaudio documentation</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#what-is-alsa">What is ALSA</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#alsa-and-python">ALSA and Python</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#installation">Installation</a></li>
-<li><a class="reference internal" href="#testing">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#testing">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="terminology.html">PCM Terminology and Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="libalsaaudio.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">alsaaudio</span></code></a></li>
 </ul>
+
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
@@ -174,23 +176,24 @@ a real problem.</p>
   </ul></li>
 </ul>
 </div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/pyalsaaudio.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
     </form>
+    </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>
@@ -199,8 +202,8 @@ a real problem.</p>
       &copy;2017, Lars Immisch & Casper Wilstrup.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="_sources/pyalsaaudio.rst.txt"
