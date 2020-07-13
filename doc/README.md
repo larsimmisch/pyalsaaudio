@@ -11,9 +11,13 @@ Create and push a tag naming the version (i.e. 0.9.0):
     git tag 0.9.0
     git push origin 0.9.0
 
-Upload the package:
+Create the package:
 
     python3 setup.py sdist
+
+Upload the package
+
+    twine upload dist/*
 
 Don't forget to update the documentation.
 
