@@ -255,7 +255,7 @@ PCM objects have the following methods:
 .. method:: PCM.polldescriptors()
 
    Returns a tuple of *(file descriptor, eventmask)* that can be used to
-   wait for changes on the mixer with *select.poll*.
+   wait for changes on the PCM with *select.poll*.
 
    The *eventmask* value is compatible with `poll.register`__ in the Python 
    :const:`select` module.
