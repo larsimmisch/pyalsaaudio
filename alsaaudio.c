@@ -602,9 +602,6 @@ alsapcm_dumpinfo(alsapcm_t *self, PyObject *args)
 	val = snd_pcm_hw_params_get_sbits(hwparams);
 	printf("significant bits = %d\n", val);
 
-	snd_pcm_hw_params_get_period_time(hwparams, &val, &dir);
-	printf("period time = %d us\n", val);
-
 	val = snd_pcm_hw_params_is_batch(hwparams);
 	printf("is batch = %d\n", val);
 
@@ -639,6 +636,164 @@ alsapcm_dumpinfo(alsapcm_t *self, PyObject *args)
 	return Py_None;
 }
 
+
+static PyObject *
+alsapcm_info(alsapcm_t *self, PyObject *args)
+{
+	PyObject *info = PyDict_New();
+	PyObject *pname;
+	PyObject *value;
+
+	unsigned int val,val2;
+	snd_pcm_format_t fmt;
+	int dir;
+	snd_pcm_uframes_t frames;
+	snd_pcm_hw_params_t *hwparams;
+	snd_pcm_hw_params_alloca(&hwparams);
+	snd_pcm_hw_params_current(self->handle,hwparams);
+
+	if (!PyArg_ParseTuple(args,":dumpinfo"))
+		return NULL;
+
+	if (!self->handle) {
+		PyErr_SetString(ALSAAudioError, "PCM device is closed");
+		return NULL;
+	}
+
+	printf("PCM handle name = '%s'\n", snd_pcm_name(self->handle));
+	
+	
+	pname=PyUnicode_FromString("name");
+	value=PyUnicode_FromString(snd_pcm_name(self->handle));
+	PyDict_SetItem(info,pname,value);
+
+	pname=PyUnicode_FromString("state");
+	value=PyUnicode_FromString(snd_pcm_state_name(snd_pcm_state(self->handle)));
+	PyDict_SetItem(info,pname,value);
+
+	pname=PyUnicode_FromString("access_type");
+	snd_pcm_hw_params_get_access(hwparams, (snd_pcm_access_t *) &val);
+	value=PyUnicode_FromString(snd_pcm_access_name((snd_pcm_access_t)val));
+	PyDict_SetItem(info,pname,value);
+
+	snd_pcm_hw_params_get_format(hwparams, &fmt);
+	pname=PyUnicode_FromString("format_name");
+	value=PyUnicode_FromString(snd_pcm_format_name(fmt));
+	PyDict_SetItem(info,pname,value);
+	pname=PyUnicode_FromString("format_description");
+	value=PyUnicode_FromString(snd_pcm_format_description(fmt));
+	PyDict_SetItem(info,pname,value);
+
+
+	snd_pcm_hw_params_get_subformat(hwparams, (snd_pcm_subformat_t *)&val);
+	pname=PyUnicode_FromString("subformat_name");
+	value=PyUnicode_FromString(snd_pcm_subformat_name((snd_pcm_subformat_t)val));
+	PyDict_SetItem(info,pname,value);
+	pname=PyUnicode_FromString("subformat_description");
+	value=PyUnicode_FromString(snd_pcm_subformat_description((snd_pcm_subformat_t)val));
+	PyDict_SetItem(info,pname,value);
+
+	pname=PyUnicode_FromString("channels");
+	snd_pcm_hw_params_get_channels(hwparams, &val);
+	value=PyLong_FromUnsignedLong((unsigned long) val);
+	PyDict_SetItem(info,pname, value);
+
+	pname=PyUnicode_FromString("rate");
+	snd_pcm_hw_params_get_rate(hwparams, &val, &dir);
+	value=PyLong_FromUnsignedLong((unsigned long) val);
+	PyDict_SetItem(info,pname, value);
+
+	pname=PyUnicode_FromString("period_time");
+	snd_pcm_hw_params_get_period_time(hwparams, &val, &dir);
+	value=PyLong_FromUnsignedLong((unsigned long) val);
+	PyDict_SetItem(info,pname, value);
+
+	pname=PyUnicode_FromString("period_size");
+	snd_pcm_hw_params_get_period_size(hwparams, &frames, &dir);
+	value=PyLong_FromUnsignedLong((unsigned long) frames);
+	PyDict_SetItem(info,pname, value);
+
+	pname=PyUnicode_FromString("buffer_time");
+	snd_pcm_hw_params_get_buffer_time(hwparams, &val, &dir);
+	value=PyLong_FromUnsignedLong((unsigned long) val);
+	PyDict_SetItem(info,pname, value);
+
+	pname=PyUnicode_FromString("buffer_size");
+	snd_pcm_hw_params_get_buffer_size(hwparams, (snd_pcm_uframes_t *) &val);
+	value=PyLong_FromUnsignedLong((unsigned long) val);
+	PyDict_SetItem(info,pname, value);
+
+	pname=PyUnicode_FromString("get_periods");
+	snd_pcm_hw_params_get_periods(hwparams, &val, &dir);
+	value=PyLong_FromUnsignedLong((unsigned long) val);
+	PyDict_SetItem(info,pname, value);
+
+	pname=PyUnicode_FromString("rate_numden");
+	snd_pcm_hw_params_get_rate_numden(hwparams, &val, &val2);
+	
+	value=PyTuple_Pack(2,PyLong_FromUnsignedLong((unsigned long) val) \
+				,PyLong_FromUnsignedLong((unsigned long) val2));
+	PyDict_SetItem(info,pname, value);
+
+	pname=PyUnicode_FromString("significant_bits");
+	val = snd_pcm_hw_params_get_sbits(hwparams);
+	value=PyLong_FromUnsignedLong((unsigned long) val);
+	PyDict_SetItem(info,pname, value);
+
+	pname=PyUnicode_FromString("is_batch");
+	val = snd_pcm_hw_params_is_batch(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItem(info,pname, value);
+
+	pname=PyUnicode_FromString("is_block_transfer");
+	val = snd_pcm_hw_params_is_block_transfer(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItem(info,pname, value);
+
+	pname=PyUnicode_FromString("is_double");
+	val = snd_pcm_hw_params_is_double(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItem(info,pname, value);
+
+	pname=PyUnicode_FromString("is_half_duplex");
+	val = snd_pcm_hw_params_is_half_duplex(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItem(info,pname, value);
+
+	pname=PyUnicode_FromString("is_joint_duplex");
+	val = snd_pcm_hw_params_is_joint_duplex(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItem(info,pname, value);
+
+	pname=PyUnicode_FromString("can_overrange");
+	val = snd_pcm_hw_params_can_overrange(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItem(info,pname, value);
+
+	pname=PyUnicode_FromString("can_mmap_sample_resolution");
+	val = snd_pcm_hw_params_can_mmap_sample_resolution(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItem(info,pname, value);
+
+	pname=PyUnicode_FromString("can_pause");
+	val = snd_pcm_hw_params_can_pause(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItem(info,pname, value);
+
+
+	pname=PyUnicode_FromString("can_resume");
+	val = snd_pcm_hw_params_can_resume(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItem(info,pname, value);
+
+
+	pname=PyUnicode_FromString("can_sync_start");
+	val = snd_pcm_hw_params_can_sync_start(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItem(info,pname, value);
+
+	return info;
+}
 // auxiliary function
 
 
@@ -1371,6 +1526,7 @@ static PyMethodDef alsapcm_methods[] = {
 	{"setperiodsize", (PyCFunction)alsapcm_setperiodsize, METH_VARARGS,
 	 setperiodsize_doc},
 	{"dumpinfo", (PyCFunction)alsapcm_dumpinfo, METH_VARARGS},
+	{"info", (PyCFunction)alsapcm_info, METH_VARARGS},
 	{"getformats", (PyCFunction)alsapcm_getformats, METH_VARARGS, getformats_doc},
 	{"getratebounds", (PyCFunction)alsapcm_getratemaxmin, METH_VARARGS, getratebounds_doc},
 	{"getrates", (PyCFunction)alsapcm_getrates, METH_VARARGS, getrates_doc},
