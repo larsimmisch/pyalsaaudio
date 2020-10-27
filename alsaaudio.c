@@ -1051,6 +1051,7 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
 {
 	int res;
 	int size = self->framesize * self->periodsize;
+	int sizeout = 0;
 	PyObject *buffer_obj, *tuple_obj, *res_obj;
 	char *buffer;
 
@@ -1105,18 +1106,22 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
 		}
 	}
 
-	if (res <= 0) {
+	if (res > 0 ) {
+		sizeout = res * self->framesize;
+	}
+	
+	if (size != sizeout) {
 #if PY_MAJOR_VERSION < 3
 		/* If the following fails, it will free the object */
-		if (_PyString_Resize(&buffer_obj, 0))
+		if (_PyString_Resize(&buffer_obj, sizeout))
 			return NULL;
 #else
 		/* If the following fails, it will free the object */
-		if (_PyBytes_Resize(&buffer_obj, 0))
+		if (_PyBytes_Resize(&buffer_obj, sizeout))
 			return NULL;
 #endif
 	}
-
+	
 	res_obj = PyLong_FromLong(res);
 	if (!res_obj) {
 		Py_DECREF(buffer_obj);
