@@ -676,7 +676,35 @@ alsapcm_info(alsapcm_t *self, PyObject *args)
 	value=PyUnicode_FromString(snd_pcm_access_name((snd_pcm_access_t)val));
 	PyDict_SetItem(info,pname,value);
 
+	pname=PyUnicode_FromString(" (call value) type");
+	value = PyLong_FromUnsignedLong((unsigned long) self->pcmtype);
+	PyDict_SetItem(info,pname,value);
+	pname=PyUnicode_FromString(" (call value) type_name");
+	value=PyUnicode_FromString(snd_pcm_stream_name((snd_pcm_stream_t) self->pcmtype));
+	PyDict_SetItem(info,pname,value);
+
+
+	pname=PyUnicode_FromString(" (call value) mode");
+	value = PyLong_FromUnsignedLong((unsigned long) self->pcmmode);
+	PyDict_SetItem(info,pname,value);
+	pname=PyUnicode_FromString(" (call value) mode_name");
+	switch(self->pcmmode){
+		case 0:
+			value = PyUnicode_FromString("PCM_NORMAL");
+			break;
+		case SND_PCM_NONBLOCK:
+			value = PyUnicode_FromString("PCM_NONBLOCK");
+			break;
+		case SND_PCM_ASYNC:
+			value = PyUnicode_FromString("PCM_ASYNC");
+			break;
+	}
+	PyDict_SetItem(info,pname,value);
+
 	snd_pcm_hw_params_get_format(hwparams, &fmt);
+	pname=PyUnicode_FromString("format");
+	value=PyLong_FromUnsignedLong((unsigned long)fmt);
+	PyDict_SetItem(info,pname,value);
 	pname=PyUnicode_FromString("format_name");
 	value=PyUnicode_FromString(snd_pcm_format_name(fmt));
 	PyDict_SetItem(info,pname,value);
@@ -730,7 +758,6 @@ alsapcm_info(alsapcm_t *self, PyObject *args)
 
 	pname=PyUnicode_FromString("rate_numden");
 	snd_pcm_hw_params_get_rate_numden(hwparams, &val, &val2);
-	
 	value=PyTuple_Pack(2,PyLong_FromUnsignedLong((unsigned long) val) \
 				,PyLong_FromUnsignedLong((unsigned long) val2));
 	PyDict_SetItem(info,pname, value);
@@ -794,6 +821,16 @@ alsapcm_info(alsapcm_t *self, PyObject *args)
 
 	return info;
 }
+
+
+PyDoc_STRVAR(pcm_info_doc,
+"info() -> dict\n\
+\n\
+Returns a dictionary with the alsa device parameters as it is realized. \n\
+Keys are retrieved from the alsa library if they can be accessed, if not \n\
+they represent values stored by pyalsaaudio and they are prefixed with ' (call value) '. \n\
+");
+
 // auxiliary function
 
 
@@ -1526,7 +1563,7 @@ static PyMethodDef alsapcm_methods[] = {
 	{"setperiodsize", (PyCFunction)alsapcm_setperiodsize, METH_VARARGS,
 	 setperiodsize_doc},
 	{"dumpinfo", (PyCFunction)alsapcm_dumpinfo, METH_VARARGS},
-	{"info", (PyCFunction)alsapcm_info, METH_VARARGS},
+	{"info", (PyCFunction)alsapcm_info, METH_VARARGS, pcm_info_doc},
 	{"getformats", (PyCFunction)alsapcm_getformats, METH_VARARGS, getformats_doc},
 	{"getratebounds", (PyCFunction)alsapcm_getratemaxmin, METH_VARARGS, getratebounds_doc},
 	{"getrates", (PyCFunction)alsapcm_getrates, METH_VARARGS, getrates_doc},
