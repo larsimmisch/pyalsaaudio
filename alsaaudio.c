@@ -639,21 +639,13 @@ alsapcm_dumpinfo(alsapcm_t *self, PyObject *args)
 	return Py_None;
 }
 
+
 static PyObject *
 alsapcm_timestamp_raw(alsapcm_t *self, PyObject *args)
 {
 	snd_htimestamp_t tstamp;
 	snd_pcm_uframes_t avail;
 	PyObject *result = NULL;
-	// int err;
-
-	/* snd_pcm_status_t *status;
-	snd_pcm_status_alloca(&status);
-
-	if ((err = snd_pcm_status(self->handle, status)) < 0) {
-		printf("Stream status error: %s\n", snd_strerror(err));
-		exit(0);
-	}*/
 
 	snd_pcm_htimestamp(self->handle , &avail, &tstamp);
 
@@ -664,6 +656,7 @@ alsapcm_timestamp_raw(alsapcm_t *self, PyObject *args)
 
 	return result;
 }
+
 
 PyDoc_STRVAR(pcm_timestampraw_doc,
 "timestamp() -> tuple\n\
