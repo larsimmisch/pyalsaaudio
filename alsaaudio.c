@@ -659,8 +659,6 @@ alsapcm_info(alsapcm_t *self, PyObject *args)
 		return NULL;
 	}
 
-	printf("PCM handle name = '%s'\n", snd_pcm_name(self->handle));
-
 	value=PyUnicode_FromString(snd_pcm_name(self->handle));
 	PyDict_SetItemString(info,"name",value);
 	Py_DECREF(value);
