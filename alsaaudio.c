@@ -602,9 +602,6 @@ alsapcm_dumpinfo(alsapcm_t *self, PyObject *args)
 	val = snd_pcm_hw_params_get_sbits(hwparams);
 	printf("significant bits = %d\n", val);
 
-	snd_pcm_hw_params_get_period_time(hwparams, &val, &dir);
-	printf("period time = %d us\n", val);
-
 	val = snd_pcm_hw_params_is_batch(hwparams);
 	printf("is batch = %d\n", val);
 
@@ -638,6 +635,196 @@ alsapcm_dumpinfo(alsapcm_t *self, PyObject *args)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+
+
+static PyObject *
+alsapcm_info(alsapcm_t *self, PyObject *args)
+{
+	PyObject *info;
+	PyObject *value;
+
+	unsigned int val,val2;
+	snd_pcm_format_t fmt;
+	int dir;
+	snd_pcm_uframes_t frames;
+	snd_pcm_hw_params_t *hwparams;
+	snd_pcm_hw_params_alloca(&hwparams);
+	snd_pcm_hw_params_current(self->handle,hwparams);
+
+	if (!PyArg_ParseTuple(args,":dumpinfo"))
+		return NULL;
+
+	if (!self->handle) {
+		PyErr_SetString(ALSAAudioError, "PCM device is closed");
+		return NULL;
+	}
+
+	info = PyDict_New();
+
+	value=PyUnicode_FromString(snd_pcm_name(self->handle));
+	PyDict_SetItemString(info,"name",value);
+	Py_DECREF(value);
+
+	value=PyUnicode_FromString(snd_pcm_state_name(snd_pcm_state(self->handle)));
+	PyDict_SetItemString(info,"state",value);
+	Py_DECREF(value);
+
+	snd_pcm_hw_params_get_access(hwparams, (snd_pcm_access_t *) &val);
+	value=PyUnicode_FromString(snd_pcm_access_name((snd_pcm_access_t)val));
+	PyDict_SetItemString(info,"access_type",value);
+	Py_DECREF(value);
+
+	value = PyLong_FromUnsignedLong((unsigned long) self->pcmtype);
+	PyDict_SetItemString(info," (call value) type",value);
+	Py_DECREF(value);
+	value=PyUnicode_FromString(snd_pcm_stream_name((snd_pcm_stream_t) self->pcmtype));
+	PyDict_SetItemString(info," (call value) type_name",value);
+	Py_DECREF(value);
+
+	value = PyLong_FromUnsignedLong((unsigned long) self->pcmmode);
+	PyDict_SetItemString(info," (call value) mode",value);
+	Py_DECREF(value);
+	switch(self->pcmmode){
+		case 0:
+			value = PyUnicode_FromString("PCM_NORMAL");
+			break;
+		case SND_PCM_NONBLOCK:
+			value = PyUnicode_FromString("PCM_NONBLOCK");
+			break;
+		case SND_PCM_ASYNC:
+			value = PyUnicode_FromString("PCM_ASYNC");
+			break;
+	}
+	PyDict_SetItemString(info," (call value) mode_name",value);
+	Py_DECREF(value);
+
+	snd_pcm_hw_params_get_format(hwparams, &fmt);
+	value=PyLong_FromUnsignedLong((unsigned long)fmt);
+	PyDict_SetItemString(info,"format",value);
+	Py_DECREF(value);
+	value=PyUnicode_FromString(snd_pcm_format_name(fmt));
+	PyDict_SetItemString(info,"format_name",value);
+	Py_DECREF(value);
+	value=PyUnicode_FromString(snd_pcm_format_description(fmt));
+	PyDict_SetItemString(info,"format_description",value);
+	Py_DECREF(value);
+
+
+	snd_pcm_hw_params_get_subformat(hwparams, (snd_pcm_subformat_t *)&val);
+	value=PyUnicode_FromString(snd_pcm_subformat_name((snd_pcm_subformat_t)val));
+	PyDict_SetItemString(info,"subformat_name",value);
+	Py_DECREF(value);
+	value=PyUnicode_FromString(snd_pcm_subformat_description((snd_pcm_subformat_t)val));
+	PyDict_SetItemString(info,"subformat_description",value);
+	Py_DECREF(value);
+
+	snd_pcm_hw_params_get_channels(hwparams, &val);
+	value=PyLong_FromUnsignedLong((unsigned long) val);
+	PyDict_SetItemString(info,"channels", value);
+	Py_DECREF(value);
+
+	snd_pcm_hw_params_get_rate(hwparams, &val, &dir);
+	value=PyLong_FromUnsignedLong((unsigned long) val);
+	PyDict_SetItemString(info,"rate", value);
+	Py_DECREF(value);
+
+	snd_pcm_hw_params_get_period_time(hwparams, &val, &dir);
+	value=PyLong_FromUnsignedLong((unsigned long) val);
+	PyDict_SetItemString(info,"period_time", value);
+	Py_DECREF(value);
+
+	snd_pcm_hw_params_get_period_size(hwparams, &frames, &dir);
+	value=PyLong_FromUnsignedLong((unsigned long) frames);
+	PyDict_SetItemString(info,"period_size", value);
+	Py_DECREF(value);
+
+	snd_pcm_hw_params_get_buffer_time(hwparams, &val, &dir);
+	value=PyLong_FromUnsignedLong((unsigned long) val);
+	PyDict_SetItemString(info,"buffer_time", value);
+	Py_DECREF(value);
+
+	snd_pcm_hw_params_get_buffer_size(hwparams, (snd_pcm_uframes_t *) &val);
+	value=PyLong_FromUnsignedLong((unsigned long) val);
+	PyDict_SetItemString(info,"buffer_size", value);
+	Py_DECREF(value);
+
+	snd_pcm_hw_params_get_periods(hwparams, &val, &dir);
+	value=PyLong_FromUnsignedLong((unsigned long) val);
+	PyDict_SetItemString(info,"get_periods", value);
+	Py_DECREF(value);
+
+	snd_pcm_hw_params_get_rate_numden(hwparams, &val, &val2);
+	value=PyTuple_Pack(2,PyLong_FromUnsignedLong((unsigned long) val) \
+				,PyLong_FromUnsignedLong((unsigned long) val2));
+	PyDict_SetItemString(info,"rate_numden", value);
+	Py_DECREF(value);
+
+	val = snd_pcm_hw_params_get_sbits(hwparams);
+	value=PyLong_FromUnsignedLong((unsigned long) val);
+	PyDict_SetItemString(info,"significant_bits", value);
+	Py_DECREF(value);
+
+	val = snd_pcm_hw_params_is_batch(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItemString(info,"is_batch", value);
+	Py_DECREF(value);
+
+	val = snd_pcm_hw_params_is_block_transfer(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItemString(info,"is_block_transfer", value);
+	Py_DECREF(value);
+
+	val = snd_pcm_hw_params_is_double(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItemString(info,"is_double", value);
+	Py_DECREF(value);
+
+	val = snd_pcm_hw_params_is_half_duplex(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItemString(info,"is_half_duplex", value);
+	Py_DECREF(value);
+
+	val = snd_pcm_hw_params_is_joint_duplex(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItemString(info,"is_joint_duplex", value);
+	Py_DECREF(value);
+
+	val = snd_pcm_hw_params_can_overrange(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItemString(info,"can_overrange", value);
+	Py_DECREF(value);
+
+	val = snd_pcm_hw_params_can_mmap_sample_resolution(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItemString(info,"can_mmap_sample_resolution", value);
+	Py_DECREF(value);
+
+	val = snd_pcm_hw_params_can_pause(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItemString(info,"can_pause", value);
+	Py_DECREF(value);
+
+	val = snd_pcm_hw_params_can_resume(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItemString(info,"can_resume", value);
+	Py_DECREF(value);
+
+	val = snd_pcm_hw_params_can_sync_start(hwparams);
+	value=PyBool_FromLong((unsigned long) val);
+	PyDict_SetItemString(info,"can_sync_start", value);
+	Py_DECREF(value);
+
+	return info;
+}
+
+
+PyDoc_STRVAR(pcm_info_doc,
+"info() -> dict\n\
+\n\
+Returns a dictionary with the alsa device parameters as it is realized. \n\
+Keys are retrieved from the alsa library if they can be accessed, if not \n\
+they represent values stored by pyalsaaudio and they are prefixed with ' (call value) '. \n\
+");
 
 // auxiliary function
 
@@ -1376,6 +1563,7 @@ static PyMethodDef alsapcm_methods[] = {
 	{"setperiodsize", (PyCFunction)alsapcm_setperiodsize, METH_VARARGS,
 	 setperiodsize_doc},
 	{"dumpinfo", (PyCFunction)alsapcm_dumpinfo, METH_VARARGS},
+	{"info", (PyCFunction)alsapcm_info, METH_VARARGS, pcm_info_doc},
 	{"getformats", (PyCFunction)alsapcm_getformats, METH_VARARGS, getformats_doc},
 	{"getratebounds", (PyCFunction)alsapcm_getratemaxmin, METH_VARARGS, getratebounds_doc},
 	{"getrates", (PyCFunction)alsapcm_getrates, METH_VARARGS, getrates_doc},
