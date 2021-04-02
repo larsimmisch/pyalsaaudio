@@ -641,7 +641,7 @@ alsapcm_dumpinfo(alsapcm_t *self, PyObject *args)
 
 
 static PyObject *
-alsapcm_timestamp_raw(alsapcm_t *self, PyObject *args)
+alsapcm_htimestamp(alsapcm_t *self, PyObject *args)
 {
 	snd_htimestamp_t tstamp;
 	snd_pcm_uframes_t avail;
@@ -658,12 +658,12 @@ alsapcm_timestamp_raw(alsapcm_t *self, PyObject *args)
 }
 
 
-PyDoc_STRVAR(pcm_timestampraw_doc,
-"timestamp() -> tuple\n\
+PyDoc_STRVAR(pcm_htimestamp_doc,
+"htimestamp() -> tuple\n\
 \n\
 Returns a tuple containing the seconds since epoch in the first element \n\
-, nanoseconds in the second element, and available number of frames at the time of the time stamp.'. \n\
-");
+, nanoseconds in the second element, and number of frames available in \n\
+ the buffer at the time of the time stamp. \n");
 
 // auxiliary function
 
@@ -1401,8 +1401,8 @@ static PyMethodDef alsapcm_methods[] = {
 	{"setformat", (PyCFunction)alsapcm_setformat, METH_VARARGS, setformat_doc},
 	{"setperiodsize", (PyCFunction)alsapcm_setperiodsize, METH_VARARGS,
 	 setperiodsize_doc},
-	{"timestamp_raw", (PyCFunction) alsapcm_timestamp_raw, METH_VARARGS,
-	 pcm_timestampraw_doc},
+	{"htimestamp", (PyCFunction) alsapcm_htimestamp, METH_VARARGS,
+	 pcm_htimestamp_doc},
 	{"dumpinfo", (PyCFunction)alsapcm_dumpinfo, METH_VARARGS},
 	{"getformats", (PyCFunction)alsapcm_getformats, METH_VARARGS, getformats_doc},
 	{"getratebounds", (PyCFunction)alsapcm_getratemaxmin, METH_VARARGS, getratebounds_doc},
