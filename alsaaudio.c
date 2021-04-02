@@ -641,7 +641,6 @@ static PyObject *
 alsapcm_info(alsapcm_t *self, PyObject *args)
 {
 	PyObject *info = PyDict_New();
-	PyObject *pname;
 	PyObject *value;
 
 	unsigned int val,val2;
@@ -661,33 +660,30 @@ alsapcm_info(alsapcm_t *self, PyObject *args)
 	}
 
 	printf("PCM handle name = '%s'\n", snd_pcm_name(self->handle));
-	
-	
-	pname=PyUnicode_FromString("name");
+
 	value=PyUnicode_FromString(snd_pcm_name(self->handle));
-	PyDict_SetItem(info,pname,value);
+	PyDict_SetItemString(info,"name",value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString("state");
 	value=PyUnicode_FromString(snd_pcm_state_name(snd_pcm_state(self->handle)));
-	PyDict_SetItem(info,pname,value);
+	PyDict_SetItemString(info,"state",value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString("access_type");
 	snd_pcm_hw_params_get_access(hwparams, (snd_pcm_access_t *) &val);
 	value=PyUnicode_FromString(snd_pcm_access_name((snd_pcm_access_t)val));
-	PyDict_SetItem(info,pname,value);
+	PyDict_SetItemString(info,"access_type",value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString(" (call value) type");
 	value = PyLong_FromUnsignedLong((unsigned long) self->pcmtype);
-	PyDict_SetItem(info,pname,value);
-	pname=PyUnicode_FromString(" (call value) type_name");
+	PyDict_SetItemString(info," (call value) type",value);
+	Py_DECREF(value);
 	value=PyUnicode_FromString(snd_pcm_stream_name((snd_pcm_stream_t) self->pcmtype));
-	PyDict_SetItem(info,pname,value);
+	PyDict_SetItemString(info," (call value) type_name",value);
+	Py_DECREF(value);
 
-
-	pname=PyUnicode_FromString(" (call value) mode");
 	value = PyLong_FromUnsignedLong((unsigned long) self->pcmmode);
-	PyDict_SetItem(info,pname,value);
-	pname=PyUnicode_FromString(" (call value) mode_name");
+	PyDict_SetItemString(info," (call value) mode",value);
+	Py_DECREF(value);
 	switch(self->pcmmode){
 		case 0:
 			value = PyUnicode_FromString("PCM_NORMAL");
@@ -699,125 +695,124 @@ alsapcm_info(alsapcm_t *self, PyObject *args)
 			value = PyUnicode_FromString("PCM_ASYNC");
 			break;
 	}
-	PyDict_SetItem(info,pname,value);
+	PyDict_SetItemString(info," (call value) mode_name",value);
+	Py_DECREF(value);
 
 	snd_pcm_hw_params_get_format(hwparams, &fmt);
-	pname=PyUnicode_FromString("format");
 	value=PyLong_FromUnsignedLong((unsigned long)fmt);
-	PyDict_SetItem(info,pname,value);
-	pname=PyUnicode_FromString("format_name");
+	PyDict_SetItemString(info,"format",value);
+	Py_DECREF(value);
 	value=PyUnicode_FromString(snd_pcm_format_name(fmt));
-	PyDict_SetItem(info,pname,value);
-	pname=PyUnicode_FromString("format_description");
+	PyDict_SetItemString(info,"format_name",value);
+	Py_DECREF(value);
 	value=PyUnicode_FromString(snd_pcm_format_description(fmt));
-	PyDict_SetItem(info,pname,value);
+	PyDict_SetItemString(info,"format_description",value);
+	Py_DECREF(value);
 
 
 	snd_pcm_hw_params_get_subformat(hwparams, (snd_pcm_subformat_t *)&val);
-	pname=PyUnicode_FromString("subformat_name");
 	value=PyUnicode_FromString(snd_pcm_subformat_name((snd_pcm_subformat_t)val));
-	PyDict_SetItem(info,pname,value);
-	pname=PyUnicode_FromString("subformat_description");
+	PyDict_SetItemString(info,"subformat_name",value);
+	Py_DECREF(value);
 	value=PyUnicode_FromString(snd_pcm_subformat_description((snd_pcm_subformat_t)val));
-	PyDict_SetItem(info,pname,value);
+	PyDict_SetItemString(info,"subformat_description",value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString("channels");
 	snd_pcm_hw_params_get_channels(hwparams, &val);
 	value=PyLong_FromUnsignedLong((unsigned long) val);
-	PyDict_SetItem(info,pname, value);
+	PyDict_SetItemString(info,"channels", value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString("rate");
 	snd_pcm_hw_params_get_rate(hwparams, &val, &dir);
 	value=PyLong_FromUnsignedLong((unsigned long) val);
-	PyDict_SetItem(info,pname, value);
+	PyDict_SetItemString(info,"rate", value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString("period_time");
 	snd_pcm_hw_params_get_period_time(hwparams, &val, &dir);
 	value=PyLong_FromUnsignedLong((unsigned long) val);
-	PyDict_SetItem(info,pname, value);
+	PyDict_SetItemString(info,"period_time", value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString("period_size");
 	snd_pcm_hw_params_get_period_size(hwparams, &frames, &dir);
 	value=PyLong_FromUnsignedLong((unsigned long) frames);
-	PyDict_SetItem(info,pname, value);
+	PyDict_SetItemString(info,"period_size", value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString("buffer_time");
 	snd_pcm_hw_params_get_buffer_time(hwparams, &val, &dir);
 	value=PyLong_FromUnsignedLong((unsigned long) val);
-	PyDict_SetItem(info,pname, value);
+	PyDict_SetItemString(info,"buffer_time", value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString("buffer_size");
 	snd_pcm_hw_params_get_buffer_size(hwparams, (snd_pcm_uframes_t *) &val);
 	value=PyLong_FromUnsignedLong((unsigned long) val);
-	PyDict_SetItem(info,pname, value);
+	PyDict_SetItemString(info,"buffer_size", value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString("get_periods");
 	snd_pcm_hw_params_get_periods(hwparams, &val, &dir);
 	value=PyLong_FromUnsignedLong((unsigned long) val);
-	PyDict_SetItem(info,pname, value);
+	PyDict_SetItemString(info,"get_periods", value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString("rate_numden");
 	snd_pcm_hw_params_get_rate_numden(hwparams, &val, &val2);
 	value=PyTuple_Pack(2,PyLong_FromUnsignedLong((unsigned long) val) \
 				,PyLong_FromUnsignedLong((unsigned long) val2));
-	PyDict_SetItem(info,pname, value);
+	PyDict_SetItemString(info,"rate_numden", value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString("significant_bits");
 	val = snd_pcm_hw_params_get_sbits(hwparams);
 	value=PyLong_FromUnsignedLong((unsigned long) val);
-	PyDict_SetItem(info,pname, value);
+	PyDict_SetItemString(info,"significant_bits", value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString("is_batch");
 	val = snd_pcm_hw_params_is_batch(hwparams);
 	value=PyBool_FromLong((unsigned long) val);
-	PyDict_SetItem(info,pname, value);
+	PyDict_SetItemString(info,"is_batch", value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString("is_block_transfer");
 	val = snd_pcm_hw_params_is_block_transfer(hwparams);
 	value=PyBool_FromLong((unsigned long) val);
-	PyDict_SetItem(info,pname, value);
+	PyDict_SetItemString(info,"is_block_transfer", value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString("is_double");
 	val = snd_pcm_hw_params_is_double(hwparams);
 	value=PyBool_FromLong((unsigned long) val);
-	PyDict_SetItem(info,pname, value);
+	PyDict_SetItemString(info,"is_double", value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString("is_half_duplex");
 	val = snd_pcm_hw_params_is_half_duplex(hwparams);
 	value=PyBool_FromLong((unsigned long) val);
-	PyDict_SetItem(info,pname, value);
+	PyDict_SetItemString(info,"is_half_duplex", value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString("is_joint_duplex");
 	val = snd_pcm_hw_params_is_joint_duplex(hwparams);
 	value=PyBool_FromLong((unsigned long) val);
-	PyDict_SetItem(info,pname, value);
+	PyDict_SetItemString(info,"is_joint_duplex", value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString("can_overrange");
 	val = snd_pcm_hw_params_can_overrange(hwparams);
 	value=PyBool_FromLong((unsigned long) val);
-	PyDict_SetItem(info,pname, value);
+	PyDict_SetItemString(info,"can_overrange", value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString("can_mmap_sample_resolution");
 	val = snd_pcm_hw_params_can_mmap_sample_resolution(hwparams);
 	value=PyBool_FromLong((unsigned long) val);
-	PyDict_SetItem(info,pname, value);
+	PyDict_SetItemString(info,"can_mmap_sample_resolution", value);
+	Py_DECREF(value);
 
-	pname=PyUnicode_FromString("can_pause");
 	val = snd_pcm_hw_params_can_pause(hwparams);
 	value=PyBool_FromLong((unsigned long) val);
-	PyDict_SetItem(info,pname, value);
+	PyDict_SetItemString(info,"can_pause", value);
+	Py_DECREF(value);
 
-
-	pname=PyUnicode_FromString("can_resume");
 	val = snd_pcm_hw_params_can_resume(hwparams);
 	value=PyBool_FromLong((unsigned long) val);
-	PyDict_SetItem(info,pname, value);
+	PyDict_SetItemString(info,"can_resume", value);
+	Py_DECREF(value);
 
-
-	pname=PyUnicode_FromString("can_sync_start");
 	val = snd_pcm_hw_params_can_sync_start(hwparams);
 	value=PyBool_FromLong((unsigned long) val);
-	PyDict_SetItem(info,pname, value);
+	PyDict_SetItemString(info,"can_sync_start", value);
+	Py_DECREF(value);
 
 	return info;
 }
