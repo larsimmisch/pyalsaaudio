@@ -826,6 +826,32 @@ Keys are retrieved from the alsa library if they can be accessed, if not \n\
 they represent values stored by pyalsaaudio and they are prefixed with ' (call value) '. \n\
 ");
 
+
+static PyObject *
+alsapcm_htimestamp(alsapcm_t *self, PyObject *args)
+{
+	snd_htimestamp_t tstamp;
+	snd_pcm_uframes_t avail;
+	PyObject *result = NULL;
+
+	snd_pcm_htimestamp(self->handle , &avail, &tstamp);
+
+	result = PyTuple_New(3);
+	PyTuple_SetItem(result, 0, PyLong_FromLongLong(tstamp.tv_sec));
+	PyTuple_SetItem(result, 1, PyLong_FromLong(tstamp.tv_nsec));
+	PyTuple_SetItem(result, 2, PyLong_FromLong(avail));
+
+	return result;
+}
+
+
+PyDoc_STRVAR(pcm_htimestamp_doc,
+"htimestamp() -> tuple\n\
+\n\
+Returns a tuple containing the seconds since epoch in the first element \n\
+, nanoseconds in the second element, and number of frames available in \n\
+ the buffer at the time of the time stamp. \n");
+
 // auxiliary function
 
 
@@ -1562,6 +1588,8 @@ static PyMethodDef alsapcm_methods[] = {
 	{"setformat", (PyCFunction)alsapcm_setformat, METH_VARARGS, setformat_doc},
 	{"setperiodsize", (PyCFunction)alsapcm_setperiodsize, METH_VARARGS,
 	 setperiodsize_doc},
+	{"htimestamp", (PyCFunction) alsapcm_htimestamp, METH_VARARGS,
+	 pcm_htimestamp_doc},
 	{"dumpinfo", (PyCFunction)alsapcm_dumpinfo, METH_VARARGS},
 	{"info", (PyCFunction)alsapcm_info, METH_VARARGS, pcm_info_doc},
 	{"getformats", (PyCFunction)alsapcm_getformats, METH_VARARGS, getformats_doc},
