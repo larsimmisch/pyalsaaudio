@@ -852,6 +852,29 @@ Returns a tuple containing the seconds since epoch in the first element \n\
 , nanoseconds in the second element, and number of frames available in \n\
  the buffer at the time of the time stamp. \n");
 
+
+static PyObject *
+alsapcm_enable_timestamp(alsapcm_t *self, PyObject *args)
+{
+
+	snd_pcm_sw_params_t* swParams;
+	snd_pcm_sw_params_alloca( &swParams);
+
+	snd_pcm_sw_params_current(self->handle, swParams);
+
+	snd_pcm_sw_params_set_tstamp_mode(self->handle, swParams, SND_PCM_TSTAMP_ENABLE);
+	snd_pcm_sw_params_set_tstamp_type(self->handle, swParams, SND_PCM_TSTAMP_TYPE_GETTIMEOFDAY);
+	snd_pcm_sw_params(self->handle, swParams);
+
+	return Py_None;
+}
+
+
+PyDoc_STRVAR(alsapcm_enable_timestamp_doc,
+"enable_timestamp() -> tuple\n\
+\n\
+Hic sunt dragonis \n");
+
 // auxiliary function
 
 
@@ -1590,6 +1613,7 @@ static PyMethodDef alsapcm_methods[] = {
 	 setperiodsize_doc},
 	{"htimestamp", (PyCFunction) alsapcm_htimestamp, METH_VARARGS,
 	 pcm_htimestamp_doc},
+	{"enable_timestamp", (PyCFunction) alsapcm_enable_timestamp, METH_VARARGS, alsapcm_enable_timestamp_doc},
 	{"dumpinfo", (PyCFunction)alsapcm_dumpinfo, METH_VARARGS},
 	{"info", (PyCFunction)alsapcm_info, METH_VARARGS, pcm_info_doc},
 	{"getformats", (PyCFunction)alsapcm_getformats, METH_VARARGS, getformats_doc},

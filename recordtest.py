@@ -54,8 +54,8 @@ if __name__ == '__main__':
 		periodsize=160, device=device)
 
 	print(inp.info())
-	help(inp.htimestamp)
-
+	# help(inp.htimestamp)
+	inp.enable_timestamp()
 	loops = 100000
 	while loops > 0:
 		loops -= 1
