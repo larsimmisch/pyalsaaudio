@@ -856,6 +856,7 @@ Returns a tuple containing the seconds since epoch in the first element \n\
 static PyObject *
 alsapcm_enable_timestamp(alsapcm_t *self, PyObject *args)
 {
+    int err;
 
 	snd_pcm_sw_params_t* swParams;
 	snd_pcm_sw_params_alloca( &swParams);
@@ -864,7 +865,12 @@ alsapcm_enable_timestamp(alsapcm_t *self, PyObject *args)
 
 	snd_pcm_sw_params_set_tstamp_mode(self->handle, swParams, SND_PCM_TSTAMP_ENABLE);
 	snd_pcm_sw_params_set_tstamp_type(self->handle, swParams, SND_PCM_TSTAMP_TYPE_GETTIMEOFDAY);
-	snd_pcm_sw_params(self->handle, swParams);
+	err = snd_pcm_sw_params(self->handle, swParams);
+
+	if (err < 0) {
+		PyErr_SetString(PyExc_RuntimeError, "Unable to set sw params for input capture!");
+		return NULL;
+	}
 
 	return Py_None;
 }
