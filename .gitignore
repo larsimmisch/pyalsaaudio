@@ -9,3 +9,6 @@ gh-pages/
 build/
 dist/
 .vscode/
+/__pycache__/
+/pyalsaaudio.egg-info/
+*.raw
