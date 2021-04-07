@@ -830,14 +830,10 @@ they represent values stored by pyalsaaudio and they are prefixed with ' (call v
 static PyObject *
 alsa_asoundlib_version(PyObject * module, PyObject *args)
 {
-	PyObject *value;
-
 	if (!PyArg_ParseTuple(args,":asoundlib_version"))
 		return NULL;
 
-	value=PyUnicode_FromString(snd_asoundlib_version());
-
-	return value;
+	return PyUnicode_FromString(snd_asoundlib_version());
 }
 
 PyDoc_STRVAR(asoundlib_version_doc,
@@ -901,6 +897,7 @@ alsapcm_set_tstamp_mode(alsapcm_t *self, PyObject *args)
 		return NULL;
 	}
 
+	Py_INCREF(Py_None);
 	return Py_None;
 }
 
@@ -916,9 +913,6 @@ alsapcm_get_tstamp_mode(alsapcm_t *self, PyObject *args)
 {
 	snd_pcm_tstamp_t mode;
 	int err;
-
-
-	PyObject *value;
 
 	if (!PyArg_ParseTuple(args,":get_tstamp_mode"))
 		return NULL;
@@ -941,8 +935,7 @@ alsapcm_get_tstamp_mode(alsapcm_t *self, PyObject *args)
 		return NULL;
 	}
 
-	value = PyLong_FromUnsignedLong((unsigned long) mode);
-	return value;
+	return PyLong_FromUnsignedLong((unsigned long) mode);
 }
 
 
@@ -981,6 +974,7 @@ alsapcm_set_tstamp_type(alsapcm_t *self, PyObject *args)
 		return NULL;
 	}
 
+	Py_INCREF(Py_None);
 	return Py_None;
 }
 
@@ -995,9 +989,6 @@ alsapcm_get_tstamp_type(alsapcm_t *self, PyObject *args)
 {
 	snd_pcm_tstamp_type_t type;
 	int err;
-
-
-	PyObject *value;
 
 	if (!PyArg_ParseTuple(args,":get_tstamp_type"))
 		return NULL;
@@ -1020,8 +1011,7 @@ alsapcm_get_tstamp_type(alsapcm_t *self, PyObject *args)
 		return NULL;
 	}
 
-	value = PyLong_FromUnsignedLong((unsigned long) type);
-	return value;
+	return PyLong_FromUnsignedLong((unsigned long) type);
 }
 
 
