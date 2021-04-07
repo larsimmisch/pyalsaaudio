@@ -651,7 +651,7 @@ alsapcm_info(alsapcm_t *self, PyObject *args)
 	snd_pcm_hw_params_alloca(&hwparams);
 	snd_pcm_hw_params_current(self->handle,hwparams);
 
-	if (!PyArg_ParseTuple(args,":dumpinfo"))
+	if (!PyArg_ParseTuple(args,":info"))
 		return NULL;
 
 	if (!self->handle) {
@@ -828,6 +828,25 @@ they represent values stored by pyalsaaudio and they are prefixed with ' (call v
 
 
 static PyObject *
+alsa_asoundlib_version(PyObject * module, PyObject *args)
+{
+	PyObject *value;
+
+	if (!PyArg_ParseTuple(args,":asoundlib_version"))
+		return NULL;
+
+	value=PyUnicode_FromString(snd_asoundlib_version());
+
+	return value;
+}
+
+PyDoc_STRVAR(asoundlib_version_doc,
+"asoundlib_version() -> string\n\
+\n\
+Returns ALSA version string. \n\
+");
+
+static PyObject *
 alsapcm_htimestamp(alsapcm_t *self, PyObject *args)
 {
 	snd_htimestamp_t tstamp;
@@ -845,7 +864,7 @@ alsapcm_htimestamp(alsapcm_t *self, PyObject *args)
 }
 
 
-PyDoc_STRVAR(pcm_htimestamp_doc,
+PyDoc_STRVAR(htimestamp_doc,
 "htimestamp() -> tuple\n\
 \n\
 Returns a tuple containing the seconds since epoch in the first element \n\
@@ -854,21 +873,31 @@ Returns a tuple containing the seconds since epoch in the first element \n\
 
 
 static PyObject *
-alsapcm_enable_timestamp(alsapcm_t *self, PyObject *args)
+alsapcm_set_tstamp_mode(alsapcm_t *self, PyObject *args)
 {
-    int err;
+	snd_pcm_tstamp_t mode = SND_PCM_TSTAMP_ENABLE;
+	int err;
+
+	if (!PyArg_ParseTuple(args,"|i:set_tstamp_mode", &mode))
+		return NULL;
+				 
+	if (!self->handle)
+	{
+		PyErr_SetString(ALSAAudioError, "PCM device is closed");
+		return NULL;
+	}
 
 	snd_pcm_sw_params_t* swParams;
 	snd_pcm_sw_params_alloca( &swParams);
 
 	snd_pcm_sw_params_current(self->handle, swParams);
 
-	snd_pcm_sw_params_set_tstamp_mode(self->handle, swParams, SND_PCM_TSTAMP_ENABLE);
-	snd_pcm_sw_params_set_tstamp_type(self->handle, swParams, SND_PCM_TSTAMP_TYPE_GETTIMEOFDAY);
+	snd_pcm_sw_params_set_tstamp_mode(self->handle, swParams, mode);
+
 	err = snd_pcm_sw_params(self->handle, swParams);
 
 	if (err < 0) {
-		PyErr_SetString(PyExc_RuntimeError, "Unable to set sw params for input capture!");
+		PyErr_SetString(PyExc_RuntimeError, "Unable to set pcm tstamp mode!");
 		return NULL;
 	}
 
@@ -876,10 +905,131 @@ alsapcm_enable_timestamp(alsapcm_t *self, PyObject *args)
 }
 
 
-PyDoc_STRVAR(alsapcm_enable_timestamp_doc,
-"enable_timestamp() -> tuple\n\
+PyDoc_STRVAR(set_tstamp_mode_doc,
+"set_tstamp_mode() -> None\n\
 \n\
-Hic sunt dragonis \n");
+Set the timestamp mode of the device.  \n");
+
+
+static PyObject *
+alsapcm_get_tstamp_mode(alsapcm_t *self, PyObject *args)
+{
+	snd_pcm_tstamp_t mode;
+	int err;
+
+
+	PyObject *value;
+
+	if (!PyArg_ParseTuple(args,":get_tstamp_mode"))
+		return NULL;
+				 
+	if (!self->handle)
+	{
+		PyErr_SetString(ALSAAudioError, "PCM device is closed");
+		return NULL;
+	}
+
+	snd_pcm_sw_params_t* swParams;
+	snd_pcm_sw_params_alloca( &swParams);
+
+	snd_pcm_sw_params_current(self->handle, swParams);
+
+	err = snd_pcm_sw_params_get_tstamp_mode(swParams, &mode);
+
+	if (err < 0) {
+		PyErr_SetString(PyExc_RuntimeError, "Unable to get pcm tstamp mode!");
+		return NULL;
+	}
+
+	value = PyLong_FromUnsignedLong((unsigned long) mode);
+	return value;
+}
+
+
+PyDoc_STRVAR(get_tstamp_mode_doc,
+"get_tstamp_mode() -> integer \n\
+\n\
+Get the timestamp mode of the device.  \n");
+
+
+static PyObject *
+alsapcm_set_tstamp_type(alsapcm_t *self, PyObject *args)
+{
+	snd_pcm_tstamp_type_t type = SND_PCM_TSTAMP_TYPE_GETTIMEOFDAY;
+	int err;
+
+	if (!PyArg_ParseTuple(args,"|i:set_tstamp_type", &type))
+		return NULL;
+				 
+	if (!self->handle)
+	{
+		PyErr_SetString(ALSAAudioError, "PCM device is closed");
+		return NULL;
+	}
+
+	snd_pcm_sw_params_t* swParams;
+	snd_pcm_sw_params_alloca( &swParams);
+
+	snd_pcm_sw_params_current(self->handle, swParams);
+
+	snd_pcm_sw_params_set_tstamp_type(self->handle, swParams, type);
+
+	err = snd_pcm_sw_params(self->handle, swParams);
+
+	if (err < 0) {
+		PyErr_SetString(PyExc_RuntimeError, "Unable to set pcm tstamp type!");
+		return NULL;
+	}
+
+	return Py_None;
+}
+
+
+PyDoc_STRVAR(set_tstamp_type_doc,
+"set_tstamp_type() -> None\n\
+\n\
+Set the timestamp type of the device.  \n");
+
+static PyObject *
+alsapcm_get_tstamp_type(alsapcm_t *self, PyObject *args)
+{
+	snd_pcm_tstamp_type_t type;
+	int err;
+
+
+	PyObject *value;
+
+	if (!PyArg_ParseTuple(args,":get_tstamp_type"))
+		return NULL;
+				 
+	if (!self->handle)
+	{
+		PyErr_SetString(ALSAAudioError, "PCM device is closed");
+		return NULL;
+	}
+
+	snd_pcm_sw_params_t* swParams;
+	snd_pcm_sw_params_alloca( &swParams);
+
+	snd_pcm_sw_params_current(self->handle, swParams);
+
+	err = snd_pcm_sw_params_get_tstamp_type(swParams, &type);
+
+	if (err < 0) {
+		PyErr_SetString(PyExc_RuntimeError, "Unable to get pcm tstamp type!");
+		return NULL;
+	}
+
+	value = PyLong_FromUnsignedLong((unsigned long) type);
+	return value;
+}
+
+
+PyDoc_STRVAR(get_tstamp_type_doc,
+"get_tstamp_type() -> int \n\
+\n\
+Get the timestamp type of the device.  \n");
+
 
 // auxiliary function
 
@@ -1617,9 +1767,11 @@ static PyMethodDef alsapcm_methods[] = {
 	{"setformat", (PyCFunction)alsapcm_setformat, METH_VARARGS, setformat_doc},
 	{"setperiodsize", (PyCFunction)alsapcm_setperiodsize, METH_VARARGS,
 	 setperiodsize_doc},
-	{"htimestamp", (PyCFunction) alsapcm_htimestamp, METH_VARARGS,
-	 pcm_htimestamp_doc},
-	{"enable_timestamp", (PyCFunction) alsapcm_enable_timestamp, METH_VARARGS, alsapcm_enable_timestamp_doc},
+	{"htimestamp", (PyCFunction) alsapcm_htimestamp, METH_VARARGS, htimestamp_doc},
+	{"set_tstamp_type", (PyCFunction) alsapcm_set_tstamp_type, METH_VARARGS, set_tstamp_type_doc},
+	{"set_tstamp_mode", (PyCFunction) alsapcm_set_tstamp_mode, METH_VARARGS, set_tstamp_mode_doc},
+	{"get_tstamp_type", (PyCFunction) alsapcm_get_tstamp_type, METH_VARARGS, get_tstamp_type_doc},
+	{"get_tstamp_mode", (PyCFunction) alsapcm_get_tstamp_mode, METH_VARARGS, get_tstamp_mode_doc},
 	{"dumpinfo", (PyCFunction)alsapcm_dumpinfo, METH_VARARGS},
 	{"info", (PyCFunction)alsapcm_info, METH_VARARGS, pcm_info_doc},
 	{"getformats", (PyCFunction)alsapcm_getformats, METH_VARARGS, getformats_doc},
@@ -1635,6 +1787,12 @@ static PyMethodDef alsapcm_methods[] = {
 	 pcm_polldescriptors_doc},
 	{NULL, NULL}
 };
+
+static PyMethodDef alsa_methods[] = {
+	{"asoundlib_version", (PyCFunction) alsa_asoundlib_version, METH_VARARGS, asoundlib_version_doc},
+	{NULL, NULL}
+};
+
 
 #if PY_VERSION_HEX < 0x02020000
 static PyObject *
@@ -3063,6 +3221,8 @@ PyObject *PyInit_alsaaudio(void)
 	Py_INCREF(ALSAAudioError);
 	PyModule_AddObject(m, "ALSAAudioError", ALSAAudioError);
 
+	PyModule_AddFunctions(m, alsa_methods);
+
 	_EXPORT_INT(m, "PCM_PLAYBACK",SND_PCM_STREAM_PLAYBACK);
 	_EXPORT_INT(m, "PCM_CAPTURE",SND_PCM_STREAM_CAPTURE);
 
@@ -3098,6 +3258,15 @@ PyObject *PyInit_alsaaudio(void)
 	_EXPORT_INT(m, "PCM_FORMAT_S24_3BE",SND_PCM_FORMAT_S24_3BE);
 	_EXPORT_INT(m, "PCM_FORMAT_U24_3LE",SND_PCM_FORMAT_U24_3LE);
 	_EXPORT_INT(m, "PCM_FORMAT_U24_3BE",SND_PCM_FORMAT_U24_3BE);
+
+	/* PCM tstamp modes */
+	_EXPORT_INT(m, "PCM_TSTAMP_NONE",SND_PCM_TSTAMP_NONE);
+	_EXPORT_INT(m, "PCM_TSTAMP_ENABLE",SND_PCM_TSTAMP_ENABLE);
+
+	/* PCM tstamp types */
+	_EXPORT_INT(m, "PCM_TSTAMP_TYPE_GETTIMEOFDAY",SND_PCM_TSTAMP_TYPE_GETTIMEOFDAY);
+	_EXPORT_INT(m, "PCM_TSTAMP_TYPE_MONOTONIC",SND_PCM_TSTAMP_TYPE_MONOTONIC);
+	_EXPORT_INT(m, "PCM_TSTAMP_TYPE_MONOTONIC_RAW",SND_PCM_TSTAMP_TYPE_MONOTONIC_RAW);
 
 	 /* DSD sample formats are included in ALSA 1.0.29 and higher
 	  * define OVERRIDE_DSD_COMPILE to include DSD sample support
