@@ -53,15 +53,11 @@ if __name__ == '__main__':
 		channels=1, rate=44100, format=alsaaudio.PCM_FORMAT_S16_LE, 
 		periodsize=160, device=device)
 
-	print(inp.info())
-	# help(inp.htimestamp)
-	inp.enable_timestamp()
-	loops = 100000
+	loops = 1000000
 	while loops > 0:
 		loops -= 1
 		# Read data from device
 		l, data = inp.read()
 		if l:
-			print(l, inp.htimestamp(), time.time())
 			f.write(data)
 			time.sleep(.001)
