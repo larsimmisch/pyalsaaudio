@@ -58,7 +58,7 @@ if __name__ == '__main__':
 		loops -= 1
 		# Read data from device
 		l, data = inp.read()
-	  
+
 		if l:
 			f.write(data)
 			time.sleep(.001)

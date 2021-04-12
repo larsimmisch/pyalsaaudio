@@ -97,6 +97,9 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
      changed. Since 0.8, this functions returns the mixers for the default
      device, not the mixers for the first card.
 
+.. function:: asoundlib_version()
+
+   Return a Python string containing the ALSA version found.
 
 .. _pcm-objects:
 
@@ -259,6 +262,56 @@ PCM objects have the following methods:
 
    The *eventmask* value is compatible with `poll.register`__ in the Python 
    :const:`select` module.
+
+.. method:: PCM.set_tstamp_mode([mode=PCM_TSTAMP_ENABLE])
+
+   Set the ALSA timestamp mode on the device. The mode argument can be set to
+   either :const:`PCM_TSTAMP_NONE` or :const:`PCM_TSTAMP_ENABLE`.
+
+.. method:: PCM.get_tstamp_mode()
+
+   Return the integer value corresponding to the ALSA timestamp mode. The
+   return value can be either :const:`PCM_TSTAMP_NONE` or :const:`PCM_TSTAMP_ENABLE`.
+
+.. method:: PCM.set_tstamp_type([type=PCM_TSTAMP_TYPE_GETTIMEOFDAY])
+
+   Set the ALSA timestamp mode on the device. The type argument
+   can be set to either :const:`PCM_TSTAMP_TYPE_GETTIMEOFDAY`,
+   :const:`PCM_TSTAMP_TYPE_MONOTONIC` or :const:`PCM_TSTAMP_TYPE_MONOTONIC_RAW`.
+
+.. method:: PCM.get_tstamp_type()
+
+   Return the integer value corresponding to the ALSA timestamp type. The
+   return value can be either :const:`PCM_TSTAMP_TYPE_GETTIMEOFDAY`,
+   :const:`PCM_TSTAMP_TYPE_MONOTONIC` or :const:`PCM_TSTAMP_TYPE_MONOTONIC_RAW`.
+
+.. method:: PCM.htimestamp()
+
+   Return a Python tuple *(seconds, nanoseconds, frames_available_in_buffer)*.
+
+   The type of output is controlled by the tstamp_type, as described in the table below.
+
+   =================================  ===========================================
+            Timestamp Type                             Description
+   =================================  ===========================================
+   ``PCM_TSTAMP_TYPE_GETTIMEOFDAY``   System-wide realtime clock with seconds
+                                      since epoch.
+   ``PCM_TSTAMP_TYPE_MONOTONIC``      Monotonic time from an unspecified starting
+                                      time. Progress is NTP synchronized.
+   ``PCM_TSTAMP_TYPE_MONOTONIC_RAW``  Monotonic time from an unspecified starting
+                                      time using only the system clock.
+   =================================  ===========================================
+   
+   The timestamp mode is controlled by the tstamp_mode, as described in the table below.
+
+   =================================  ===========================================
+            Timestamp Mode                             Description
+   =================================  ===========================================
+   ``PCM_TSTAMP_NONE``                No timestamp.
+   ``PCM_TSTAMP_ENABLE``              Update timestamp at every hardware position
+                                      update.
+   =================================  ===========================================
+
 
 __ poll_objects_
 
