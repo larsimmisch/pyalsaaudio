@@ -1732,7 +1732,7 @@ alsapcm_polldescriptors(alsapcm_t *self, PyObject *args)
 	for (i = 0; i < count; ++i)
 	{
 		PyList_SetItem(result, i,
-					   Py_BuildValue("II", fds[i].fd, fds[i].events));
+					   Py_BuildValue("ih", fds[i].fd, fds[i].events));
 	}
 
 	return result;
@@ -3001,7 +3001,7 @@ alsamixer_polldescriptors(alsamixer_t *self, PyObject *args)
 	for (i = 0; i < count; ++i)
 	{
 		PyList_SetItem(result, i,
-					   Py_BuildValue("II", fds[i].fd, fds[i].events));
+					   Py_BuildValue("ih", fds[i].fd, fds[i].events));
 	}
 
 	return result;
