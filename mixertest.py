@@ -43,8 +43,28 @@ def show_mixer(name, kwargs):
         sys.exit(1)
 
     print("Mixer name: '%s'" % mixer.mixer())
-    print("Capabilities: %s %s" % (' '.join(mixer.volumecap()),
+    volcap = mixer.volumecap()
+    print("Capabilities: %s %s" % (' '.join(volcap),
                                    ' '.join(mixer.switchcap())))
+
+    if "Volume" in volcap or "Joined Volume" in volcap or "Playback Volume" in volcap:
+        pmin, pmax = mixer.getrange(alsaaudio.PCM_PLAYBACK)
+        pmin_keyword, pmax_keyword = mixer.getrange(pcmtype=alsaaudio.PCM_PLAYBACK)
+        pmin_default, pmax_default = mixer.getrange()
+        assert pmin == pmin_keyword
+        assert pmax == pmax_keyword
+        assert pmin == pmin_default
+        assert pmax == pmax_default
+        print("Raw playback volume range {}-{}".format(pmin, pmax))
+
+    if "Capture Volume" in volcap or "Joined Capture Volume" in volcap:
+        # Check that `getrange` works with keyword and positional arguments
+        cmin, cmax = mixer.getrange(alsaaudio.PCM_CAPTURE)
+        cmin_keyword, cmax_keyword = mixer.getrange(pcmtype=alsaaudio.PCM_CAPTURE)
+        assert cmin == cmin_keyword
+        assert cmax == cmax_keyword
+        print("Raw capture volume range {}-{}".format(cmin, cmax))
+
     volumes = mixer.getvolume()
     for i in range(len(volumes)):
         print("Channel %i volume: %i%%" % (i,volumes[i]))

@@ -306,7 +306,7 @@ Return the card name and long name for card 'card_index'.");
 
 
 static PyObject *
-alsapcm_list(PyObject *self, PyObject *args)
+alsapcm_list(PyObject *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *pcmtypeobj = NULL;
 	long pcmtype;
@@ -316,8 +316,11 @@ alsapcm_list(PyObject *self, PyObject *args)
 	char *name, *io;
 	const char *filter;
 
-	if (!PyArg_ParseTuple(args,"|O:pcms", &pcmtypeobj))
+	char *kw[] = { "pcmtype", NULL };
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O:pcms", kw, &pcmtypeobj)) {
 		return NULL;
+	}
 
 	pcmtype = get_pcmtype(pcmtypeobj);
 	if (pcmtype < 0) {
@@ -2350,7 +2353,7 @@ static long alsamixer_getphysvolume(long min, long max, int percentage)
 }
 
 static PyObject *
-alsamixer_getvolume(alsamixer_t *self, PyObject *args)
+alsamixer_getvolume(alsamixer_t *self, PyObject *args, PyObject *kwds)
 {
 	snd_mixer_elem_t *elem;
 	int channel;
@@ -2360,8 +2363,11 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args)
 	PyObject *result;
 	PyObject *item;
 
-	if (!PyArg_ParseTuple(args,"|O:getvolume", &pcmtypeobj))
+	char *kw[] = { "pcmtype", NULL };
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O:getvolume", kw, &pcmtypeobj)) {
 		return NULL;
+	}
 
 	if (!self->handle)
 	{
@@ -2426,13 +2432,15 @@ if the mixer has this capability, otherwise PCM_CAPTURE");
 
 
 static PyObject *
-alsamixer_getrange(alsamixer_t *self, PyObject *args)
+alsamixer_getrange(alsamixer_t *self, PyObject *args, PyObject *kwds)
 {
 	snd_mixer_elem_t *elem;
 	PyObject *pcmtypeobj = NULL;
 	long pcmtype;
 
-	if (!PyArg_ParseTuple(args,"|O:getrange", &pcmtypeobj)) {
+	char *kw[] = { "pcmtype", NULL };
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O:getrange", kw, &pcmtypeobj)) {
 		return NULL;
 	}
 
@@ -2494,7 +2502,7 @@ PyDoc_STRVAR(getrange_doc,
 \n\
 Returns a list of tuples with the volume range (ints).\n\
 \n\
-The optional 'direction' argument can be either PCM_PLAYBACK or\n\
+The optional 'pcmtype' argument can be either PCM_PLAYBACK or\n\
 PCM_CAPTURE, which is relevant if the mixer can control both\n\
 playback and capture volume. The default value is 'playback'\n\
 if the mixer has this capability, otherwise 'capture'");
@@ -2748,7 +2756,7 @@ This method will fail if the mixer has no capture switch capabilities.");
 
 
 static PyObject *
-alsamixer_setvolume(alsamixer_t *self, PyObject *args)
+alsamixer_setvolume(alsamixer_t *self, PyObject *args, PyObject *kwds)
 {
 	snd_mixer_elem_t *elem;
 	int i;
@@ -2759,9 +2767,12 @@ alsamixer_setvolume(alsamixer_t *self, PyObject *args)
 	int channel = MIXER_CHANNEL_ALL;
 	int done = 0;
 
-	if (!PyArg_ParseTuple(args,"l|iO:setvolume", &volume, &channel,
-						  &pcmtypeobj))
+	char *kw[] = { "volume", "channel", "pcmtype", NULL };
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "l|iO:setvolume", kw, &volume,
+		&channel, &pcmtypeobj)) {
 		return NULL;
+	}
 
 	if (volume < 0 || volume > 100)
 	{
@@ -2833,7 +2844,7 @@ If the optional argument channel is present, the volume is set only for\n\
 this channel. This assumes that the mixer can control the volume for the\n\
 channels independently.\n\
 \n\
-The optional direction argument can be either PCM_PLAYBACK or PCM_CAPTURE.\n\
+The optional 'pcmtype' argument can be either PCM_PLAYBACK or PCM_CAPTURE.\n\
 It is relevant if the mixer has independent playback and capture volume\n\
 capabilities, and controls which of the volumes will be changed.\n\
 The default is 'playback' if the mixer has this capability, otherwise\n\
@@ -3055,13 +3066,13 @@ static PyMethodDef alsamixer_methods[] = {
 	 switchcap_doc},
 	{"volumecap", (PyCFunction)alsamixer_volumecap, METH_VARARGS,
 	 volumecap_doc},
-	{"getvolume", (PyCFunction)alsamixer_getvolume, METH_VARARGS,
+	{"getvolume", (PyCFunction)alsamixer_getvolume, METH_VARARGS | METH_KEYWORDS,
 	 getvolume_doc},
-	{"getrange", (PyCFunction)alsamixer_getrange, METH_VARARGS, getrange_doc},
+	{"getrange", (PyCFunction)alsamixer_getrange, METH_VARARGS | METH_KEYWORDS, getrange_doc},
 	{"getenum", (PyCFunction)alsamixer_getenum, METH_VARARGS, getenum_doc},
 	{"getmute", (PyCFunction)alsamixer_getmute, METH_VARARGS, getmute_doc},
 	{"getrec", (PyCFunction)alsamixer_getrec, METH_VARARGS, getrec_doc},
-	{"setvolume", (PyCFunction)alsamixer_setvolume, METH_VARARGS,
+	{"setvolume", (PyCFunction)alsamixer_setvolume, METH_VARARGS | METH_KEYWORDS,
 	 setvolume_doc},
 	{"setenum", (PyCFunction)alsamixer_setenum, METH_VARARGS, setenum_doc},
 	{"setmute", (PyCFunction)alsamixer_setmute, METH_VARARGS, setmute_doc},
@@ -3137,7 +3148,7 @@ static PyMethodDef alsaaudio_methods[] = {
 	{ "card_indexes", (PyCFunction)alsacard_list_indexes, METH_VARARGS, card_indexes_doc},
 	{ "card_name", (PyCFunction)alsacard_name, METH_VARARGS, card_name_doc},
 	{ "cards", (PyCFunction)alsacard_list, METH_VARARGS, cards_doc},
-	{ "pcms", (PyCFunction)alsapcm_list, METH_VARARGS, pcms_doc},
+	{ "pcms", (PyCFunction)alsapcm_list, METH_VARARGS|METH_KEYWORDS, pcms_doc},
 	{ "mixers", (PyCFunction)alsamixer_list, METH_VARARGS|METH_KEYWORDS, mixers_doc},
 	{ 0, 0 },
 };

@@ -33,13 +33,13 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
 .. % should be enclosed in \var{...}.
 
 
-.. function:: pcms([type=PCM_PLAYBACK])
+.. function:: pcms(pcmtype=PCM_PLAYBACK)
 
    List available PCM devices by name.
    
    Arguments are:
 
-   * *type* - can be either :const:`PCM_CAPTURE` or :const:`PCM_PLAYBACK`
+   * *pcmtype* - can be either :const:`PCM_CAPTURE` or :const:`PCM_PLAYBACK`
      (default).  
 
    **Note:**
@@ -466,11 +466,11 @@ Mixer objects have the following methods:
    This method will fail if the mixer has no playback switch capabilities.
 
 
-.. method:: Mixer.getrange([direction])
+.. method:: Mixer.getrange(pcmtype=PCM_PLAYBACK)
 
    Return the volume range of the ALSA mixer controlled by this object.
 
-   The optional *direction* argument can be either :const:`PCM_PLAYBACK` or
+   The optional *pcmtype* argument can be either :const:`PCM_PLAYBACK` or
    :const:`PCM_CAPTURE`, which is relevant if the mixer can control both
    playback and capture volume.  The default value is :const:`PCM_PLAYBACK`
    if the mixer has playback channels, otherwise it is :const:`PCM_CAPTURE`.
@@ -484,18 +484,18 @@ Mixer objects have the following methods:
    This method will fail if the mixer has no capture switch capabilities.
 
 
-.. method:: Mixer.getvolume([direction])
+.. method:: Mixer.getvolume(pcmtype=PCM_PLAYBACK)
 
    Returns a list with the current volume settings for each channel. The list
    elements are integer percentages.
 
-   The optional *direction* argument can be either :const:`PCM_PLAYBACK` or
+   The optional *pcmtype* argument can be either :const:`PCM_PLAYBACK` or
    :const:`PCM_CAPTURE`, which is relevant if the mixer can control both
    playback and capture volume. The default value is :const:`PCM_PLAYBACK`
    if the mixer has playback channels, otherwise it is :const:`PCM_CAPTURE`.
 
 
-.. method:: Mixer.setvolume(volume, [channel], [direction])
+.. method:: Mixer.setvolume(volume, channel=None, pcmtype=PCM_PLAYBACK)
 
    Change the current volume settings for this mixer. The *volume* argument
    controls the new volume setting as an integer percentage.
@@ -504,7 +504,7 @@ Mixer objects have the following methods:
    only for this channel. This assumes that the mixer can control the
    volume for the channels independently.
 
-   The optional *direction* argument can be either :const:`PCM_PLAYBACK` or
+   The optional *pcmtype* argument can be either :const:`PCM_PLAYBACK` or
    :const:`PCM_CAPTURE`, which is relevant if the mixer can control both
    playback and capture volume. The default value is :const:`PCM_PLAYBACK`
    if the mixer has playback channels, otherwise it is :const:`PCM_CAPTURE`.
