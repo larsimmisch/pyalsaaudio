@@ -43,11 +43,36 @@ def show_mixer(name, kwargs):
         sys.exit(1)
 
     print("Mixer name: '%s'" % mixer.mixer())
-    print("Capabilities: %s %s" % (' '.join(mixer.volumecap()),
+    volcap = mixer.volumecap()
+    print("Capabilities: %s %s" % (' '.join(volcap),
                                    ' '.join(mixer.switchcap())))
+
+    if "Volume" in volcap or "Joined Volume" in volcap or "Playback Volume" in volcap:
+        pmin, pmax = mixer.getrange(alsaaudio.PCM_PLAYBACK)
+        pmin_keyword, pmax_keyword = mixer.getrange(pcmtype=alsaaudio.PCM_PLAYBACK, units=alsaaudio.VOLUME_UNITS_RAW)
+        pmin_default, pmax_default = mixer.getrange()
+        assert pmin == pmin_keyword
+        assert pmax == pmax_keyword
+        assert pmin == pmin_default
+        assert pmax == pmax_default
+        print("Raw playback volume range {}-{}".format(pmin, pmax))
+        pmin_dB, pmax_dB = mixer.getrange(units=alsaaudio.VOLUME_UNITS_DB)
+        print("dB playback volume range {}-{}".format(pmin_dB / 100.0, pmax_dB / 100.0))
+
+    if "Capture Volume" in volcap or "Joined Capture Volume" in volcap:
+        # Check that `getrange` works with keyword and positional arguments
+        cmin, cmax = mixer.getrange(alsaaudio.PCM_CAPTURE)
+        cmin_keyword, cmax_keyword = mixer.getrange(pcmtype=alsaaudio.PCM_CAPTURE, units=alsaaudio.VOLUME_UNITS_RAW)
+        assert cmin == cmin_keyword
+        assert cmax == cmax_keyword
+        print("Raw capture volume range {}-{}".format(cmin, cmax))
+        cmin_dB, cmax_dB = mixer.getrange(pcmtype=alsaaudio.PCM_CAPTURE, units=alsaaudio.VOLUME_UNITS_DB)
+        print("dB capture volume range {}-{}".format(cmin_dB / 100.0, cmax_dB / 100.0))
+
     volumes = mixer.getvolume()
+    volumes_dB = mixer.getvolume(units=alsaaudio.VOLUME_UNITS_DB)
     for i in range(len(volumes)):
-        print("Channel %i volume: %i%%" % (i,volumes[i]))
+        print("Channel %i volume: %i%% (%.1f dB)" % (i, volumes[i], volumes_dB[i] / 100.0))
         
     try:
         mutes = mixer.getmute()
