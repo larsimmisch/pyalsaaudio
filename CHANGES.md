@@ -1,3 +1,6 @@
+# Version 0.9.1:
+- Support decibel, percentage, and raw volumes in getvolume, setvolume, and getrange (#109 from @chrisdiamand):
+
 # Version 0.9.0:
 - Added keyword arguments for channels, format, rate and periodsize
 - Deprecated `setchannel`, `setformat`, `setrate` and `setperiodsize`
