@@ -4,15 +4,14 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Index &#8212; alsaaudio documentation 0.9.0 documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Index &#8212; alsaaudio documentation 0.9.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
    
@@ -58,6 +57,10 @@
 </li>
       </ul></li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="libalsaaudio.html#alsaaudio.asoundlib_version">asoundlib_version() (in module alsaaudio)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="C">C</h2>
@@ -79,12 +82,16 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="libalsaaudio.html#alsaaudio.Mixer.getenum">getenum() (alsaaudio.Mixer method)</a>
+      <li><a href="libalsaaudio.html#alsaaudio.PCM.get_tstamp_mode">get_tstamp_mode() (alsaaudio.PCM method)</a>
 </li>
-      <li><a href="libalsaaudio.html#alsaaudio.Mixer.getmute">getmute() (alsaaudio.Mixer method)</a>
+      <li><a href="libalsaaudio.html#alsaaudio.PCM.get_tstamp_type">get_tstamp_type() (alsaaudio.PCM method)</a>
+</li>
+      <li><a href="libalsaaudio.html#alsaaudio.Mixer.getenum">getenum() (alsaaudio.Mixer method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="libalsaaudio.html#alsaaudio.Mixer.getmute">getmute() (alsaaudio.Mixer method)</a>
+</li>
       <li><a href="libalsaaudio.html#alsaaudio.Mixer.getrange">getrange() (alsaaudio.Mixer method)</a>
 </li>
       <li><a href="libalsaaudio.html#alsaaudio.Mixer.getrec">getrec() (alsaaudio.Mixer method)</a>
@@ -98,6 +105,10 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="libalsaaudio.html#alsaaudio.Mixer.handleevents">handleevents() (alsaaudio.Mixer method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="libalsaaudio.html#alsaaudio.PCM.htimestamp">htimestamp() (alsaaudio.PCM method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -160,16 +171,20 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="libalsaaudio.html#alsaaudio.PCM.set_tstamp_mode">set_tstamp_mode() (alsaaudio.PCM method)</a>
+</li>
+      <li><a href="libalsaaudio.html#alsaaudio.PCM.set_tstamp_type">set_tstamp_type() (alsaaudio.PCM method)</a>
+</li>
       <li><a href="libalsaaudio.html#alsaaudio.PCM.setchannels">setchannels() (alsaaudio.PCM method)</a>
 </li>
       <li><a href="libalsaaudio.html#alsaaudio.PCM.setformat">setformat() (alsaaudio.PCM method)</a>
 </li>
       <li><a href="libalsaaudio.html#alsaaudio.Mixer.setmute">setmute() (alsaaudio.Mixer method)</a>
 </li>
-      <li><a href="libalsaaudio.html#alsaaudio.PCM.setperiodsize">setperiodsize() (alsaaudio.PCM method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="libalsaaudio.html#alsaaudio.PCM.setperiodsize">setperiodsize() (alsaaudio.PCM method)</a>
+</li>
       <li><a href="libalsaaudio.html#alsaaudio.PCM.setrate">setrate() (alsaaudio.PCM method)</a>
 </li>
       <li><a href="libalsaaudio.html#alsaaudio.Mixer.setrec">setrec() (alsaaudio.Mixer method)</a>
@@ -215,7 +230,7 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="pyalsaaudio.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pyalsaaudio.html#what-is-alsa">What is ALSA</a></li>
@@ -236,7 +251,7 @@
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -258,7 +273,7 @@
       &copy;2017, Lars Immisch & Casper Wilstrup.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

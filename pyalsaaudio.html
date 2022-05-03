@@ -4,15 +4,15 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Introduction &#8212; alsaaudio documentation 0.9.0 documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Introduction &#8212; alsaaudio documentation 0.9.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="PCM Terminology and Concepts" href="terminology.html" />
@@ -33,7 +33,7 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="introduction">
+  <section id="introduction">
 <h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
 <dl class="field-list simple">
 <dt class="field-odd">Author</dt>
@@ -47,7 +47,7 @@
 majority of the python distribution. Basically you can use it for anything you
 wish (even commercial purposes). There is no warranty whatsoever.</p>
 <div class="topic">
-<p class="topic-title first">Abstract</p>
+<p class="topic-title">Abstract</p>
 <p>This package contains wrappers for accessing the ALSA API from Python. It is
 currently fairly complete for PCM devices and Mixer access. MIDI sequencer
 support is low on our priority list, but volunteers are welcome.</p>
@@ -55,8 +55,8 @@ support is low on our priority list, but volunteers are welcome.</p>
 Please don’t send bug reports regarding ALSA specifically. There are several
 bugs in this API, and those should be reported to the ALSA team - not me.</p>
 </div>
-</div>
-<div class="section" id="what-is-alsa">
+</section>
+<section id="what-is-alsa">
 <h1>What is ALSA<a class="headerlink" href="#what-is-alsa" title="Permalink to this headline">¶</a></h1>
 <p>The Advanced Linux Sound Architecture (ALSA) provides audio and MIDI
 functionality to the Linux operating system.</p>
@@ -72,7 +72,7 @@ all ALSA capable applications.</p></li>
 </ul>
 <p>More information about ALSA may be found on the project homepage
 <a class="reference external" href="http://www.alsa-project.org">http://www.alsa-project.org</a></p>
-<div class="section" id="alsa-and-python">
+<section id="alsa-and-python">
 <h2>ALSA and Python<a class="headerlink" href="#alsa-and-python" title="Permalink to this headline">¶</a></h2>
 <p>The older Linux sound API (OSS) which is now deprecated is well supported from
 the standard Python library, through the ossaudiodev module. No native ALSA
@@ -87,9 +87,9 @@ the ALSA Mixer API.</p>
 <p>MIDI support is not available, and since I don’t own any MIDI hardware, it’s
 difficult for me to implement it. Volunteers to work on this would be greatly
 appreciated.</p>
-</div>
-</div>
-<div class="section" id="installation">
+</section>
+</section>
+<section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
 <p>Note: the wrappers link with the alsasound library (from the alsa-lib package)
 and need the ALSA headers for compilation.  Verify that you have
@@ -107,8 +107,8 @@ ship with ALSA kernels.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># python setup.py install</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="testing">
+</section>
+<section id="testing">
 <h1>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h1>
 <p>Make sure that <code class="code docutils literal notranslate"><span class="pre">aplay</span></code> plays a file through the soundcard you want, then
 try:</p>
@@ -135,7 +135,7 @@ with <code class="docutils literal notranslate"><span class="pre">Ctl-C</span></
 a bit dependent on the ALSA configuration and may fail without indicating
 a real problem.</p>
 <p>If you find bugs/problems, please file a <a class="reference external" href="https://github.com/larsimmisch/pyalsaaudio/issues">bug report</a>.</p>
-</div>
+</section>
 
 
           </div>
@@ -154,7 +154,7 @@ a real problem.</p>
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#what-is-alsa">What is ALSA</a><ul>
@@ -180,7 +180,7 @@ a real problem.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -202,7 +202,7 @@ a real problem.</p>
       &copy;2017, Lars Immisch & Casper Wilstrup.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
