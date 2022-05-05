@@ -2411,11 +2411,11 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args, PyObject *kwds)
 
 	elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
 
-	if (!pcmtypeobj || (pcmtypeobj == Py_None))
-	{
+	if (!pcmtypeobj || (pcmtypeobj == Py_None)) {
 		if (self->pchannels) {
 			pcmtype = SND_PCM_STREAM_PLAYBACK;
-		} else {
+		}
+		else {
 			pcmtype = SND_PCM_STREAM_CAPTURE;
 		}
 	}
