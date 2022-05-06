@@ -2415,9 +2415,9 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args, PyObject *kwds)
 		if (self->pchannels) {
 			pcmtype = SND_PCM_STREAM_PLAYBACK;
 		}
-	}
-	else {
-		pcmtype = SND_PCM_STREAM_CAPTURE;
+		else {
+			pcmtype = SND_PCM_STREAM_CAPTURE;
+		}
 	}
 
 	result = PyList_New(0);
