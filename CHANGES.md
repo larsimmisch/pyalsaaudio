@@ -1,5 +1,8 @@
+# Version 0.9.2
+- Fix alsamixer_getvolume (#112 from @stephensp)
+
 # Version 0.9.1:
-- Support decibel, percentage, and raw volumes in getvolume, setvolume, and getrange (#109 from @chrisdiamand):
+- Support decibel, percentage, and raw volumes in getvolume, setvolume, and getrange (#109 from @chrisdiamand)
 
 # Version 0.9.0:
 - Added keyword arguments for channels, format, rate and periodsize
