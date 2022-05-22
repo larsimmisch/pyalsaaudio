@@ -1904,7 +1904,7 @@ alsamixer_list(PyObject *self, PyObject *args, PyObject *kwds)
 	snd_mixer_elem_t *elem;
 	int err;
 	int cardidx = -1;
-	char hw_device[32];
+	char hw_device[128];
 	char *device = "default";
 	PyObject *result;
 
@@ -1976,7 +1976,7 @@ alsamixer_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	int err;
 	char *control = "Master";
 	char *device = "default";
-	char hw_device[32];
+	char hw_device[128];
 	int cardidx = -1;
 	int id = 0;
 	snd_mixer_elem_t *elem;
