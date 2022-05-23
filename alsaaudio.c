@@ -219,7 +219,7 @@ alsacard_list(PyObject *self, PyObject *args)
 	for (rc = snd_card_next(&card); !rc && (card >= 0);
 		 rc = snd_card_next(&card))
 	{
-		char name[32];
+		char name[64];
 		int err;
 		PyObject *item;
 
@@ -2604,7 +2604,7 @@ alsamixer_getenum(alsamixer_t *self, PyObject *args)
 	PyObject *elems;
 	int i, count, rc;
 	unsigned int index;
-	char name[32];
+	char name[64];
 	PyObject *result;
 
 	if (!PyArg_ParseTuple(args, ":getenum"))
