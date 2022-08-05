@@ -344,6 +344,16 @@ PCM objects have the following methods:
 
    *New in 0.9*
 
+.. method:: PCM.drain()
+
+   For :const:`PCM_PLAYBACK` PCM objects, play residual buffered frames
+   and then stop the stream. In :const:`PCM_NORMAL` mode,
+   this function blocks until all pending playback is drained.
+
+   For :const:`PCM_CAPTURE` PCM objects, this function is not very useful.
+
+   *New in 0.10*
+
 .. method:: PCM.close()
 
    Closes the PCM device.

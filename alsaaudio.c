@@ -1512,6 +1512,30 @@ static PyObject *alsapcm_drop(alsapcm_t *self)
 	return PyLong_FromLong(res);
 }
 
+static PyObject *alsapcm_drain(alsapcm_t *self)
+{
+	int res;
+
+	if (!self->handle) {
+		PyErr_SetString(ALSAAudioError, "PCM device is closed");
+		return NULL;
+	}
+
+	Py_BEGIN_ALLOW_THREADS
+	res = snd_pcm_drain(self->handle);
+	Py_END_ALLOW_THREADS
+
+	if (res < 0)
+	{
+		PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
+					 self->cardname);
+
+		return NULL;
+	}
+
+	return PyLong_FromLong(res);
+}
+
 static PyObject *
 alsapcm_polldescriptors(alsapcm_t *self, PyObject *args)
 {
@@ -1589,6 +1613,7 @@ static PyMethodDef alsapcm_methods[] = {
 	{"write", (PyCFunction)alsapcm_write, METH_VARARGS},
 	{"pause", (PyCFunction)alsapcm_pause, METH_VARARGS},
 	{"drop", (PyCFunction)alsapcm_drop, METH_VARARGS},
+	{"drain", (PyCFunction)alsapcm_drain, METH_VARARGS},
 	{"close", (PyCFunction)alsapcm_close, METH_VARARGS},
 	{"polldescriptors", (PyCFunction)alsapcm_polldescriptors, METH_VARARGS},
 	{NULL, NULL}
