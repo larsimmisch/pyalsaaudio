@@ -55,6 +55,8 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
      the `device` keyword argument is ignored. ``0`` is the first hardware sound
      card.
 
+     **Note:** This should not be used, as it bypasses most of ALSA's configuration.
+
    * *device* - the name of the device on which the mixer resides. The default
      is ``'default'``.
 
@@ -140,7 +142,10 @@ following arguments:
    ``PCM_FORMAT_U24_3BE``     Unsigned 24 bit samples for each channel (Big Endian byte order in 3 bytes)
    =========================  ===============
 
-   * *periodsize* - the period size in frames. Each write should consist of *periodsize* frames. The default value is 32.
+   * *periodsize* - the period size in frames.
+     Make sure you understand :ref:`the meaning of periods <term-period>`.
+     The default value is 32, which is below the actual minimum of most devices,
+     and will therefore likely be larger in practice.
    * *device* - the name of the PCM device that should be used (for example
      a value from the output of :func:`pcms`). The default value is
      ``'default'``.
@@ -148,6 +153,8 @@ following arguments:
      is constructed as 'hw:*cardindex*' and
      the `device` keyword argument is ignored.
      ``0`` is the first hardware sound card.
+
+     **Note:** This should not be used, as it bypasses most of ALSA's configuration.
 
    This will construct a PCM object with the given settings.
 
@@ -316,6 +323,10 @@ PCM objects have the following methods:
    In :const:`PCM_NONBLOCK` mode, the call will return immediately, with a
    return value of zero, if the buffer is full. In this case, the data
    should be written at a later time.
+
+   Note that this call completing means only that the samples were buffered
+   in the kernel, and playout will continue afterwards. Make sure that the
+   stream is drained before discarding the PCM handle.
 
 .. method:: PCM.pause([enable=True])
 

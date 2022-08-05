@@ -52,6 +52,8 @@ Data rate
    underrun (on playback) occurs; the term "xrun" is used to refer to
    either event.
 
+.. _term-period:
+
 Period
    The CPU processes sample data in chunks of frames, so-called periods
    (also called fragments by some systems). The operating system kernel's
