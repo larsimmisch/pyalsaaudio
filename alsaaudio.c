@@ -515,11 +515,12 @@ alsapcm_close(alsapcm_t *self, PyObject *args)
 
 	if (self->handle)
 	{
-		Py_BEGIN_ALLOW_THREADS
-		if (self->pcmtype == SND_PCM_STREAM_PLAYBACK)
+		if (self->pcmtype == SND_PCM_STREAM_PLAYBACK) {
+			Py_BEGIN_ALLOW_THREADS
 			snd_pcm_drain(self->handle);
+			Py_END_ALLOW_THREADS
+		}
 		snd_pcm_close(self->handle);
-		Py_END_ALLOW_THREADS
 
 		self->handle = 0;
 	}
@@ -1476,10 +1477,7 @@ static PyObject *alsapcm_pause(alsapcm_t *self, PyObject *args)
 		return NULL;
 	}
 
-	Py_BEGIN_ALLOW_THREADS
 	res = snd_pcm_pause(self->handle, enabled);
-	Py_END_ALLOW_THREADS
-
 	if (res < 0)
 	{
 		PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
