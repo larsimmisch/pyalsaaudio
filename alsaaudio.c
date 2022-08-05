@@ -409,7 +409,6 @@ static int alsapcm_setup(alsapcm_t *self)
 	   We don't care if any of this fails - we'll read the actual values
 	   back out.
 	 */
-	snd_pcm_hw_params_any(self->handle, hwparams);
 	snd_pcm_hw_params_set_access(self->handle, hwparams,
 								 SND_PCM_ACCESS_RW_INTERLEAVED);
 	snd_pcm_hw_params_set_format(self->handle, hwparams, self->format);
