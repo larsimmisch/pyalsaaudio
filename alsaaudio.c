@@ -890,6 +890,11 @@ alsapcm_htimestamp(alsapcm_t *self, PyObject *args)
 	snd_pcm_uframes_t avail;
 	PyObject *result = NULL;
 
+	if (!self->handle) {
+		PyErr_SetString(ALSAAudioError, "PCM device is closed");
+		return NULL;
+	}
+
 	snd_pcm_htimestamp(self->handle , &avail, &tstamp);
 
 	result = PyTuple_New(3);
@@ -2146,10 +2151,12 @@ alsamixer_close(alsamixer_t *self, PyObject *args)
 	if (!PyArg_ParseTuple(args,":close"))
 		return NULL;
 
-	snd_mixer_close(self->handle);
-	free(self->cardname);
-	free(self->controlname);
-	self->handle = 0;
+	if (self->handle) {
+		snd_mixer_close(self->handle);
+		free(self->cardname);
+		free(self->controlname);
+		self->handle = 0;
+	}
 
 	Py_INCREF(Py_None);
 	return Py_None;
