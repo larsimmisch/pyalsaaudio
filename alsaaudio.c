@@ -1311,6 +1311,7 @@ alsapcm_setperiodsize(alsapcm_t *self, PyObject *args)
 static PyObject *
 alsapcm_read(alsapcm_t *self, PyObject *args)
 {
+	snd_pcm_state_t state;
 	int res;
 	int size = self->framesize * self->periodsize;
 	int sizeout = 0;
@@ -1344,14 +1345,13 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
 	buffer = PyBytes_AS_STRING(buffer_obj);
 #endif
 
-	Py_BEGIN_ALLOW_THREADS
-	res = snd_pcm_readi(self->handle, buffer, self->periodsize);
-	if (res == -EPIPE)
-	{
-		/* EPIPE means overrun */
-		snd_pcm_prepare(self->handle);
+	state = snd_pcm_state(self->handle);
+	if ((state != SND_PCM_STATE_XRUN && state != SND_PCM_STATE_SETUP) ||
+		(res = snd_pcm_prepare(self->handle)) >= 0) {
+		Py_BEGIN_ALLOW_THREADS
+		res = snd_pcm_readi(self->handle, buffer, self->periodsize);
+		Py_END_ALLOW_THREADS
 	}
-	Py_END_ALLOW_THREADS
 
 	if (res != -EPIPE)
 	{
@@ -1404,6 +1404,7 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
 
 static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 {
+	snd_pcm_state_t state;
 	int res;
 	int datalen;
 	char *data;
@@ -1435,16 +1436,13 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 		return NULL;
 	}
 
-	Py_BEGIN_ALLOW_THREADS
-	res = snd_pcm_writei(self->handle, data, datalen/self->framesize);
-	if (res == -EPIPE)
-	{
-		/* EPIPE means underrun */
-		res = snd_pcm_recover(self->handle, res, 1);
-		if (res >= 0)
-			res = snd_pcm_writei(self->handle, data, datalen/self->framesize);
+	state = snd_pcm_state(self->handle);
+	if ((state != SND_PCM_STATE_XRUN && state != SND_PCM_STATE_SETUP) ||
+		(res = snd_pcm_prepare(self->handle)) >= 0) {
+		Py_BEGIN_ALLOW_THREADS
+		res = snd_pcm_writei(self->handle, data, datalen/self->framesize);
+		Py_END_ALLOW_THREADS
 	}
-	Py_END_ALLOW_THREADS
 
 	if (res == -EAGAIN) {
 		rc = PyLong_FromLong(0);
@@ -1499,15 +1497,6 @@ static PyObject *alsapcm_drop(alsapcm_t *self)
 
 	res = snd_pcm_drop(self->handle);
 
-	if (res < 0)
-	{
-		PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
-					 self->cardname);
-
-		return NULL;
-	}
-
-	res = snd_pcm_prepare(self->handle);
 	if (res < 0)
 	{
 		PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
