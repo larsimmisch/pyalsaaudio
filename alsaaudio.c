@@ -1767,6 +1767,7 @@ alsapcm_polldescriptors(alsapcm_t *self, PyObject *args)
 	{
 		PyErr_Format(ALSAAudioError, "Can't get poll descriptors [%s]",
 					 self->cardname);
+		free(fds);
 		return NULL;
 	}
 
@@ -1775,6 +1776,7 @@ alsapcm_polldescriptors(alsapcm_t *self, PyObject *args)
 		PyList_SetItem(result, i,
 					   Py_BuildValue("ih", fds[i].fd, fds[i].events));
 	}
+	free(fds);
 
 	return result;
 }
@@ -3142,6 +3144,7 @@ alsamixer_polldescriptors(alsamixer_t *self, PyObject *args)
 	{
 		PyErr_Format(ALSAAudioError, "Can't get poll descriptors [%s]",
 					 self->cardname);
+		free(fds);
 		return NULL;
 	}
 
@@ -3150,6 +3153,7 @@ alsamixer_polldescriptors(alsamixer_t *self, PyObject *args)
 		PyList_SetItem(result, i,
 					   Py_BuildValue("ih", fds[i].fd, fds[i].events));
 	}
+	free(fds);
 
 	return result;
 }
