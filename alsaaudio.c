@@ -107,9 +107,9 @@ typedef struct {
 	snd_pcm_t *handle;
 
 	// Configurable parameters
-	int channels;
+	unsigned int channels;
 	unsigned int rate;
-	int format;
+	snd_pcm_format_t format;
 	snd_pcm_uframes_t periodsize;
 	int framesize;
 
@@ -362,9 +362,6 @@ alsapcm_list(PyObject *self, PyObject *args, PyObject *kwds)
 static int alsapcm_setup(alsapcm_t *self)
 {
 	int res,dir;
-	unsigned int val;
-	snd_pcm_format_t fmt;
-	snd_pcm_uframes_t frames;
 	snd_pcm_hw_params_t *hwparams;
 
 	/* Allocate a hwparam structure on the stack,
@@ -400,11 +397,10 @@ static int alsapcm_setup(alsapcm_t *self)
 	   which should therefore be sync'ed with actual values */
 	snd_pcm_hw_params_current(self->handle, hwparams);
 
-	snd_pcm_hw_params_get_format(hwparams, &fmt); self->format = fmt;
-	snd_pcm_hw_params_get_channels(hwparams, &val); self->channels = val;
-	snd_pcm_hw_params_get_rate(hwparams, &val, &dir); self->rate = val;
-	snd_pcm_hw_params_get_period_size(hwparams, &frames, &dir);
-	self->periodsize = (int) frames;
+	snd_pcm_hw_params_get_format(hwparams, &self->format);
+	snd_pcm_hw_params_get_channels(hwparams, &self->channels);
+	snd_pcm_hw_params_get_rate(hwparams, &self->rate, &dir);
+	snd_pcm_hw_params_get_period_size(hwparams, &self->periodsize, &dir);
 
 	self->framesize = self->channels * snd_pcm_hw_params_get_sbits(hwparams)/8;
 
@@ -536,7 +532,9 @@ static PyObject *
 alsapcm_dumpinfo(alsapcm_t *self, PyObject *args)
 {
 	unsigned int val,val2;
+	snd_pcm_access_t acc;
 	snd_pcm_format_t fmt;
+	snd_pcm_subformat_t subfmt;
 	int dir;
 	snd_pcm_uframes_t frames;
 	snd_pcm_hw_params_t *hwparams;
@@ -555,18 +553,18 @@ alsapcm_dumpinfo(alsapcm_t *self, PyObject *args)
 	printf("PCM state = %s\n",
 		   snd_pcm_state_name(snd_pcm_state(self->handle)));
 
-	snd_pcm_hw_params_get_access(hwparams, (snd_pcm_access_t *) &val);
-	printf("access type = %s\n", snd_pcm_access_name((snd_pcm_access_t)val));
+	snd_pcm_hw_params_get_access(hwparams, &acc);
+	printf("access type = %s\n", snd_pcm_access_name(acc));
 
 	snd_pcm_hw_params_get_format(hwparams, &fmt);
 	printf("format = '%s' (%s)\n",
 		   snd_pcm_format_name(fmt),
 		   snd_pcm_format_description(fmt));
 
-	snd_pcm_hw_params_get_subformat(hwparams, (snd_pcm_subformat_t *)&val);
+	snd_pcm_hw_params_get_subformat(hwparams, &subfmt);
 	printf("subformat = '%s' (%s)\n",
-		   snd_pcm_subformat_name((snd_pcm_subformat_t)val),
-		   snd_pcm_subformat_description((snd_pcm_subformat_t)val));
+		   snd_pcm_subformat_name(subfmt),
+		   snd_pcm_subformat_description(subfmt));
 
 	snd_pcm_hw_params_get_channels(hwparams, &val);
 	printf("channels = %d\n", val);
@@ -583,8 +581,8 @@ alsapcm_dumpinfo(alsapcm_t *self, PyObject *args)
 	snd_pcm_hw_params_get_buffer_time(hwparams, &val, &dir);
 	printf("buffer time = %d us\n", val);
 
-	snd_pcm_hw_params_get_buffer_size(hwparams, (snd_pcm_uframes_t *) &val);
-	printf("buffer size = %d frames\n", val);
+	snd_pcm_hw_params_get_buffer_size(hwparams, &frames);
+	printf("buffer size = %d frames\n", (int)frames);
 
 	snd_pcm_hw_params_get_periods(hwparams, &val, &dir);
 	printf("periods per buffer = %d frames\n", val);
@@ -636,7 +634,9 @@ alsapcm_info(alsapcm_t *self, PyObject *args)
 	PyObject *value;
 
 	unsigned int val,val2;
+	snd_pcm_access_t acc;
 	snd_pcm_format_t fmt;
+	snd_pcm_subformat_t subfmt;
 	int dir;
 	snd_pcm_uframes_t frames;
 	snd_pcm_hw_params_t *hwparams;
@@ -678,8 +678,8 @@ alsapcm_info(alsapcm_t *self, PyObject *args)
 	PyDict_SetItemString(info,"state",value);
 	Py_DECREF(value);
 
-	snd_pcm_hw_params_get_access(hwparams, (snd_pcm_access_t *) &val);
-	value=PyUnicode_FromString(snd_pcm_access_name((snd_pcm_access_t)val));
+	snd_pcm_hw_params_get_access(hwparams, &acc);
+	value=PyUnicode_FromString(snd_pcm_access_name(acc));
 	PyDict_SetItemString(info,"access_type",value);
 	Py_DECREF(value);
 
@@ -719,11 +719,11 @@ alsapcm_info(alsapcm_t *self, PyObject *args)
 	Py_DECREF(value);
 
 
-	snd_pcm_hw_params_get_subformat(hwparams, (snd_pcm_subformat_t *)&val);
-	value=PyUnicode_FromString(snd_pcm_subformat_name((snd_pcm_subformat_t)val));
+	snd_pcm_hw_params_get_subformat(hwparams, &subfmt);
+	value=PyUnicode_FromString(snd_pcm_subformat_name(subfmt));
 	PyDict_SetItemString(info,"subformat_name",value);
 	Py_DECREF(value);
-	value=PyUnicode_FromString(snd_pcm_subformat_description((snd_pcm_subformat_t)val));
+	value=PyUnicode_FromString(snd_pcm_subformat_description(subfmt));
 	PyDict_SetItemString(info,"subformat_description",value);
 	Py_DECREF(value);
 
@@ -752,8 +752,8 @@ alsapcm_info(alsapcm_t *self, PyObject *args)
 	PyDict_SetItemString(info,"buffer_time", value);
 	Py_DECREF(value);
 
-	snd_pcm_hw_params_get_buffer_size(hwparams, (snd_pcm_uframes_t *) &val);
-	value=PyLong_FromUnsignedLong((unsigned long) val);
+	snd_pcm_hw_params_get_buffer_size(hwparams, &frames);
+	value=PyLong_FromUnsignedLong((unsigned long) frames);
 	PyDict_SetItemString(info,"buffer_size", value);
 	Py_DECREF(value);
 
