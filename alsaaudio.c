@@ -86,7 +86,10 @@ static const unsigned ALSARates[] = {
 	88200,
 	96000,
 	176400,
-	192000
+	192000,
+	352800,
+	384000
+
 };
 
 typedef enum volume_units_t {
