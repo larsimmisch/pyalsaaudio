@@ -336,8 +336,6 @@ PCM objects have the following methods:
    =================================  ===========================================
 
 
-__ poll_objects_
-
 **A few hints on using PCM devices for playback**
 
 The most common reason for problems with playback of PCM audio is that writes 
@@ -561,8 +559,6 @@ Mixer objects have the following methods:
    The *eventmask* value is compatible with `poll.register`__ in the Python 
    :const:`select` module.
 
-__ poll_objects_
-
 .. method:: Mixer.handleevents()
 
    Acknowledge events on the *polldescriptors* file descriptors
@@ -701,9 +697,3 @@ argument::
   Capabilities: Playback Volume Playback Mute
   Channel 0 volume: 61%
   Channel 1 volume: 61%
-
-.. rubric:: Footnotes
-
-.. [#f1]   ALSA also allows ``PCM_ASYNC``, but this is not supported yet.
-
-.. _poll_objects: http://docs.python.org/library/select.html#poll-objects
