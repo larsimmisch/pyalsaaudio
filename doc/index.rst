@@ -1,8 +1,3 @@
-.. alsaaudio documentation documentation master file, created by
-   sphinx-quickstart on Thu Mar 30 23:52:21 2017.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 alsaaudio documentation
 ===================================================
 
@@ -34,5 +29,3 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-    
-  

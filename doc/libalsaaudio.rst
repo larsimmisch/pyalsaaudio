@@ -5,33 +5,10 @@
 .. module:: alsaaudio
    :platform: Linux
 
-
-.. % \declaremodule{builtin}{alsaaudio}	% standard library, in C
-.. % not standard, in C
-
 .. moduleauthor:: Casper Wilstrup <cwi@aves.dk>
 .. moduleauthor:: Lars Immisch <lars@ibp.de>
-                  
-.. % Author of the module code;
-
-
 
 The :mod:`alsaaudio` module defines functions and classes for using ALSA.
-
-.. % ---- 3.1. ----
-.. % For each function, use a ``funcdesc'' block.  This has exactly two
-.. % parameters (each parameters is contained in a set of curly braces):
-.. % the first parameter is the function name (this automatically
-.. % generates an index entry); the second parameter is the function's
-.. % argument list.  If there are no arguments, use an empty pair of
-.. % curly braces.  If there is more than one argument, separate the
-.. % arguments with backslash-comma.  Optional parts of the parameter
-.. % list are contained in \optional{...} (this generates a set of square
-.. % brackets around its parameter).  Arguments are automatically set in
-.. % italics in the parameter list.  Each argument should be mentioned at
-.. % least once in the description; each usage (even inside \code{...})
-.. % should be enclosed in \var{...}.
-
 
 .. function:: pcms(pcmtype=PCM_PLAYBACK)
 
@@ -613,8 +590,6 @@ the availability of ALSA mixer capable devices will stay quite limited.
 Unfortunately, I'm not able to create such a HOWTO myself, since I only
 understand half of the API, and that which I do understand has come from a
 painful trial and error process.
-
-.. % ==== 4. ====
 
 
 .. _pcm-example:

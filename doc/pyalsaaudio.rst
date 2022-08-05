@@ -7,25 +7,11 @@ Introduction
 
 .. |release| replace:: version
 
-.. % At minimum, give your name and an email address.  You can include a
-.. % snail-mail address if you like.
-
-.. % This makes the Abstract go on a separate page in the HTML version;
-.. % if a copyright notice is used, it should go immediately after this.
-.. % 
-
-
 .. _front:
 
 This software is licensed under the PSF license - the same one used by the
 majority of the python distribution. Basically you can use it for anything you
 wish (even commercial purposes). There is no warranty whatsoever.
-
-.. % Copyright statement should go here, if needed.
-
-.. % The abstract should be a paragraph or two long, and describe the
-.. % scope of the document.
-
 
 .. topic:: Abstract
 
