@@ -1904,16 +1904,18 @@ static PyTypeObject ALSAMixerType;
 
 #define MIXER_CHANNEL_ALL -1
 
-int
+static int
 alsamixer_gethandle(char *cardname, snd_mixer_t **handle)
 {
 	int err;
-	if ((err = snd_mixer_open(handle, 0)) < 0) return err;
-	if ((err = snd_mixer_attach(*handle, cardname)) < 0) return err;
-	if ((err = snd_mixer_selem_register(*handle, NULL, NULL)) < 0) return err;
-	if ((err = snd_mixer_load(*handle)) < 0) return err;
-
-	return 0;
+	if ((err = snd_mixer_open(handle, 0)) < 0)
+		return err;
+	if ((err = snd_mixer_attach(*handle, cardname)) >= 0 &&
+		(err = snd_mixer_selem_register(*handle, NULL, NULL)) >= 0 &&
+		(err = snd_mixer_load(*handle)) >= 0)
+		return 0;
+	snd_mixer_close(*handle);
+	return err;
 }
 
 static PyObject *
@@ -1950,7 +1952,6 @@ alsamixer_list(PyObject *self, PyObject *args, PyObject *kwds)
 	if (err < 0)
 	{
 		PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(err), device);
-		snd_mixer_close(handle);
 		return NULL;
 	}
 
