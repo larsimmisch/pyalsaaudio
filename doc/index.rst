@@ -13,15 +13,13 @@ Download
 ========
 
 * `Download from pypi <https://pypi.python.org/pypi/pyalsaaudio>`_
-  
-      
+
 Github
 ======
 
 * `Repository <https://github.com/larsimmisch/pyalsaaudio/>`_
 * `Bug tracker <https://github.com/larsimmisch/pyalsaaudio/issues>`_
 
- 
 Indices and tables
 ==================
 
