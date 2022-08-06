@@ -96,7 +96,7 @@ PCM objects in :mod:`alsaaudio` can play or capture (record) PCM
 sound through speakers or a microphone. The PCM constructor takes the
 following arguments:
 
-.. class:: PCM(type=PCM_PLAYBACK, mode=PCM_NORMAL, rate=44100, channels=2, format=PCM_FORMAT_S16_LE, periodsize=32, device='default', cardindex=-1)
+.. class:: PCM(type=PCM_PLAYBACK, mode=PCM_NORMAL, rate=44100, channels=2, format=PCM_FORMAT_S16_LE, periodsize=32, periods=4, device='default', cardindex=-1)
 
    This class is used to represent a PCM device (either for playback and
    recording). The arguments are:
@@ -146,6 +146,7 @@ following arguments:
      Make sure you understand :ref:`the meaning of periods <term-period>`.
      The default value is 32, which is below the actual minimum of most devices,
      and will therefore likely be larger in practice.
+   * *periods* - the number of periods in the buffer. The default value is 4.
    * *device* - the name of the PCM device that should be used (for example
      a value from the output of :func:`pcms`). The default value is
      ``'default'``.
@@ -157,6 +158,10 @@ following arguments:
      **Note:** This should not be used, as it bypasses most of ALSA's configuration.
 
    This will construct a PCM object with the given settings.
+
+   *Changed in 0.10:*
+
+   - Added the optional named parameter `periods`.
 
    *Changed in 0.9:*
 

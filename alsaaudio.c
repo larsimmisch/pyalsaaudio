@@ -110,6 +110,7 @@ typedef struct {
 	unsigned int channels;
 	unsigned int rate;
 	snd_pcm_format_t format;
+	unsigned int periods;
 	snd_pcm_uframes_t periodsize;
 	int framesize;
 
@@ -384,11 +385,10 @@ static int alsapcm_setup(alsapcm_t *self)
 								   self->channels);
 
 	dir = 0;
-	unsigned int periods = 4;
 	snd_pcm_hw_params_set_rate_near(self->handle, hwparams, &self->rate, &dir);
 	snd_pcm_hw_params_set_period_size_near(self->handle, hwparams,
 										   &self->periodsize, &dir);
-	snd_pcm_hw_params_set_periods_near(self->handle, hwparams, &periods, &dir);
+	snd_pcm_hw_params_set_periods_near(self->handle, hwparams, &self->periods, &dir);
 
 	/* Write it to the device */
 	res = snd_pcm_hw_params(self->handle, hwparams);
@@ -401,6 +401,7 @@ static int alsapcm_setup(alsapcm_t *self)
 	snd_pcm_hw_params_get_channels(hwparams, &self->channels);
 	snd_pcm_hw_params_get_rate(hwparams, &self->rate, &dir);
 	snd_pcm_hw_params_get_period_size(hwparams, &self->periodsize, &dir);
+	snd_pcm_hw_params_get_periods(hwparams, &self->periods, &dir);
 
 	self->framesize = self->channels * snd_pcm_hw_params_get_sbits(hwparams)/8;
 
@@ -422,13 +423,15 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	int rate = 44100;
 	int channels = 2;
 	int format = SND_PCM_FORMAT_S16_LE;
+	int periods = 4;
 	int periodsize = 32;
 
-	char *kw[] = { "type", "mode", "device", "cardindex", "card", "rate", "channels", "format", "periodsize", NULL };
+	char *kw[] = { "type", "mode", "device", "cardindex", "card",
+				   "rate", "channels", "format", "periodsize", "periods", NULL };
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oisiziiii", kw,
-									 &pcmtypeobj, &pcmmode, &device,
-									 &cardidx, &card, &rate, &channels, &format, &periodsize))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oisiziiiii", kw,
+									 &pcmtypeobj, &pcmmode, &device, &cardidx, &card,
+									 &rate, &channels, &format, &periodsize, &periods))
 		return NULL;
 
 	if (cardidx >= 0) {
@@ -475,6 +478,7 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	self->channels = channels;
 	self->rate = rate;
 	self->format = format;
+	self->periods = periods;
 	self->periodsize = periodsize;
 
 	res = snd_pcm_open(&(self->handle), device, self->pcmtype,
@@ -586,7 +590,7 @@ alsapcm_dumpinfo(alsapcm_t *self, PyObject *args)
 	printf("buffer size = %d frames\n", (int)frames);
 
 	snd_pcm_hw_params_get_periods(hwparams, &val, &dir);
-	printf("periods per buffer = %d frames\n", val);
+	printf("periods per buffer = %d\n", val);
 
 	snd_pcm_hw_params_get_rate_numden(hwparams, &val, &val2);
 	printf("exact rate = %d/%d bps\n", val, val2);
@@ -760,7 +764,7 @@ alsapcm_info(alsapcm_t *self, PyObject *args)
 
 	snd_pcm_hw_params_get_periods(hwparams, &val, &dir);
 	value=PyLong_FromUnsignedLong((unsigned long) val);
-	PyDict_SetItemString(info,"get_periods", value);
+	PyDict_SetItemString(info,"periods", value);
 	Py_DECREF(value);
 
 	snd_pcm_hw_params_get_rate_numden(hwparams, &val, &val2);
