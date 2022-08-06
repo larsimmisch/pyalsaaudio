@@ -19,7 +19,7 @@ Sample
 
    Musically, the sample size determines the dynamic range. The
    dynamic range is the difference between the quietest and the
-   loudest signal that can be resproduced.
+   loudest signal that can be reproduced.
 
 Frame
    A frame consists of exactly one sample per channel. If there is only one 
@@ -28,9 +28,9 @@ Frame
 
 Frame size
    This is the size in bytes of each frame. This can vary a lot: if each sample
-    is 8 bits, and we're handling mono sound, the frame size is one byte. 
-	Similarly in 6 channel audio with 64 bit floating point samples, the frame 
-	size is 48 bytes
+   is 8 bits, and we're handling mono sound, the frame size is one byte.
+   For six channel audio with 64 bit floating point samples, the frame size
+   is 48 bytes.
 
 Rate
    PCM sound consists of a flow of sound frames. The sound rate controls how 
@@ -38,7 +38,7 @@ Rate
    means that a new frame is played or captured 8000 times per second.
 
 Data rate
-   This is the number of bytes, which must be recorded or provided per
+   This is the number of bytes which must be consumed or provided per
    second at a certain frame size and rate.
 
    8000 Hz mono sound with 8 bit (1 byte) samples has a data rate of
@@ -46,24 +46,38 @@ Data rate
 
    At the other end of the scale, 96000 Hz, 6 channel sound with 64
    bit (8 bytes) samples has a data rate of 96000 \* 6 \* 8 = 4608
-   kb/s (almost 5 MB sound data per second)
+   kb/s (almost 5 MB sound data per second).
+
+   If the data rate requirement is not met, an overrun (on capture) or
+   underrun (on playback) occurs; the term "xrun" is used to refer to
+   either event.
 
 Period
-   When the hardware processes data this is done in chunks of frames. The time
-   interval between each processing (A/D or D/A conversion) is known
-   as the period.
-   The size of the period has direct implication on the latency of the
-   sound input or output. For low-latency the period size should be
-   very small, while low CPU resource usage would usually demand
-   larger period sizes. With ALSA, the CPU utilization is not impacted
-   much by the period size, since the kernel layer buffers multiple
-   periods internally, so each period generates an interrupt and a
-   memory copy, but userspace can be slower and read or write multiple
-   periods at the same time.
+   The CPU processes sample data in chunks of frames, so-called periods
+   (also called fragments by some systems). The operating system kernel's
+   sample buffer must hold at least two periods (at any given time, one
+   is processed by the sound hardware, and one by the CPU).
+
+   The completion of a *period* triggers a CPU interrupt, which causes
+   processing and context switching overhead. Therefore, a smaller period
+   size causes higher CPU resource usage at a given data rate.
+
+   A bigger size of the *buffer* improves the system's resilience to xruns.
+   The buffer being split into a bigger number of smaller periods also does
+   that, as it allows it to be drained / topped up sooner.
+
+   On the other hand, a bigger size of the *buffer* also increases the
+   playback latency, that is, the time it takes for a frame from being
+   sent out by the application to being actually audible.
+
+   Similarly, a bigger *period* size increases the capture latency.
+
+   The trade-off between latency, xrun resilience, and resource usage
+   must be made depending on the application.
 
 Period size
-   This is the size of each period in Hz. *Not bytes, but Hz!.* In 
-   :mod:`alsaaudio` the period size is set directly, and it is
+   This is the size of each period in frames. *Not bytes, but frames!*
+   In :mod:`alsaaudio` the period size is set directly, and it is
    therefore important to understand the significance of this
    number. If the period size is configured to for example 32,
    each write should contain exactly 32 frames of sound data, and each
