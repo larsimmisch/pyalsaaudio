@@ -19,7 +19,7 @@ wish (even commercial purposes). There is no warranty whatsoever.
    currently fairly complete for PCM devices and Mixer access. MIDI sequencer
    support is low on our priority list, but volunteers are welcome.
 
-   If you find bugs in the wrappers please use thegithub issue tracker. 
+   If you find bugs in the wrappers please use the github issue tracker.
    Please don't send bug reports regarding ALSA specifically. There are several
    bugs in this API, and those should be reported to the ALSA team - not me.
 
@@ -50,8 +50,8 @@ More information about ALSA may be found on the project homepage
 ALSA and Python
 ===============
 
-The older Linux sound API (OSS) which is now deprecated is well supported from
-the standard Python library, through the ossaudiodev module. No native ALSA
+The older Linux sound API (OSS) -- which is now deprecated -- is well supported
+by the standard Python library, through the ossaudiodev module. No native ALSA
 support exists in the standard library.
 
 There are a few other "ALSA for Python" projects available, including at least
@@ -117,7 +117,7 @@ with ``Ctl-C``.
 
 Play back the recording with::
 
-   $ python playbacktest.py-d <device>  <filename>
+   $ python playbacktest.py -d <device> <filename>
 
 There is a minimal test suite in :code:`test.py`, but it is
 a bit dependent on the ALSA configuration and may fail without indicating
