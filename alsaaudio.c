@@ -179,11 +179,18 @@ get_pcmtype(PyObject *obj)
 #endif
 
 	if (PyUnicode_Check(obj)) {
+#if PY_MAJOR_VERSION > 2
+		if (PyUnicode_CompareWithASCIIString(obj, "playback") == 0)
+			return SND_PCM_STREAM_PLAYBACK;
+		else if (PyUnicode_CompareWithASCIIString(obj, "capture") == 0)
+			return SND_PCM_STREAM_CAPTURE;
+#else
 		const char *dirstr = PyUnicode_AS_DATA(obj);
 		if (strcasecmp(dirstr, "playback")==0)
 			return SND_PCM_STREAM_PLAYBACK;
 		else if (strcasecmp(dirstr, "capture")==0)
 			return SND_PCM_STREAM_CAPTURE;
+#endif
 	}
 
 	PyErr_SetString(ALSAAudioError, "PCM type must be PCM_PLAYBACK (0) "
