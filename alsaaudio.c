@@ -3336,7 +3336,9 @@ PyObject *PyInit_alsaaudio(void)
 	ALSAPCMType.tp_new = alsapcm_new;
 	ALSAMixerType.tp_new = alsamixer_new;
 
+#if PY_VERSION_HEX < 0x03090000
 	PyEval_InitThreads();
+#endif
 
 #if PY_MAJOR_VERSION < 3
 	m = Py_InitModule3("alsaaudio", alsaaudio_methods, alsaaudio_module_doc);
