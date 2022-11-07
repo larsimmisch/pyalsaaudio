@@ -381,7 +381,7 @@ PyDoc_STRVAR(pcms_doc,
 \n\
 List the available PCM devices");
 
-static int alsapcm_setup(alsapcm_t *self)
+static int alsapcm_setup(alsapcm_t *self, unsigned int periodcount)
 {
 	int res,dir;
 	unsigned int val;
@@ -410,11 +410,10 @@ static int alsapcm_setup(alsapcm_t *self)
 								   self->channels);
 
 	dir = 0;
-	unsigned int periods = 4;
 	snd_pcm_hw_params_set_rate_near(self->handle, hwparams, &self->rate, &dir);
 	snd_pcm_hw_params_set_period_size_near(self->handle, hwparams,
 										   &self->periodsize, &dir);
-	snd_pcm_hw_params_set_periods_near(self->handle, hwparams, &periods, &dir);
+	snd_pcm_hw_params_set_periods_near(self->handle, hwparams, &periodcount, &dir);
 
 	/* Write it to the device */
 	res = snd_pcm_hw_params(self->handle, hwparams);
@@ -450,12 +449,13 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	int channels = 2;
 	int format = SND_PCM_FORMAT_S16_LE;
 	int periodsize = 32;
+	int periodcount = 4;
 
-	char *kw[] = { "type", "mode", "device", "cardindex", "card", "rate", "channels", "format", "periodsize", NULL };
+	char *kw[] = { "type", "mode", "device", "cardindex", "card", "rate", "channels", "format", "periodsize", "periodcount", NULL };
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oisiziiii", kw,
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oisiziiiii", kw,
 									 &pcmtypeobj, &pcmmode, &device,
-									 &cardidx, &card, &rate, &channels, &format, &periodsize))
+									 &cardidx, &card, &rate, &channels, &format, &periodsize, &periodcount))
 		return NULL;
 
 	if (cardidx >= 0) {
@@ -508,7 +508,7 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 					   self->pcmmode);
 
 	if (res >= 0) {
-		res = alsapcm_setup(self);
+		res = alsapcm_setup(self, periodcount);
 	}
 	
 	if (res >= 0) {
