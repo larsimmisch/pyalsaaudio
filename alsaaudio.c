@@ -1305,7 +1305,7 @@ alsapcm_setchannels(alsapcm_t *self, PyObject *args)
 
 	saved = self->channels;
 	self->channels = channels;
-	res = alsapcm_setup(self);
+	res = alsapcm_setup(self, 4);
 	if (res < 0)
 	{
 		self->channels = saved;
@@ -1348,7 +1348,7 @@ alsapcm_setrate(alsapcm_t *self, PyObject *args)
 
 	saved = self->rate;
 	self->rate = rate;
-	res = alsapcm_setup(self);
+	res = alsapcm_setup(self, 4);
 	if (res < 0)
 	{
 		self->rate = saved;
@@ -1389,7 +1389,7 @@ alsapcm_setformat(alsapcm_t *self, PyObject *args)
 
 	saved = self->format;
 	self->format = format;
-	res = alsapcm_setup(self);
+	res = alsapcm_setup(self, 4);
 	if (res < 0)
 	{
 		self->format = saved;
@@ -1426,7 +1426,7 @@ alsapcm_setperiodsize(alsapcm_t *self, PyObject *args)
 
 	saved = self->periodsize;
 	self->periodsize = periodsize;
-	res = alsapcm_setup(self);
+	res = alsapcm_setup(self, 4);
 	if (res < 0)
 	{
 		self->periodsize = saved;
