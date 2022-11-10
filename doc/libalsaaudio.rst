@@ -184,6 +184,49 @@ following arguments:
      
 PCM objects have the following methods:
 
+.. method:: PCM.info()
+
+   The info function returns a dictionary containing the configuration of a PCM device. As ALSA takes into account limitations of the hardware and software devices the configuration achieved might not correspond to the values used during creation. There is therefore a need to check the realised configuration before processing the sound coming from the device or before sending sound to a device. A small subset of parameters can be set, but cannot be queried. These parameters are stored by alsaaudio and returned as they were given by the user, to distinguish them from parameters retrieved from ALSA these parameters have a name prefixed with **" (call value) "**. Yet another set of properties derives directly from the hardware and can be obtained through ALSA.
+   
+   ===========================  =============================  ==================================================================
+        Key                      Description (Reference)            Type       
+   ===========================  =============================  ==================================================================
+   name                         PCM():device                      string
+   state                        *name of PCM state*               string
+   access_type                  *name of PCM access type*         string
+   (call value) type            PCM():type                        integer
+   (call value) type_name       PCM():type                        string
+   (call value) mode            PCM():mode                        integer
+   (call value) mode_name       PCM():mode                        string
+   format                       PCM():format                      integer 
+   format_name                  PCM():format                      string
+   format_description           PCM():format                      string
+   subformat_name               *name of PCM subformat*           string
+   subformat_description        *description of subformat*        string
+   channels                     PCM():channels                    integer
+   rate                         PCM():rate                        integer (Hz)
+   period_time                  *period duration*                 integer (:math:`\mu s`)
+   period_size                  PCM():period_size                 integer (frames)
+   buffer_time                  *buffer time*                     integer (:math:`\mu s`) (negative indicates error)
+   buffer_size                  *buffer size*                     integer (frames) (negative indicates error)
+   get_periods                  *approx. periods in buffer*       integer (negative indicates error)
+   rate_numden                  *numerator, denominator*          tuple (integer (Hz), integer (Hz))
+   significant_bits             *significant bits in sample*      integer (negative indicates error)
+   is_batch                     *hw: double buffering*            boolean (True: hardware supported)
+   is_block_transfer            *hw: block transfer*              boolean (True: hardware supported)
+   is_double                    *hw: double buffering*            boolean (True: hardware supported)
+   is_half_duplex               *hw: half-duplex*                 boolean (True: hardware supported)
+   is_joint_duplex              *hw: joint-duplex*                boolean (True: hardware supported)
+   can_overrange                *hw: overrange detection*         boolean (True: hardware supported)
+   can_mmap_sample_resolution   *hw: sample-resol. mmap*          boolean (True: hardware supported)
+   can_pause                    *hw: pause*                       boolean (True: hardware supported)
+   can_resume                   *hw: resume*                      boolean (True: hardware supported)
+   can_sync_start               *hw: synchronized start*          boolean (True: hardware supported) 
+   ===========================  =============================  ==================================================================
+
+   The italicized descriptions give a summary of the "full" description as it can be found in the  `ALSA documentation <https://www.alsa-project.org/alsa-doc>`_. "hw:": indicates that the property indicated relates to the hardware. Parameters passed to the PCM object during instantation are prefixed with "PCM():", they are described there for the keyword argument indicated after "PCM():".
+
+
 .. method:: PCM.pcmtype()
 
    Returns the type of PCM object. Either :const:`PCM_CAPTURE` or
