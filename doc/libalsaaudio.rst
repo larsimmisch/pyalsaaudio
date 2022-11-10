@@ -192,6 +192,9 @@ PCM objects have the following methods:
         Key                      Description (Reference)            Type       
    ===========================  =============================  ==================================================================
    name                         PCM():device                      string
+   card_no                      *index of card*                   integer  (negative indicates device not associable with a card)
+   device_no                    *index of PCM device*             integer 
+   subdevice_no                 *index of PCM subdevice*          integer 
    state                        *name of PCM state*               string
    access_type                  *name of PCM access type*         string
    (call value) type            PCM():type                        integer
