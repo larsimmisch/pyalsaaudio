@@ -847,6 +847,9 @@ PyDoc_STRVAR(pcm_info_doc,
 Returns a dictionary with the alsa device parameters as it is realized. \n\
 Keys are retrieved from the alsa library if they can be accessed, if not \n\
 they represent values stored by pyalsaaudio and they are prefixed with ' (call value) '. \n\
+\n\
+For a complete overview of all keys produced see the documentation on PCM.info at: \n\
+https://larsimmisch.github.io/pyalsaaudio/libalsaaudio.html#pcm-objects \n\
 ");
 
 
