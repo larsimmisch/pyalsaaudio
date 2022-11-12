@@ -128,7 +128,7 @@ following arguments:
         Format                Description
    =========================  ===============
    ``PCM_FORMAT_S8``          Signed 8 bit samples for each channel
-   ``PCM_FORMAT_U8``          Signed 8 bit samples for each channel
+   ``PCM_FORMAT_U8``          Unsigned 8 bit samples for each channel
    ``PCM_FORMAT_S16_LE``      Signed 16 bit samples for each channel Little Endian byte order)
    ``PCM_FORMAT_S16_BE``      Signed 16 bit samples for each channel (Big Endian byte order)
    ``PCM_FORMAT_U16_LE``      Unsigned 16 bit samples for each channel (Little Endian byte order)
