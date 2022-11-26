@@ -510,7 +510,7 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	if (res >= 0) {
 		res = alsapcm_setup(self);
 	}
-	
+
 	if (res >= 0) {
 		self->cardname = strdup(device);
 	}
@@ -674,6 +674,9 @@ alsapcm_info(alsapcm_t *self, PyObject *args)
 	snd_pcm_hw_params_alloca(&hwparams);
 	snd_pcm_hw_params_current(self->handle,hwparams);
 
+	snd_pcm_info_t * pcm_info;
+	snd_pcm_info_alloca(&pcm_info);
+
 	if (!PyArg_ParseTuple(args,":info"))
 		return NULL;
 
@@ -686,6 +689,20 @@ alsapcm_info(alsapcm_t *self, PyObject *args)
 
 	value=PyUnicode_FromString(snd_pcm_name(self->handle));
 	PyDict_SetItemString(info,"name",value);
+	Py_DECREF(value);
+
+	snd_pcm_info(self->handle, pcm_info);
+
+	value = PyLong_FromLong((long) snd_pcm_info_get_card(pcm_info));
+	PyDict_SetItemString(info,"card_no",value);
+	Py_DECREF(value);
+
+	value = PyLong_FromUnsignedLong((unsigned long) snd_pcm_info_get_device(pcm_info));
+	PyDict_SetItemString(info,"device_no",value);
+	Py_DECREF(value);
+
+	value = PyLong_FromUnsignedLong((unsigned long) snd_pcm_info_get_subdevice(pcm_info));
+	PyDict_SetItemString(info,"subdevice_no",value);
 	Py_DECREF(value);
 
 	value=PyUnicode_FromString(snd_pcm_state_name(snd_pcm_state(self->handle)));
@@ -847,6 +864,9 @@ PyDoc_STRVAR(pcm_info_doc,
 Returns a dictionary with the alsa device parameters as it is realized. \n\
 Keys are retrieved from the alsa library if they can be accessed, if not \n\
 they represent values stored by pyalsaaudio and they are prefixed with ' (call value) '. \n\
+\n\
+For a complete overview of all keys produced see the documentation on PCM.info at: \n\
+https://larsimmisch.github.io/pyalsaaudio/libalsaaudio.html#pcm-objects \n\
 ");
 
 
@@ -899,7 +919,7 @@ alsapcm_set_tstamp_mode(alsapcm_t *self, PyObject *args)
 
 	if (!PyArg_ParseTuple(args,"|i:set_tstamp_mode", &mode))
 		return NULL;
-				 
+
 	if (!self->handle)
 	{
 		PyErr_SetString(ALSAAudioError, "PCM device is closed");
@@ -939,7 +959,7 @@ alsapcm_get_tstamp_mode(alsapcm_t *self, PyObject *args)
 
 	if (!PyArg_ParseTuple(args,":get_tstamp_mode"))
 		return NULL;
-				 
+
 	if (!self->handle)
 	{
 		PyErr_SetString(ALSAAudioError, "PCM device is closed");
@@ -976,7 +996,7 @@ alsapcm_set_tstamp_type(alsapcm_t *self, PyObject *args)
 
 	if (!PyArg_ParseTuple(args,"|i:set_tstamp_type", &type))
 		return NULL;
-				 
+
 	if (!self->handle)
 	{
 		PyErr_SetString(ALSAAudioError, "PCM device is closed");
@@ -1015,7 +1035,7 @@ alsapcm_get_tstamp_type(alsapcm_t *self, PyObject *args)
 
 	if (!PyArg_ParseTuple(args,":get_tstamp_type"))
 		return NULL;
-				 
+
 	if (!self->handle)
 	{
 		PyErr_SetString(ALSAAudioError, "PCM device is closed");
@@ -1108,7 +1128,7 @@ alsapcm_getratemaxmin(alsapcm_t *self, PyObject *args)
 		PyErr_SetString(ALSAAudioError, "Cannot get maximum supported bitrate");
 		return NULL;
 	}
-	
+
 	PyObject *minp=PyLong_FromLong(min);
 	PyObject *maxp=PyLong_FromLong(max);
 	return PyTuple_Pack(2, minp, maxp);
@@ -1135,7 +1155,7 @@ alsapcm_getrates(alsapcm_t *self, PyObject *args)
 		PyErr_SetString(ALSAAudioError, "Cannot get hardware parameters");
 		return NULL;
 	}
-	
+
 	unsigned min, max;
 	if (snd_pcm_hw_params_get_rate_min(params, &min, NULL) <0 ) {
 		PyErr_SetString(ALSAAudioError, "Cannot get minimum supported bitrate");
@@ -1145,7 +1165,7 @@ alsapcm_getrates(alsapcm_t *self, PyObject *args)
 		PyErr_SetString(ALSAAudioError, "Cannot get maximum supported bitrate");
 		return NULL;
 	}
-	
+
 	if (min == max) {
 		return PyLong_FromLong(min);
 	}
@@ -1376,7 +1396,7 @@ alsapcm_setformat(alsapcm_t *self, PyObject *args)
 
 	if (!PyArg_ParseTuple(args,"i:setformat", &format))
 		return NULL;
-				 
+
 	if (!self->handle)
 	{
 		PyErr_SetString(ALSAAudioError, "PCM device is closed");
@@ -1433,8 +1453,8 @@ alsapcm_setperiodsize(alsapcm_t *self, PyObject *args)
 		PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
 					 self->cardname);
 
-		
-		
+
+
 		return NULL;
 	}
 
@@ -1514,7 +1534,7 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
 	if (res > 0 ) {
 		sizeout = res * self->framesize;
 	}
-	
+
 	if (size != sizeout) {
 #if PY_MAJOR_VERSION < 3
 		/* If the following fails, it will free the object */
@@ -1526,7 +1546,7 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
 			return NULL;
 #endif
 	}
-	
+
 	res_obj = PyLong_FromLong(res);
 	if (!res_obj) {
 		Py_DECREF(buffer_obj);
@@ -1693,7 +1713,7 @@ static PyObject *alsapcm_drop(alsapcm_t *self)
 
 		return NULL;
 	}
-	
+
 	res = snd_pcm_prepare(self->handle);
 	if (res < 0)
 	{
@@ -1702,7 +1722,7 @@ static PyObject *alsapcm_drop(alsapcm_t *self)
 
 		return NULL;
 	}
-	
+
 	return PyLong_FromLong(res);
 }
 
