@@ -113,11 +113,19 @@ following arguments:
 .. class:: PCM(type=PCM_PLAYBACK, mode=PCM_NORMAL, rate=44100, channels=2, format=PCM_FORMAT_S16_LE, periodsize=32, device='default', cardindex=-1)
 
    This class is used to represent a PCM device (either for playback and
-   recording). The arguments are:
+   recording). The arguments passed to it might be incompatible with the 
+   PCM device used, in that case ALSA can pick its own suitable values. The
+   default values mentioned below are the default values passed by :mod:`alsaaudio` 
+   to ALSA. For default and non-default arguments alike there is no guarantee that a 
+   PCM device supports these values. After creation of a PCM object its :func:`info` 
+   method shows which values ALSA realized. It is recommended to check the values 
+   returned by :func:`info` against the desired or expected values.     
+   
+   The arguments are:
 
    * *type* - can be either :const:`PCM_CAPTURE` or :const:`PCM_PLAYBACK`
      (default).  
-   * *mode* - can be either :const:`PCM_NONBLOCK`, or :const:`PCM_NORMAL`
+   * *mode* - can be either :const:`PCM_NONBLOCK`, or :const:`PCM_NORMAL` [#f1]_
      (default). 
    * *rate* - the sampling rate in Hz. Typical values are ``8000`` (mainly used for telephony), ``16000``, ``44100`` (default), ``48000`` and ``96000``.
    * *channels* - the number of channels. The default value is 2 (stereo).
@@ -164,8 +172,6 @@ following arguments:
      is constructed as 'hw:*cardindex*' and
      the `device` keyword argument is ignored.
      ``0`` is the first hardware sound card.
-
-   This will construct a PCM object with the given settings.
 
    *Changed in 0.9:*
 
