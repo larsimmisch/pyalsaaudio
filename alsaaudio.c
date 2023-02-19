@@ -841,6 +841,21 @@ alsa_asoundlib_version(PyObject * module, PyObject *args)
 }
 
 static PyObject *
+alsapcm_state(alsapcm_t *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args,":state"))
+		return NULL;
+
+	if (!self->handle)
+	{
+		PyErr_SetString(ALSAAudioError, "PCM device is closed");
+		return NULL;
+	}
+
+	return PyLong_FromUnsignedLong((unsigned long) snd_pcm_state(self->handle));
+}
+
+static PyObject *
 alsapcm_htimestamp(alsapcm_t *self, PyObject *args)
 {
 	snd_htimestamp_t tstamp;
@@ -1605,6 +1620,7 @@ static PyMethodDef alsapcm_methods[] = {
 	{"get_tstamp_mode", (PyCFunction) alsapcm_get_tstamp_mode, METH_VARARGS},
 	{"dumpinfo", (PyCFunction)alsapcm_dumpinfo, METH_VARARGS},
 	{"info", (PyCFunction)alsapcm_info, METH_VARARGS},
+	{"state", (PyCFunction)alsapcm_state, METH_VARARGS},
 	{"getformats", (PyCFunction)alsapcm_getformats, METH_VARARGS},
 	{"getratebounds", (PyCFunction)alsapcm_getratemaxmin, METH_VARARGS},
 	{"getrates", (PyCFunction)alsapcm_getrates, METH_VARARGS},
@@ -3053,6 +3069,16 @@ PyObject *PyInit_alsaaudio(void)
 	_EXPORT_INT(m, "PCM_FORMAT_DSD_U32_LE", SND_PCM_FORMAT_DSD_U32_LE);
 	_EXPORT_INT(m, "PCM_FORMAT_DSD_U32_BE", SND_PCM_FORMAT_DSD_U32_BE);
 #endif
+
+	_EXPORT_INT(m, "PCM_STATE_OPEN", SND_PCM_STATE_OPEN);
+	_EXPORT_INT(m, "PCM_STATE_SETUP", SND_PCM_STATE_SETUP);
+	_EXPORT_INT(m, "PCM_STATE_PREPARED", SND_PCM_STATE_PREPARED);
+	_EXPORT_INT(m, "PCM_STATE_RUNNING", SND_PCM_STATE_RUNNING);
+	_EXPORT_INT(m, "PCM_STATE_XRUN", SND_PCM_STATE_XRUN);
+	_EXPORT_INT(m, "PCM_STATE_DRAINING", SND_PCM_STATE_DRAINING);
+	_EXPORT_INT(m, "PCM_STATE_PAUSED", SND_PCM_STATE_PAUSED);
+	_EXPORT_INT(m, "PCM_STATE_SUSPENDED", SND_PCM_STATE_SUSPENDED);
+	_EXPORT_INT(m, "PCM_STATE_DISCONNECTED", SND_PCM_STATE_DISCONNECTED);
 
 	/* Mixer stuff */
 	_EXPORT_INT(m, "MIXER_CHANNEL_ALL", MIXER_CHANNEL_ALL);

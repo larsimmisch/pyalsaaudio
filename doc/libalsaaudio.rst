@@ -297,6 +297,21 @@ PCM objects have the following methods:
 
    Dumps the PCM object's configured parameters to stdout.
 
+.. method:: PCM.state()
+
+   Returs the current state of the stream, which can be one of
+   :const:`PCM_STATE_OPEN` (this should not actually happen),
+   :const:`PCM_STATE_SETUP` (after :func:`drop` or :func:`drain`),
+   :const:`PCM_STATE_PREPARED` (after construction),
+   :const:`PCM_STATE_RUNNING`,
+   :const:`PCM_STATE_XRUN`,
+   :const:`PCM_STATE_DRAINING`,
+   :const:`PCM_STATE_PAUSED`,
+   :const:`PCM_STATE_SUSPENDED`, and
+   :const:`PCM_STATE_DISCONNECTED`.
+
+   *New in 0.10*
+
 .. method:: PCM.read()
 
    In :const:`PCM_NORMAL` mode, this function blocks until a full period is
