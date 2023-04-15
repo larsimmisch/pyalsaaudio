@@ -49,5 +49,5 @@ if __name__ == '__main__':
     while data:
         out.write(data)
         data = f.read(320)
-            
+    out.close()
         

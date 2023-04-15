@@ -7,25 +7,11 @@ Introduction
 
 .. |release| replace:: version
 
-.. % At minimum, give your name and an email address.  You can include a
-.. % snail-mail address if you like.
-
-.. % This makes the Abstract go on a separate page in the HTML version;
-.. % if a copyright notice is used, it should go immediately after this.
-.. % 
-
-
 .. _front:
 
 This software is licensed under the PSF license - the same one used by the
 majority of the python distribution. Basically you can use it for anything you
 wish (even commercial purposes). There is no warranty whatsoever.
-
-.. % Copyright statement should go here, if needed.
-
-.. % The abstract should be a paragraph or two long, and describe the
-.. % scope of the document.
-
 
 .. topic:: Abstract
 
@@ -33,7 +19,7 @@ wish (even commercial purposes). There is no warranty whatsoever.
    currently fairly complete for PCM devices and Mixer access. MIDI sequencer
    support is low on our priority list, but volunteers are welcome.
 
-   If you find bugs in the wrappers please use thegithub issue tracker. 
+   If you find bugs in the wrappers please use the github issue tracker.
    Please don't send bug reports regarding ALSA specifically. There are several
    bugs in this API, and those should be reported to the ALSA team - not me.
 
@@ -64,8 +50,8 @@ More information about ALSA may be found on the project homepage
 ALSA and Python
 ===============
 
-The older Linux sound API (OSS) which is now deprecated is well supported from
-the standard Python library, through the ossaudiodev module. No native ALSA
+The older Linux sound API (OSS) -- which is now deprecated -- is well supported
+by the standard Python library, through the ossaudiodev module. No native ALSA
 support exists in the standard library.
 
 There are a few other "ALSA for Python" projects available, including at least
@@ -106,6 +92,7 @@ And then as root:  ---   ::
 
    # python setup.py install
 
+
 *******
 Testing
 *******
@@ -130,7 +117,7 @@ with ``Ctl-C``.
 
 Play back the recording with::
 
-   $ python playbacktest.py-d <device>  <filename>
+   $ python playbacktest.py -d <device> <filename>
 
 There is a minimal test suite in :code:`test.py`, but it is
 a bit dependent on the ALSA configuration and may fail without indicating

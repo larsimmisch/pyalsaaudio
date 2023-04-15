@@ -5,38 +5,15 @@
 .. module:: alsaaudio
    :platform: Linux
 
-
-.. % \declaremodule{builtin}{alsaaudio}	% standard library, in C
-.. % not standard, in C
-
 .. moduleauthor:: Casper Wilstrup <cwi@aves.dk>
 .. moduleauthor:: Lars Immisch <lars@ibp.de>
-                  
-.. % Author of the module code;
-
-
 
 The :mod:`alsaaudio` module defines functions and classes for using ALSA.
-
-.. % ---- 3.1. ----
-.. % For each function, use a ``funcdesc'' block.  This has exactly two
-.. % parameters (each parameters is contained in a set of curly braces):
-.. % the first parameter is the function name (this automatically
-.. % generates an index entry); the second parameter is the function's
-.. % argument list.  If there are no arguments, use an empty pair of
-.. % curly braces.  If there is more than one argument, separate the
-.. % arguments with backslash-comma.  Optional parts of the parameter
-.. % list are contained in \optional{...} (this generates a set of square
-.. % brackets around its parameter).  Arguments are automatically set in
-.. % italics in the parameter list.  Each argument should be mentioned at
-.. % least once in the description; each usage (even inside \code{...})
-.. % should be enclosed in \var{...}.
-
 
 .. function:: pcms(pcmtype=PCM_PLAYBACK)
 
    List available PCM devices by name.
-   
+
    Arguments are:
 
    * *pcmtype* - can be either :const:`PCM_CAPTURE` or :const:`PCM_PLAYBACK`
@@ -62,7 +39,13 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
    List the available ALSA cards by name. This function is only moderately
    useful. If you want to see a list of available PCM devices, use :func:`pcms`
    instead.
-   
+
+..
+   Omitted by intention due to being superseded by cards():
+
+   .. function:: card_indexes()
+   .. function:: card_name()
+
 .. function:: mixers(cardindex=-1, device='default')
 
    List the available mixers. The arguments are:
@@ -72,12 +55,14 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
      the `device` keyword argument is ignored. ``0`` is the first hardware sound
      card.
 
+     **Note:** This should not be used, as it bypasses most of ALSA's configuration.
+
    * *device* - the name of the device on which the mixer resides. The default
      is ``'default'``.
 
    **Note:** For a list of available controls, you can also use ``amixer`` on
    the commandline::
-      
+
       $ amixer
 
    To elaborate the example, calling :func:`mixers` with the argument
@@ -91,7 +76,7 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
       $ amixer -D foo
 
    *Changed in 0.8*:
-   
+
    - The keyword argument `device` is new and can be used to
      select virtual devices. As a result, the default behaviour has subtly
      changed. Since 0.8, this functions returns the mixers for the default
@@ -100,6 +85,7 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
 .. function:: asoundlib_version()
 
    Return a Python string containing the ALSA version found.
+
 
 .. _pcm-objects:
 
@@ -110,7 +96,7 @@ PCM objects in :mod:`alsaaudio` can play or capture (record) PCM
 sound through speakers or a microphone. The PCM constructor takes the
 following arguments:
 
-.. class:: PCM(type=PCM_PLAYBACK, mode=PCM_NORMAL, rate=44100, channels=2, format=PCM_FORMAT_S16_LE, periodsize=32, device='default', cardindex=-1)
+.. class:: PCM(type=PCM_PLAYBACK, mode=PCM_NORMAL, rate=44100, channels=2, format=PCM_FORMAT_S16_LE, periodsize=32, periods=4, device='default', cardindex=-1)
 
    This class is used to represent a PCM device (either for playback and
    recording). The arguments are:
@@ -123,7 +109,7 @@ following arguments:
    * *channels* - the number of channels. The default value is 2 (stereo).
    * *format* - the data format. This controls how the PCM device interprets data for playback, and how data is encoded in captures. 
      The default value is :const:`PCM_FORMAT_S16_LE`.
-   
+
    =========================  ===============
         Format                Description
    =========================  ===============
@@ -156,7 +142,11 @@ following arguments:
    ``PCM_FORMAT_U24_3BE``     Unsigned 24 bit samples for each channel (Big Endian byte order in 3 bytes)
    =========================  ===============
 
-   * *periodsize* - the period size in frames. Each write should consist of *periodsize* frames. The default value is 32.
+   * *periodsize* - the period size in frames.
+     Make sure you understand :ref:`the meaning of periods <term-period>`.
+     The default value is 32, which is below the actual minimum of most devices,
+     and will therefore likely be larger in practice.
+   * *periods* - the number of periods in the buffer. The default value is 4.
    * *device* - the name of the PCM device that should be used (for example
      a value from the output of :func:`pcms`). The default value is
      ``'default'``.
@@ -165,14 +155,20 @@ following arguments:
      the `device` keyword argument is ignored.
      ``0`` is the first hardware sound card.
 
+     **Note:** This should not be used, as it bypasses most of ALSA's configuration.
+
    This will construct a PCM object with the given settings.
+
+   *Changed in 0.10:*
+
+   - Added the optional named parameter `periods`.
 
    *Changed in 0.9:*
 
    - Added the optional named parameters `rate`, `channels`, `format` and `periodsize`.
 
    *Changed in 0.8:*
-   
+
    - The `card` keyword argument is still supported,
      but deprecated. Please use `device` instead.
 
@@ -180,8 +176,7 @@ following arguments:
 
    The `card` keyword is deprecated because it guesses the real ALSA
    name of the card. This was always fragile and broke some legitimate usecases.
-   
-     
+
 PCM objects have the following methods:
 
 .. method:: PCM.info()
@@ -235,16 +230,42 @@ PCM objects have the following methods:
    Returns the type of PCM object. Either :const:`PCM_CAPTURE` or
    :const:`PCM_PLAYBACK`.
 
-
 .. method:: PCM.pcmmode()
 
    Return the mode of the PCM object. One of :const:`PCM_NONBLOCK`,
    :const:`PCM_ASYNC`, or :const:`PCM_NORMAL`
 
-
 .. method:: PCM.cardname()
 
    Return the name of the sound card used by this PCM object.
+
+..
+   Omitted by intention due to not really fitting the c'tor-based setup concept:
+
+   .. method:: PCM.getchannels()
+
+   Returns list of the device's supported channel counts.
+
+   .. method:: PCM.getratebounds()
+
+   Returns the card's minimum and maximum supported sample rates as
+   a tuple of integers.
+
+   .. method:: PCM.getrates()
+
+   Returns the sample rates supported by the device.
+   The returned value can be of one of the following, depending on
+   the card's properties:
+   * Card supports only a single rate: returns the rate
+   * Card supports a continuous range of rates: returns a tuple of
+     the range's lower and upper bounds (inclusive)
+   * Card supports a collection of well-known rates: returns a list of
+     the supported rates
+
+   .. method:: PCM.getformats()
+
+   Returns a dictionary of supported format codes (integers) keyed by
+   their standard ALSA names (strings).
 
 .. method:: PCM.setchannels(nchannels)
 
@@ -255,12 +276,41 @@ PCM objects have the following methods:
    .. deprecated:: 0.9 Use the `rate` named argument to :func:`PCM`.
 
 .. method:: PCM.setformat(format)
-   
+
    .. deprecated:: 0.9 Use the `format` named argument to :func:`PCM`.
 
 .. method:: PCM.setperiodsize(period)
 
    .. deprecated:: 0.9 Use the `periodsize` named argument to :func:`PCM`.
+
+.. method:: PCM.info()
+
+   Returns a dictionary with the PCM object's configured parameters.
+
+   Values are retrieved from the ALSA library if they are available;
+   otherwise they represent those stored by pyalsaaudio, and their keys
+   are prefixed with ' (call value) '.
+
+   *New in 0.9.1*
+
+.. method:: PCM.dumpinfo()
+
+   Dumps the PCM object's configured parameters to stdout.
+
+.. method:: PCM.state()
+
+   Returs the current state of the stream, which can be one of
+   :const:`PCM_STATE_OPEN` (this should not actually happen),
+   :const:`PCM_STATE_SETUP` (after :func:`drop` or :func:`drain`),
+   :const:`PCM_STATE_PREPARED` (after construction),
+   :const:`PCM_STATE_RUNNING`,
+   :const:`PCM_STATE_XRUN`,
+   :const:`PCM_STATE_DRAINING`,
+   :const:`PCM_STATE_PAUSED`,
+   :const:`PCM_STATE_SUSPENDED`, and
+   :const:`PCM_STATE_DISCONNECTED`.
+
+   *New in 0.10*
 
 .. method:: PCM.read()
 
@@ -294,17 +344,42 @@ PCM objects have the following methods:
    return value of zero, if the buffer is full. In this case, the data
    should be written at a later time.
 
+   Note that this call completing means only that the samples were buffered
+   in the kernel, and playout will continue afterwards. Make sure that the
+   stream is drained before discarding the PCM handle.
 
 .. method:: PCM.pause([enable=True])
 
    If *enable* is :const:`True`, playback or capture is paused.
    Otherwise, playback/capture is resumed.
 
+.. method:: PCM.drop()
+
+   Stop the stream and drop residual buffered frames.
+
+   *New in 0.9*
+
+.. method:: PCM.drain()
+
+   For :const:`PCM_PLAYBACK` PCM objects, play residual buffered frames
+   and then stop the stream. In :const:`PCM_NORMAL` mode,
+   this function blocks until all pending playback is drained.
+
+   For :const:`PCM_CAPTURE` PCM objects, this function is not very useful.
+
+   *New in 0.10*
+
+.. method:: PCM.close()
+
+   Closes the PCM device.
+
+   For :const:`PCM_PLAYBACK` PCM objects in :const:`PCM_NORMAL` mode,
+   this function blocks until all pending playback is drained.
 
 .. method:: PCM.polldescriptors()
 
-   Returns a tuple of *(file descriptor, eventmask)* that can be used to
-   wait for changes on the PCM with *select.poll*.
+   Returns a list of tuples of *(file descriptor, eventmask)* that can be
+   used to wait for changes on the PCM with *select.poll*.
 
    The *eventmask* value is compatible with `poll.register`__ in the Python 
    :const:`select` module.
@@ -347,7 +422,7 @@ PCM objects have the following methods:
    ``PCM_TSTAMP_TYPE_MONOTONIC_RAW``  Monotonic time from an unspecified starting
                                       time using only the system clock.
    =================================  ===========================================
-   
+
    The timestamp mode is controlled by the tstamp_mode, as described in the table below.
 
    =================================  ===========================================
@@ -357,9 +432,6 @@ PCM objects have the following methods:
    ``PCM_TSTAMP_ENABLE``              Update timestamp at every hardware position
                                       update.
    =================================  ===========================================
-
-
-__ poll_objects_
 
 **A few hints on using PCM devices for playback**
 
@@ -396,11 +468,10 @@ Mixer Objects
 
 Mixer objects provides access to the ALSA mixer API.
 
-
 .. class:: Mixer(control='Master', id=0, cardindex=-1, device='default')
 
    Arguments are:
-   
+
    * *control* - specifies which control to manipulate using this mixer
      object. The list of available controls can be found with the 
      :mod:`alsaaudio`.\ :func:`mixers` function.  The default value is
@@ -416,29 +487,26 @@ Mixer objects provides access to the ALSA mixer API.
 
    * *device* - the name of the device on which the mixer resides. The default
      value is ``'default'``.
-   
+
    *Changed in 0.8*:
-   
+
    - The keyword argument `device` is new and can be used to select virtual
      devices.
-  
+
 Mixer objects have the following methods:
 
 .. method:: Mixer.cardname()
 
    Return the name of the sound card used by this Mixer object
 
-
 .. method:: Mixer.mixer()
 
    Return the name of the specific mixer controlled by this object, For example
    ``'Master'`` or ``'PCM'``
 
-
 .. method:: Mixer.mixerid()
 
    Return the ID of the ALSA mixer controlled by this object.
-
 
 .. method:: Mixer.switchcap()
 
@@ -460,7 +528,6 @@ Mixer objects have the following methods:
    To manipulate these switches use the :meth:`setrec` or
    :meth:`setmute` methods
 
-
 .. method:: Mixer.volumecap()
 
    Returns a list of the volume control capabilities of this
@@ -476,7 +543,7 @@ Mixer objects have the following methods:
    'Capture Volume'          Manipulate sound capture volume
    'Joined Capture Volume'   Manipulate sound capture volume for all channels at a time
    ========================  ================
-   
+
 .. method:: Mixer.getenum()
 
    For enumerated controls, return the currently selected item and  the list of
@@ -503,48 +570,43 @@ Mixer objects have the following methods:
    This method will return an empty tuple if the mixer is not an  enumerated
    control.
 
+.. method:: Mixer.setenum(index)
 
-.. method:: Mixer.getmute()
+   For enumerated controls, sets the currently selected item.
+   *index* is an index into the list of available enumerated items returned
+   by :func:`getenum`.
 
-   Return a list indicating the current mute setting for each
-   channel. 0 means not muted, 1 means muted.
-
-   This method will fail if the mixer has no playback switch capabilities.
-
-
-.. method:: Mixer.getrange(pcmtype=PCM_PLAYBACK)
+.. method:: Mixer.getrange(pcmtype=PCM_PLAYBACK, units=VOLUME_UNITS_RAW)
 
    Return the volume range of the ALSA mixer controlled by this object.
+   The value is a tuple of integers whose meaning is determined by the
+   *units* argument.
 
    The optional *pcmtype* argument can be either :const:`PCM_PLAYBACK` or
    :const:`PCM_CAPTURE`, which is relevant if the mixer can control both
    playback and capture volume.  The default value is :const:`PCM_PLAYBACK`
    if the mixer has playback channels, otherwise it is :const:`PCM_CAPTURE`.
 
+   The optional *units* argument can be one of :const:`VOLUME_UNITS_PERCENTAGE`,
+   :const:`VOLUME_UNITS_RAW`, or :const:`VOLUME_UNITS_DB`.
 
-.. method:: Mixer.getrec()
-
-   Return a list indicating the current record mute setting for each channel. 0
-   means not recording, 1 means recording.
-
-   This method will fail if the mixer has no capture switch capabilities.
-
-
-.. method:: Mixer.getvolume(pcmtype=PCM_PLAYBACK)
+.. method:: Mixer.getvolume(pcmtype=PCM_PLAYBACK, units=VOLUME_UNITS_PERCENTAGE)
 
    Returns a list with the current volume settings for each channel. The list
-   elements are integer percentages.
+   elements are integers whose meaning is determined by the *units* argument.
 
    The optional *pcmtype* argument can be either :const:`PCM_PLAYBACK` or
    :const:`PCM_CAPTURE`, which is relevant if the mixer can control both
    playback and capture volume. The default value is :const:`PCM_PLAYBACK`
    if the mixer has playback channels, otherwise it is :const:`PCM_CAPTURE`.
 
+   The optional *units* argument can be one of :const:`VOLUME_UNITS_PERCENTAGE`,
+   :const:`VOLUME_UNITS_RAW`, or :const:`VOLUME_UNITS_DB`.
 
-.. method:: Mixer.setvolume(volume, channel=None, pcmtype=PCM_PLAYBACK)
+.. method:: Mixer.setvolume(volume, channel=None, pcmtype=PCM_PLAYBACK, units=VOLUME_UNITS_PERCENTAGE)
 
    Change the current volume settings for this mixer. The *volume* argument
-   controls the new volume setting as an integer percentage.
+   is an integer whose meaning is determined by the *units* argument.
 
    If the optional argument *channel* is present, the volume is set
    only for this channel. This assumes that the mixer can control the
@@ -554,6 +616,16 @@ Mixer objects have the following methods:
    :const:`PCM_CAPTURE`, which is relevant if the mixer can control both
    playback and capture volume. The default value is :const:`PCM_PLAYBACK`
    if the mixer has playback channels, otherwise it is :const:`PCM_CAPTURE`.
+
+   The optional *units* argument can be one of :const:`VOLUME_UNITS_PERCENTAGE`,
+   :const:`VOLUME_UNITS_RAW`, or :const:`VOLUME_UNITS_DB`.
+
+.. method:: Mixer.getmute()
+
+   Return a list indicating the current mute setting for each channel.
+   0 means not muted, 1 means muted.
+
+   This method will fail if the mixer has no playback switch capabilities.
 
 .. method:: Mixer.setmute(mute, [channel])
 
@@ -565,6 +637,12 @@ Mixer objects have the following methods:
 
    This method will fail if the mixer has no playback mute capabilities
 
+.. method:: Mixer.getrec()
+
+   Return a list indicating the current record mute setting for each channel.
+   0 means not recording, 1 means recording.
+
+   This method will fail if the mixer has no capture switch capabilities.
 
 .. method:: Mixer.setrec(capture, [channel])
 
@@ -578,19 +656,21 @@ Mixer objects have the following methods:
 
 .. method:: Mixer.polldescriptors()
 
-   Returns a tuple of *(file descriptor, eventmask)* that can be used to
-   wait for changes on the mixer with *select.poll*.
+   Returns a list of tuples of *(file descriptor, eventmask)* that can be
+   used to wait for changes on the mixer with *select.poll*.
 
    The *eventmask* value is compatible with `poll.register`__ in the Python 
    :const:`select` module.
 
-__ poll_objects_
-
 .. method:: Mixer.handleevents()
 
-   Acknowledge events on the *polldescriptors* file descriptors
+   Acknowledge events on the :func:`polldescriptors` file descriptors
    to prevent subsequent polls from returning the same events again.
    Returns the number of events that were acknowledged.
+
+.. method:: Mixer.close()
+
+   Closes the Mixer device.
 
 **A rant on the ALSA Mixer API**
 
@@ -613,8 +693,6 @@ the availability of ALSA mixer capable devices will stay quite limited.
 Unfortunately, I'm not able to create such a HOWTO myself, since I only
 understand half of the API, and that which I do understand has come from a
 painful trial and error process.
-
-.. % ==== 4. ====
 
 
 .. _pcm-example:
@@ -657,6 +735,7 @@ To test PCM playback (on your default soundcard), run::
 
 recordtest.py and playbacktest.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 **recordtest.py** and **playbacktest.py** will record and play a raw
 sound file in CD quality.
 
@@ -678,7 +757,7 @@ Without arguments, **mixertest.py** will list all available *controls* on the
 default soundcard.
 
 The output might look like this::
-   
+
   $ ./mixertest.py
   Available mixer controls:
      'Master'
@@ -726,9 +805,3 @@ argument::
   Capabilities: Playback Volume Playback Mute
   Channel 0 volume: 61%
   Channel 1 volume: 61%
-
-.. rubric:: Footnotes
-
-.. [#f1]   ALSA also allows ``PCM_ASYNC``, but this is not supported yet.
-
-.. _poll_objects: http://docs.python.org/library/select.html#poll-objects
