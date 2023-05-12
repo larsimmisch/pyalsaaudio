@@ -2157,13 +2157,10 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args, PyObject *kwds)
 {
 	snd_mixer_elem_t *elem;
 	int channel;
-	long ival;
 	PyObject *pcmtypeobj = NULL;
 	long pcmtype;
 	int iunits = VOLUME_UNITS_PERCENTAGE;
-	PyObject *result;
-	PyObject *item;
-
+	PyObject *result = NULL;
 	char *kw[] = { "pcmtype", "units", NULL };
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oi:getvolume", kw, &pcmtypeobj, &iunits)) {
@@ -2187,6 +2184,9 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args, PyObject *kwds)
 	}
 	volume_units_t units = iunits;
 
+	// handle updates that may have occurred
+	snd_mixer_handle_events(self->handle);
+
 	elem = alsamixer_find_elem(self->handle,self->controlname,self->controlid);
 
 	if (!pcmtypeobj || (pcmtypeobj == Py_None)) {
@@ -2201,6 +2201,8 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args, PyObject *kwds)
 	result = PyList_New(0);
 
 	for (channel = 0; channel <= SND_MIXER_SCHN_LAST; channel++) {
+		long ival;
+
 		if (pcmtype == SND_PCM_STREAM_PLAYBACK &&
 			snd_mixer_selem_has_playback_channel(elem, channel))
 		{
@@ -2218,7 +2220,7 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args, PyObject *kwds)
 				break;
 			}
 
-			item = PyLong_FromLong(ival);
+			PyObject* item = PyLong_FromLong(ival);
 			PyList_Append(result, item);
 			Py_DECREF(item);
 		}
@@ -2239,7 +2241,7 @@ alsamixer_getvolume(alsamixer_t *self, PyObject *args, PyObject *kwds)
 				break;
 			}
 
-			item = PyLong_FromLong(ival);
+			PyObject* item = PyLong_FromLong(ival);
 			PyList_Append(result, item);
 			Py_DECREF(item);
 		}
