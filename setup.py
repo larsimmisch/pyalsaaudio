@@ -29,12 +29,12 @@ if __name__ == '__main__':
             'License :: OSI Approved :: Python Software Foundation License',
             'Operating System :: POSIX :: Linux',
             'Programming Language :: Python :: 2',
-            'Programming Language :: Python :: 3',    
+            'Programming Language :: Python :: 3',
             'Topic :: Multimedia :: Sound/Audio',
             'Topic :: Multimedia :: Sound/Audio :: Mixers',
             'Topic :: Multimedia :: Sound/Audio :: Players',
             'Topic :: Multimedia :: Sound/Audio :: Capture/Recording',
             ],
-        ext_modules=[Extension('alsaaudio',['alsaaudio.c'], 
+        ext_modules=[Extension('alsaaudio',['alsaaudio.c'],
                                libraries=['asound'])]
     )

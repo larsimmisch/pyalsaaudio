@@ -196,8 +196,8 @@ get_pcmtype(PyObject *obj)
 static bool is_value_volume_unit(long unit)
 {
 	if (unit == VOLUME_UNITS_PERCENTAGE ||
-	    unit == VOLUME_UNITS_RAW ||
-	    unit == VOLUME_UNITS_DB) {
+		unit == VOLUME_UNITS_RAW ||
+		unit == VOLUME_UNITS_DB) {
 		return true;
 	}
 	return false;

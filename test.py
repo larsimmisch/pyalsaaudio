@@ -20,7 +20,7 @@ PCMMethods = [
 ]
 
 PCMDeprecatedMethods = [
-	('setchannels', (2,)), 
+	('setchannels', (2,)),
 	('setrate', (44100,)),
 	('setformat', (alsaaudio.PCM_FORMAT_S8,)),
 	('setperiodsize', (320,))
@@ -49,10 +49,10 @@ class MixerTest(unittest.TestCase):
 
 	def testMixer(self):
 		"""Open the default Mixers and the Mixers on every card"""
-		
+
 		for c in alsaaudio.card_indexes():
 			mixers = alsaaudio.mixers(cardindex=c)
-			
+
 			for m in mixers:
 				mixer = alsaaudio.Mixer(m, cardindex=c)
 				mixer.close()
@@ -73,7 +73,7 @@ class MixerTest(unittest.TestCase):
 		mixer.close()
 
 	def testMixerClose(self):
-		"""Run common Mixer methods on a closed object and verify it raises an 
+		"""Run common Mixer methods on a closed object and verify it raises an
 		error"""
 
 		mixers = alsaaudio.mixers()
@@ -133,7 +133,7 @@ class PCMTest(unittest.TestCase):
 				pcm = alsaaudio.PCM(card='default')
 			except alsaaudio.ALSAAudioError:
 				pass
-				
+
 			# Verify we got a DepreciationWarning
 			self.assertEqual(len(w), 1, "PCM(card='default') expected a warning" )
 			self.assertTrue(issubclass(w[-1].category, DeprecationWarning), "PCM(card='default') expected a DeprecationWarning")
