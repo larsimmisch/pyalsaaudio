@@ -72,7 +72,12 @@ def show_mixer(name, kwargs):
     volumes = mixer.getvolume()
     volumes_dB = mixer.getvolume(units=alsaaudio.VOLUME_UNITS_DB)
     for i in range(len(volumes)):
-        print("Channel %i volume: %i%% (%.1f dB)" % (i, volumes[i], volumes_dB[i] / 100.0))
+        print("Channel %i playback volume: %i%% (%.1f dB)" % (i, volumes[i], volumes_dB[i] / 100.0))
+
+    volumes = mixer.getvolume(pcmtype=alsaaudio.PCM_CAPTURE)
+    volumes_dB = mixer.getvolume(pcmtype=alsaaudio.PCM_CAPTURE, units=alsaaudio.VOLUME_UNITS_DB)
+    for i in range(len(volumes)):
+        print("Channel %i capture volume: %i%% (%.1f dB)" % (i, volumes[i], volumes_dB[i] / 100.0))
 
     try:
         mutes = mixer.getmute()
