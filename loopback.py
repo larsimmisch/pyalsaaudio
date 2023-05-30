@@ -4,7 +4,7 @@
 import sys
 import select
 import logging
-from alsaaudio import PCM, pcms, PCM_PLAYBACK, PCM_CAPTURE, PCM_FORMAT_S16_LE, PCM_NONBLOCK
+from alsaaudio import PCM, pcms, PCM_PLAYBACK, PCM_CAPTURE, PCM_FORMAT_S16_LE, PCM_NONBLOCK, Mixer
 from argparse import ArgumentParser
 
 poll_names = {
@@ -20,49 +20,80 @@ poll_names = {
 def poll_desc(mask):
 	return '|'.join([poll_names[bit] for bit, name in poll_names.items() if mask & bit])
 
-class Loopback(object):
+class AlsaEvent(object):
+	def __init__(self, name, alsaobject):
+		self.name = name
+		self.fd, self.mask = alsaobject.polldescriptors()[0]
 
-	def __init__(self, playback, capture):
+	def handle_event(self, mask):
+		'''Override this if you need to handle events'''
+		pass
 
+
+class CaptureEvent(AlsaEvent):
+
+	def __init__(self, name, capture, playback):
+		super().__init__(name, capture)
 		self.playback = playback
-		self.playback_fd, self.playback_mask = playback.polldescriptors()[0]
-
 		self.capture = capture
-		self.capture_fd, self.capture_mask = capture.polldescriptors()[0]
 
-		self.poll = select.poll()
-
-		self.poll.register(self.playback_fd, self.playback_mask)
-		logging.debug(f'registered playback: {poll_desc(self.playback_mask)}')
-
-		self.poll.register(self.capture_fd, self.capture_mask)
-		logging.debug(f'registered capture: {poll_desc(self.capture_mask)}')
-
-	def fd_desc(self, fd):
-		if fd == self.capture_fd:
-			return 'capture'
-
-		if fd == self.playback_fd:
-			return 'playback'
-
-		return 'unknown'
-
-	def run(self):
-
-		# start reading
+	def start(self):
+		# start reading data
 		self.capture.read()
 
+	def handle_event(self, mask):
+		size, data = self.capture.read()
+		if not size:
+			logging.warning(f'underrun')
+			return
+		written = self.playback.write(data)
+		logging.debug(f'{self.name} wrote {size}: {written}')
+
+
+class VolumeEvent(AlsaEvent):
+	def __init__(self, name, capture_control, playback_control):
+		super().__init__(name, capture_control)
+		self.playback_control = playback_control
+		self.capture_control = capture_control
+		self.capture_control.getvolume(pcmtype=PCM_CAPTURE)
+
+	def handle_event(self, mask):
+		volume = self.capture_control.getvolume(pcmtype=PCM_CAPTURE)
+		# it looks as if we need to get the playback volume to reset the event
+		self.capture_control.getvolume()
+		logging.info(f'{self.name} adjusting volume to {volume}')
+		if volume:
+			self.playback_control.setvolume(volume[0])
+
+
+class Reactor(object):
+	'''A wrapper around select.poll'''
+
+	def __init__(self):
+		self.poll = select.poll()
+		self.events = {}
+
+	def register(self, event, mask=None):
+		logging.debug(f'registered {event.name}: {poll_desc(event.mask)}')
+		self.events[event.fd] = event
+
+		# allow overriding of mask
+		if mask is None:
+			mask = event.mask
+
+		self.poll.register(event.fd, mask)
+
+	def unregister(self, event):
+		self.poll.unregister(event.fd)
+		del self.events[event.fd]
+
+	def run(self):
 		while True:
 			events = self.poll.poll()
 			for fd, ev in events:
-				logging.debug(f'{self.fd_desc(fd)}: {poll_desc(ev)} ({ev})')
-
-				# This is very basic. We just write data as soon as we read it
-				# and don't care for errors or the playback device not being ready
-				if fd == self.capture_fd:
-					size, data = self.capture.read()
-					written = self.playback.write(data)
-					logging.debug(f'wrote {size}: {written}')
+				handler = self.events[fd]
+				logging.debug(f'{handler.name}: {poll_desc(ev)} ({ev})')
+				handler.handle_event(ev)
 
 if __name__ == '__main__':
 
@@ -88,6 +119,8 @@ if __name__ == '__main__':
 	parser.add_argument('-c', '--channels', type=int, default=2)
 	parser.add_argument('-p', '--periodsize', type=int, default=480)
 	parser.add_argument('-P', '--periods', type=int, default=4)
+	parser.add_argument('-I', '--input-mixer', help='Control of the input mixer')
+	parser.add_argument('-O', '--output-mixer', help='control of the output mixer')
 
 	args = parser.parse_args()
 
@@ -100,6 +133,21 @@ if __name__ == '__main__':
 	capture = PCM(type=PCM_CAPTURE, mode=PCM_NONBLOCK, device=args.input, rate=args.rate,
 		channels=args.channels, periodsize=args.periodsize, periods=args.periods)
 
-	loopback = Loopback(playback, capture)
+	capture_handler = CaptureEvent('capture', capture, playback)
+	playback_handler = AlsaEvent('playback', playback)
 
-	loopback.run()
+	reactor = Reactor()
+
+	capture_handler.start()
+
+	reactor.register(capture_handler)
+	reactor.register(playback_handler)
+
+	if args.input_mixer and args.output_mixer:
+		playback_control = Mixer(control=args.output_mixer, cardindex=playback.info()['card_no'])
+		capture_control = Mixer(control=args.input_mixer, cardindex=capture.info()['card_no'])
+
+		volume_handler = VolumeEvent('volume', capture_control, playback_control)
+		reactor.register(volume_handler, select.POLLIN)
+
+	reactor.run()
