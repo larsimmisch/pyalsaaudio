@@ -46,8 +46,13 @@ class CaptureEvent(AlsaEvent):
 		if not size:
 			logging.warning(f'underrun')
 			return
+
 		written = self.playback.write(data)
-		logging.debug(f'{self.name} wrote {size}: {written}')
+		if not written:
+			# if this happened, we might push the data to a queue
+			logging.warning('overrun')
+		else:
+			logging.debug(f'{self.name} wrote {size}: {written}')
 
 
 class VolumeEvent(AlsaEvent):
@@ -55,7 +60,6 @@ class VolumeEvent(AlsaEvent):
 		super().__init__(name, capture_control)
 		self.playback_control = playback_control
 		self.capture_control = capture_control
-		self.capture_control.getvolume(pcmtype=PCM_CAPTURE)
 
 	def handle_event(self, mask):
 		volume = self.capture_control.getvolume(pcmtype=PCM_CAPTURE)
@@ -92,14 +96,20 @@ class Reactor(object):
 			events = self.poll.poll()
 			for fd, ev in events:
 				handler = self.events[fd]
-				logging.debug(f'{handler.name}: {poll_desc(ev)} ({ev})')
+
+				# warn about unexpected/unhandled events
+				if ev & (select.POLLERR | select.POLLHUP | select.POLLNVAL | select.POLLRDHUP):
+					logging.warning(f'{handler.name}: {poll_desc(ev)} ({ev})')
+				else:
+					logging.debug(f'{handler.name}: {poll_desc(ev)} ({ev})')
+
 				handler.handle_event(ev)
 
 if __name__ == '__main__':
 
 	logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 
-	parser = ArgumentParser(description='ALSA loopback')
+	parser = ArgumentParser(description='ALSA loopback (with volume forwarding)')
 
 	playback_pcms = pcms(pcmtype=PCM_PLAYBACK)
 	capture_pcms = pcms(pcmtype=PCM_CAPTURE)
@@ -143,6 +153,10 @@ if __name__ == '__main__':
 	reactor.register(capture_handler)
 	reactor.register(playback_handler)
 
+	# If args.input_mixer and args.output_mixer are set, forward the capture volume to the playback volume.
+	# The usecase is a capture device that is implemented using g_audio, i.e. the Linux USB gadget driver.
+	# When a USB device (eg. an iPad) is connected to this machine, its volume events will to the volume control
+	# of the output device
 	if args.input_mixer and args.output_mixer:
 		playback_control = Mixer(control=args.output_mixer, cardindex=playback.info()['card_no'])
 		capture_control = Mixer(control=args.input_mixer, cardindex=capture.info()['card_no'])
