@@ -4,6 +4,7 @@
 import sys
 import select
 import logging
+from collections import namedtuple
 from alsaaudio import PCM, pcms, PCM_PLAYBACK, PCM_CAPTURE, PCM_FORMAT_S16_LE, PCM_NONBLOCK, Mixer
 from argparse import ArgumentParser
 
@@ -20,28 +21,44 @@ poll_names = {
 def poll_desc(mask):
 	return '|'.join([poll_names[bit] for bit, name in poll_names.items() if mask & bit])
 
-class AlsaEvent(object):
-	def __init__(self, name, alsaobject):
+class PollDescriptor(object):
+	'''File Descriptor, event mask and a name for logging'''
+	def __init__(self, name, fd, mask):
 		self.name = name
-		self.fd, self.mask = alsaobject.polldescriptors()[0]
+		self.fd = fd
+		self.mask = mask
 
-	def handle_event(self, mask):
-		'''Override this if you need to handle events'''
-		pass
+	@classmethod
+	def fromAlsaObject(cls, name, alsaobject, mask=None):
+		fd, alsamask = alsaobject.polldescriptors()[0]
 
+		if mask is None:
+			mask = alsamask
 
-class CaptureEvent(AlsaEvent):
+		return cls(name, fd, mask)
 
-	def __init__(self, name, capture, playback):
-		super().__init__(name, capture)
+class Loopback(object):
+	'''Loopback state and event handling'''
+
+	def __init__(self, capture, playback):
 		self.playback = playback
+		self.playback_pd = PollDescriptor.fromAlsaObject('playback', playback)
+
 		self.capture = capture
+		self.capture_pd = PollDescriptor.fromAlsaObject('capture', capture)
+
+	def register(self, reactor):
+		reactor.register(self.capture_pd, self)
+		reactor.register(self.playback_pd, self)
 
 	def start(self):
 		# start reading data
 		self.capture.read()
 
-	def handle_event(self, mask):
+	def handle_playback_event(self, eventmask, name):
+		pass
+
+	def handle_capture_event(self, eventmask, name):
 		size, data = self.capture.read()
 		if not size:
 			logging.warning(f'underrun')
@@ -49,23 +66,29 @@ class CaptureEvent(AlsaEvent):
 
 		written = self.playback.write(data)
 		if not written:
-			# if this happened, we might push the data to a queue
 			logging.warning('overrun')
 		else:
-			logging.debug(f'{self.name} wrote {size}: {written}')
+			logging.debug(f'wrote {size}: {written}')
+
+	def __call__(self, fd, eventmask, name):
+		if fd == self.capture_pd.fd:
+			self.handle_capture_event(eventmask, name)
+		else:
+			self.handle_playback_event(eventmask, name)
 
 
-class VolumeEvent(AlsaEvent):
-	def __init__(self, name, capture_control, playback_control):
-		super().__init__(name, capture_control)
+class VolumeForwarder(object):
+	'''Volume control event handling'''
+
+	def __init__(self, capture_control, playback_control):
 		self.playback_control = playback_control
 		self.capture_control = capture_control
 
-	def handle_event(self, mask):
+	def __call__(self, fd, eventmask, name):
 		volume = self.capture_control.getvolume(pcmtype=PCM_CAPTURE)
 		# it looks as if we need to get the playback volume to reset the event
 		self.capture_control.getvolume()
-		logging.info(f'{self.name} adjusting volume to {volume}')
+		logging.info(f'{name} adjusting volume to {volume}')
 		if volume:
 			self.playback_control.setvolume(volume[0])
 
@@ -75,35 +98,32 @@ class Reactor(object):
 
 	def __init__(self):
 		self.poll = select.poll()
-		self.events = {}
+		self.descriptors = {}
 
-	def register(self, event, mask=None):
-		logging.debug(f'registered {event.name}: {poll_desc(event.mask)}')
-		self.events[event.fd] = event
+	def register(self, polldescriptor, callable):
+		logging.debug(f'registered {polldescriptor.name}: {poll_desc(polldescriptor.mask)}')
+		self.descriptors[polldescriptor.fd] = (polldescriptor, callable)
 
-		# allow overriding of mask
-		if mask is None:
-			mask = event.mask
+		self.poll.register(polldescriptor.fd, polldescriptor.mask)
 
-		self.poll.register(event.fd, mask)
-
-	def unregister(self, event):
-		self.poll.unregister(event.fd)
-		del self.events[event.fd]
+	def unregister(self, polldescriptor):
+		self.poll.unregister(polldescriptor.fd)
+		del self.descriptors[polldescriptor.fd]
 
 	def run(self):
 		while True:
 			events = self.poll.poll()
 			for fd, ev in events:
-				handler = self.events[fd]
+				polldescriptor, handler = self.descriptors[fd]
 
 				# warn about unexpected/unhandled events
 				if ev & (select.POLLERR | select.POLLHUP | select.POLLNVAL | select.POLLRDHUP):
-					logging.warning(f'{handler.name}: {poll_desc(ev)} ({ev})')
+					logging.warning(f'{polldescriptor.name}: {poll_desc(ev)} ({ev})')
 				else:
-					logging.debug(f'{handler.name}: {poll_desc(ev)} ({ev})')
+					logging.debug(f'{polldescriptor.name}: {poll_desc(ev)} ({ev})')
 
-				handler.handle_event(ev)
+				handler(fd, ev, polldescriptor.name)
+
 
 if __name__ == '__main__':
 
@@ -143,15 +163,9 @@ if __name__ == '__main__':
 	capture = PCM(type=PCM_CAPTURE, mode=PCM_NONBLOCK, device=args.input, rate=args.rate,
 		channels=args.channels, periodsize=args.periodsize, periods=args.periods)
 
-	capture_handler = CaptureEvent('capture', capture, playback)
-	playback_handler = AlsaEvent('playback', playback)
+	loopback = Loopback(capture, playback)
 
 	reactor = Reactor()
-
-	capture_handler.start()
-
-	reactor.register(capture_handler)
-	reactor.register(playback_handler)
 
 	# If args.input_mixer and args.output_mixer are set, forward the capture volume to the playback volume.
 	# The usecase is a capture device that is implemented using g_audio, i.e. the Linux USB gadget driver.
@@ -161,7 +175,11 @@ if __name__ == '__main__':
 		playback_control = Mixer(control=args.output_mixer, cardindex=playback.info()['card_no'])
 		capture_control = Mixer(control=args.input_mixer, cardindex=capture.info()['card_no'])
 
-		volume_handler = VolumeEvent('volume', capture_control, playback_control)
-		reactor.register(volume_handler, select.POLLIN)
+		volume_handler = VolumeForwarder(capture_control, playback_control)
+		reactor.register(PollDescriptor.fromAlsaObject('capture_control', capture_control, select.POLLIN), volume_handler)
+
+	loopback.register(reactor)
+
+	loopback.start()
 
 	reactor.run()
