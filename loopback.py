@@ -86,8 +86,8 @@ class VolumeForwarder(object):
 
 	def __call__(self, fd, eventmask, name):
 		volume = self.capture_control.getvolume(pcmtype=PCM_CAPTURE)
-		# it looks as if we need to get the playback volume to reset the event
-		self.capture_control.getvolume()
+		# indicate that we've handled the event
+		self.capture_control.handleevents()
 		logging.info(f'{name} adjusting volume to {volume}')
 		if volume:
 			self.playback_control.setvolume(volume[0])
