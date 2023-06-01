@@ -5,7 +5,10 @@ import sys
 import select
 import logging
 from collections import namedtuple
-from alsaaudio import PCM, pcms, PCM_PLAYBACK, PCM_CAPTURE, PCM_FORMAT_S16_LE, PCM_NONBLOCK, Mixer
+from queue import SimpleQueue
+from alsaaudio import (PCM, pcms, PCM_PLAYBACK, PCM_CAPTURE, PCM_FORMAT_S16_LE, PCM_NONBLOCK, Mixer,
+	PCM_STATE_OPEN, PCM_STATE_SETUP, PCM_STATE_PREPARED, PCM_STATE_RUNNING, PCM_STATE_XRUN, PCM_STATE_DRAINING,
+	PCM_STATE_PAUSED, PCM_STATE_SUSPENDED, ALSAAudioError)
 from argparse import ArgumentParser
 
 poll_names = {
@@ -16,6 +19,17 @@ poll_names = {
 	select.POLLHUP: 'POLLHUP',
 	select.POLLRDHUP: 'POLLRDHUP',
 	select.POLLNVAL: 'POLLNVAL'
+}
+
+state_names = {
+	PCM_STATE_OPEN: 'PCM_STATE_OPEN',
+	PCM_STATE_SETUP: 'PCM_STATE_SETUP',
+	PCM_STATE_PREPARED: 'PCM_STATE_PREPARED',
+	PCM_STATE_RUNNING: 'PCM_STATE_RUNNING',
+	PCM_STATE_XRUN: 'PCM_STATE_XRUN',
+	PCM_STATE_DRAINING: 'PCM_STATE_DRAINING',
+	PCM_STATE_PAUSED: 'PCM_STATE_PAUSED',
+	PCM_STATE_SUSPENDED: 'PCM_STATE_SUSPENDED'
 }
 
 def poll_desc(mask):
@@ -47,28 +61,47 @@ class Loopback(object):
 		self.capture = capture
 		self.capture_pd = PollDescriptor.fromAlsaObject('capture', capture)
 
+		self.queue = SimpleQueue()
+
 	def register(self, reactor):
 		reactor.register(self.capture_pd, self)
 		reactor.register(self.playback_pd, self)
 
 	def start(self):
 		# start reading data
-		self.capture.read()
+		size, data = self.capture.read()
+		if size:
+			self.queue.put_nowait(data)
 
 	def handle_playback_event(self, eventmask, name):
+		# state = self.playback.state()
+		# logging.error(f'{name} state: {state_names[state]}')
+		# if state == PCM_STATE_RUNNING and not self.queue.empty():
+		# 	written = self.playback.write(self.queue.get_nowait())
+		# 	if not written:
+		# 		logging.warning('overrun despite event')
+		# 	else:
+		# 		logging.debug(f'{name} wrote {written}: queue: {self.queue.qsize()}')
 		pass
 
 	def handle_capture_event(self, eventmask, name):
+		'''called when data is avalailable for reading'''
 		size, data = self.capture.read()
 		if not size:
 			logging.warning(f'underrun')
 			return
 
-		written = self.playback.write(data)
-		if not written:
-			logging.warning('overrun')
-		else:
-			logging.debug(f'wrote {size}: {written}')
+		self.queue.put_nowait(data)
+		if self.queue.qsize() > 1:
+			try:
+				written = self.playback.write(self.queue.get_nowait())
+				if not written:
+					logging.warning('overrun')
+				else:
+					logging.debug(f'{name} wrote {size}: queue: {self.queue.qsize()}')
+			except ALSAAudioError as e:
+				logging.error('playback.write error', exc_info=1)
+				raise
 
 	def __call__(self, fd, eventmask, name):
 		if fd == self.capture_pd.fd:
@@ -127,7 +160,7 @@ class Reactor(object):
 
 if __name__ == '__main__':
 
-	logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
+	logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.INFO)
 
 	parser = ArgumentParser(description='ALSA loopback (with volume forwarding)')
 
@@ -148,7 +181,7 @@ if __name__ == '__main__':
 	parser.add_argument('-r', '--rate', type=int, default=48000)
 	parser.add_argument('-c', '--channels', type=int, default=2)
 	parser.add_argument('-p', '--periodsize', type=int, default=480)
-	parser.add_argument('-P', '--periods', type=int, default=4)
+	parser.add_argument('-P', '--periods', type=int, default=2)
 	parser.add_argument('-I', '--input-mixer', help='Control of the input mixer')
 	parser.add_argument('-O', '--output-mixer', help='control of the output mixer')
 
@@ -159,6 +192,9 @@ if __name__ == '__main__':
 
 	playback = PCM(type=PCM_PLAYBACK, mode=PCM_NONBLOCK, device=args.output, rate=args.rate,
 		channels=args.channels, periodsize=args.periodsize, periods=args.periods)
+
+	actual_periodsize = playback.info()['period_size']
+	logging.info(f'playback actual periodsize: {actual_periodsize}')
 
 	capture = PCM(type=PCM_CAPTURE, mode=PCM_NONBLOCK, device=args.input, rate=args.rate,
 		channels=args.channels, periodsize=args.periodsize, periods=args.periods)
