@@ -42,8 +42,12 @@ class PollDescriptor(object):
 		self.fd = fd
 		self.mask = mask
 
+	def as_tuple(self):
+		return (self.fd, self.mask)
+
 	@classmethod
-	def fromAlsaObject(cls, name, alsaobject, mask=None):
+	def from_alsa_object(cls, name, alsaobject, mask=None):
+		# TODO maybe refactor: we ignore objects that have more then one polldescriptor
 		fd, alsamask = alsaobject.polldescriptors()[0]
 
 		if mask is None:
@@ -54,18 +58,20 @@ class PollDescriptor(object):
 class Loopback(object):
 	'''Loopback state and event handling'''
 
-	def __init__(self, capture, playback):
-		self.playback = playback
-		self.playback_pd = PollDescriptor.fromAlsaObject('playback', playback)
+	def __init__(self, capture, playback_args):
+		self.playback_args = playback_args
+
+		self.playback = None
+		self.playback_pd = None
 
 		self.capture = capture
-		self.capture_pd = PollDescriptor.fromAlsaObject('capture', capture)
+		self.capture_pd = PollDescriptor.from_alsa_object('capture', capture)
 
 		self.queue = SimpleQueue()
 
 	def register(self, reactor):
+		reactor.register_timeout_handler(self.timeout)
 		reactor.register(self.capture_pd, self)
-		reactor.register(self.playback_pd, self)
 
 	def start(self):
 		# start reading data
@@ -73,6 +79,13 @@ class Loopback(object):
 		if size:
 			self.queue.put_nowait(data)
 
+	def timeout(self):
+		if self.playback:
+			logging.info('timeout - closing playback device')
+			self.playback.close()
+			self.playback = None
+
+	# unused
 	def handle_playback_event(self, eventmask, name):
 		# state = self.playback.state()
 		# logging.error(f'{name} state: {state_names[state]}')
@@ -82,32 +95,59 @@ class Loopback(object):
 		# 		logging.warning('overrun despite event')
 		# 	else:
 		# 		logging.debug(f'{name} wrote {written}: queue: {self.queue.qsize()}')
-		pass
+		avail = self.playback.avail()
+		logging.debug(f'playback available: {avail}')
 
 	def handle_capture_event(self, eventmask, name):
-		'''called when data is avalailable for reading'''
+		'''called when data is available for reading'''
 		size, data = self.capture.read()
 		if not size:
-			logging.warning(f'underrun')
+			logging.warning(f'capture event but no data')
 			return
 
 		self.queue.put_nowait(data)
-		if self.queue.qsize() > 1:
-			try:
+
+		if self.queue.qsize() <= 2:
+			logging.info(f'buffering: {self.queue.qsize()}')
+			return
+
+		if self.playback:
+			state = self.playback.state()
+			if state == PCM_STATE_XRUN:
+				# underrun: close the playback device and reopen it
+				self.playback.close()
+				self.playback = PCM(**self.playback_args)
+		else:
+			self.playback = PCM(**self.playback_args)
+			logging.info('opened playback device')
+
+		try:
+			while not self.queue.empty():
 				written = self.playback.write(self.queue.get_nowait())
 				if not written:
 					logging.warning('overrun')
-				else:
-					logging.debug(f'{name} wrote {size}: queue: {self.queue.qsize()}')
-			except ALSAAudioError as e:
-				logging.error('playback.write error', exc_info=1)
-				raise
+				space = self.playback.avail()
+				if space < self.playback_args['periodsize'] * self.queue.qsize():
+					logging.debug(f'space available: {space} after write {written} queue: {self.queue.qsize()}')
+					break
+
+		except ALSAAudioError as e:
+			logging.error('underrun', exc_info=1)
 
 	def __call__(self, fd, eventmask, name):
+
 		if fd == self.capture_pd.fd:
-			self.handle_capture_event(eventmask, name)
+			real_mask = self.capture.polldescriptors_revents([self.capture_pd.as_tuple()])
+			if real_mask:
+				self.handle_capture_event(real_mask, name)
+			else:
+				logging.debug('null capture event')
 		else:
-			self.handle_playback_event(eventmask, name)
+			real_mask = self.playback.polldescriptors_revents([self.playback_pd.as_tuple()])
+			if real_mask:
+				self.handle_playback_event(real_mask, name)
+			else:
+				logging.debug('null playback event')
 
 
 class VolumeForwarder(object):
@@ -132,30 +172,38 @@ class Reactor(object):
 	def __init__(self):
 		self.poll = select.poll()
 		self.descriptors = {}
+		self.timeout_handlers = set()
 
 	def register(self, polldescriptor, callable):
 		logging.debug(f'registered {polldescriptor.name}: {poll_desc(polldescriptor.mask)}')
 		self.descriptors[polldescriptor.fd] = (polldescriptor, callable)
-
 		self.poll.register(polldescriptor.fd, polldescriptor.mask)
 
 	def unregister(self, polldescriptor):
 		self.poll.unregister(polldescriptor.fd)
 		del self.descriptors[polldescriptor.fd]
 
+	def register_timeout_handler(self, callable):
+		self.timeout_handlers.add(callable)
+
+	def unregister_timeout_handler(self, callable):
+		self.timeout_handlers.remove(callable)
+
 	def run(self):
 		while True:
-			events = self.poll.poll()
+			# poll for a bit, then send a timeout to registered handlers
+			events = self.poll.poll(250)
 			for fd, ev in events:
 				polldescriptor, handler = self.descriptors[fd]
 
-				# warn about unexpected/unhandled events
-				if ev & (select.POLLERR | select.POLLHUP | select.POLLNVAL | select.POLLRDHUP):
-					logging.warning(f'{polldescriptor.name}: {poll_desc(ev)} ({ev})')
-				else:
-					logging.debug(f'{polldescriptor.name}: {poll_desc(ev)} ({ev})')
+				# very chatty - log all events
+				logging.debug(f'{polldescriptor.name}: {poll_desc(ev)} ({ev})')
 
 				handler(fd, ev, polldescriptor.name)
+
+			if not events:
+				for t in self.timeout_handlers:
+					t()
 
 
 if __name__ == '__main__':
@@ -168,11 +216,11 @@ if __name__ == '__main__':
 	capture_pcms = pcms(pcmtype=PCM_CAPTURE)
 
 	if not playback_pcms:
-		log.error('no playback PCM found')
+		logging.error('no playback PCM found')
 		sys.exit(2)
 
 	if not capture_pcms:
-		log.error('no capture PCM found')
+		logging.error('no capture PCM found')
 		sys.exit(2)
 
 	parser.add_argument('-d', '--debug', action='store_true')
@@ -190,29 +238,39 @@ if __name__ == '__main__':
 	if args.debug:
 		logging.getLogger().setLevel(logging.DEBUG)
 
-	playback = PCM(type=PCM_PLAYBACK, mode=PCM_NONBLOCK, device=args.output, rate=args.rate,
-		channels=args.channels, periodsize=args.periodsize, periods=args.periods)
-
-	actual_periodsize = playback.info()['period_size']
-	logging.info(f'playback actual periodsize: {actual_periodsize}')
+	playback_args = {
+		'type': PCM_PLAYBACK,
+		'mode': PCM_NONBLOCK,
+		'device': args.output,
+		'rate': args.rate,
+		'channels': args.channels,
+		'periodsize': args.periodsize,
+		'periods': args.periods
+	}
 
 	capture = PCM(type=PCM_CAPTURE, mode=PCM_NONBLOCK, device=args.input, rate=args.rate,
 		channels=args.channels, periodsize=args.periodsize, periods=args.periods)
 
-	loopback = Loopback(capture, playback)
+	loopback = Loopback(capture, playback_args)
 
 	reactor = Reactor()
 
 	# If args.input_mixer and args.output_mixer are set, forward the capture volume to the playback volume.
 	# The usecase is a capture device that is implemented using g_audio, i.e. the Linux USB gadget driver.
-	# When a USB device (eg. an iPad) is connected to this machine, its volume events will to the volume control
+	# When a USB device (eg. an iPad) is connected to this machine, its volume events will go to the volume control
 	# of the output device
+
+
+	playback = PCM(**playback_args)
+
 	if args.input_mixer and args.output_mixer:
 		playback_control = Mixer(control=args.output_mixer, cardindex=playback.info()['card_no'])
 		capture_control = Mixer(control=args.input_mixer, cardindex=capture.info()['card_no'])
 
 		volume_handler = VolumeForwarder(capture_control, playback_control)
-		reactor.register(PollDescriptor.fromAlsaObject('capture_control', capture_control, select.POLLIN), volume_handler)
+		reactor.register(PollDescriptor.from_alsa_object('capture_control', capture_control, select.POLLIN), volume_handler)
+
+	playback.close()
 
 	loopback.register(reactor)
 
