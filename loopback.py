@@ -123,13 +123,12 @@ class Loopback(object):
 			space = self.playback.avail()
 			while space > 0 and not self.queue.empty():
 				data = self.queue.get_nowait()
-				logging.info(f'space: {space} size of data to write: {len(data)}')
+				logging.debug(f'space: {space} size of data to write: {len(data)}')
 				written = self.playback.write(self.queue.get_nowait())
 				if not written:
 					logging.warning('overrun')
 				space = self.playback.avail()
 				if space < self.playback_args['periodsize'] * self.queue.qsize():
-					logging.debug(f'space available: {space} after write {written} queue: {self.queue.qsize()}')
 					break
 		except ALSAAudioError:
 			logging.error('underrun', exc_info=1)
