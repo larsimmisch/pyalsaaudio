@@ -81,6 +81,7 @@ class Loopback(object):
 
 	def timeout_handler(self):
 		if self.playback and self.capture_started:
+			logging.debug(f'last capture event {datetime.now() - self.capture_started}')
 			if datetime.now() - self.capture_started > timedelta(seconds=25):
 				logging.info('timeout - closing playback device')
 				self.playback.close()
@@ -88,25 +89,18 @@ class Loopback(object):
 				self.capture_started = None
 			return
 
-		if not self.playback:
-			try:
-				logging.info('opening playback device')
-				self.playback = PCM(**self.playback_args)
-				logging.info('opened playback device')
-			except ALSAAudioError as e:
-				logging.info('opening PCM playback device failed: %s', e)
-				self.waitBeforeOpen = True
+		self.waitBeforeOpen = False
 
 	def handle_capture_event(self, eventmask, name):
 		'''called when data is available for reading'''
 		size, data = self.capture.read()
 		if not size:
 			logging.warning(f'capture event but no data')
-			return
+			return False
 
 		if not self.playback:
 			if self.waitBeforeOpen:
-				return
+				return False
 			try:
 				logging.info('opening playback device')
 				self.playback = PCM(**self.playback_args)
@@ -114,17 +108,22 @@ class Loopback(object):
 			except ALSAAudioError as e:
 				logging.info('opening PCM playback device failed: %s', e)
 				self.waitBeforeOpen = True
+				return False
 
-			return
+			self.capture_started = datetime.now()
+			logging.info(f'{self.playback} capture started: {self.capture_started}')
 
 		self.queue.put_nowait(data)
 
 		if self.queue.qsize() < 2:
 			logging.info(f'buffering: {self.queue.qsize()}')
-			return
+			return False
 
 		try:
-			while not self.queue.empty():
+			space = self.playback.avail()
+			while space > 0 and not self.queue.empty():
+				data = self.queue.get_nowait()
+				logging.info(f'space: {space} size of data to write: {len(data)}')
 				written = self.playback.write(self.queue.get_nowait())
 				if not written:
 					logging.warning('overrun')
@@ -132,26 +131,27 @@ class Loopback(object):
 				if space < self.playback_args['periodsize'] * self.queue.qsize():
 					logging.debug(f'space available: {space} after write {written} queue: {self.queue.qsize()}')
 					break
-			self.capture_started = datetime.now()
-
 		except ALSAAudioError:
 			logging.error('underrun', exc_info=1)
+
+		return True
 
 	def __call__(self, fd, eventmask, name):
 
 		if fd == self.capture_pd.fd:
 			real_mask = self.capture.polldescriptors_revents([self.capture_pd.as_tuple()])
 			if real_mask:
-				self.handle_capture_event(real_mask, name)
+				return self.handle_capture_event(real_mask, name)
 			else:
 				logging.debug('null capture event')
+				return False
 		else:
 			real_mask = self.playback.polldescriptors_revents([self.playback_pd.as_tuple()])
 			if real_mask:
-				self.handle_playback_event(real_mask, name)
+				return self.handle_playback_event(real_mask, name)
 			else:
 				logging.debug('null playback event')
-
+				return False
 
 class VolumeForwarder(object):
 	'''Volume control event handling'''
@@ -193,9 +193,10 @@ class Reactor(object):
 		self.timeout_handlers.remove(callable)
 
 	def run(self):
+		last_timeout_ev = datetime.now()
 		while True:
 			# poll for a bit, then send a timeout to registered handlers
-			events = self.poll.poll(250)
+			events = self.poll.poll(0.25)
 			for fd, ev in events:
 				polldescriptor, handler = self.descriptors[fd]
 
@@ -204,9 +205,10 @@ class Reactor(object):
 
 				handler(fd, ev, polldescriptor.name)
 
-			if not events:
-				for t in self.timeout_handlers:
-					t()
+				if datetime.now() - last_timeout_ev > timedelta(seconds=0.25):
+					for t in self.timeout_handlers:
+						t()
+					last_timeout_ev = datetime.now()
 
 
 if __name__ == '__main__':
@@ -229,9 +231,9 @@ if __name__ == '__main__':
 	parser.add_argument('-d', '--debug', action='store_true')
 	parser.add_argument('-i', '--input', default=capture_pcms[0])
 	parser.add_argument('-o', '--output', default=playback_pcms[0])
-	parser.add_argument('-r', '--rate', type=int, default=48000)
+	parser.add_argument('-r', '--rate', type=int, default=44100)
 	parser.add_argument('-c', '--channels', type=int, default=2)
-	parser.add_argument('-p', '--periodsize', type=int, default=480)
+	parser.add_argument('-p', '--periodsize', type=int, default=444) # must be divisible by 6 for 44k1
 	parser.add_argument('-P', '--periods', type=int, default=2)
 	parser.add_argument('-I', '--input-mixer', help='Control of the input mixer')
 	parser.add_argument('-O', '--output-mixer', help='control of the output mixer')
