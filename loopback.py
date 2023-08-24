@@ -235,7 +235,9 @@ if __name__ == '__main__':
 	parser.add_argument('-p', '--periodsize', type=int, default=444) # must be divisible by 6 for 44k1
 	parser.add_argument('-P', '--periods', type=int, default=2)
 	parser.add_argument('-I', '--input-mixer', help='Control of the input mixer')
-	parser.add_argument('-O', '--output-mixer', help='control of the output mixer')
+	parser.add_argument('-O', '--output-mixer', help='Control of the output mixer')
+	# This needs to be specified if a virtual mixing device is used as output
+	parser.add_argument('-C', '--card-index-output', type=int, help='Index of the Sound card for the output mixer')
 
 	args = parser.parse_args()
 
@@ -264,17 +266,20 @@ if __name__ == '__main__':
 	# When a USB device (eg. an iPad) is connected to this machine, its volume events will go to the volume control
 	# of the output device
 
-	playback = PCM(**playback_args)
-
+	output_card = args.card_index_output
+	if output_card is None:
+		playback = PCM(**playback_args)
+		output_card = playback.info()['card_no']
+		playback.close()
+	
 	if args.input_mixer and args.output_mixer:
-		playback_control = Mixer(control=args.output_mixer, cardindex=playback.info()['card_no'])
+		playback_control = Mixer(control=args.output_mixer, cardindex=output_card)
 		capture_control = Mixer(control=args.input_mixer, cardindex=capture.info()['card_no'])
 
 		volume_handler = VolumeForwarder(capture_control, playback_control)
 		reactor.register(PollDescriptor.from_alsa_object('capture_control', capture_control, select.POLLIN), volume_handler)
 
-	playback.close()
-	playback = None
+
 
 	loopback.register(reactor)
 
