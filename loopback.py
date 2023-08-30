@@ -4,8 +4,10 @@
 import sys
 import select
 import logging
+import re
+import struct
+import subprocess
 from datetime import datetime, timedelta
-from queue import SimpleQueue
 from alsaaudio import (PCM, pcms, PCM_PLAYBACK, PCM_CAPTURE, PCM_FORMAT_S16_LE, PCM_NONBLOCK, Mixer,
 	PCM_STATE_OPEN, PCM_STATE_SETUP, PCM_STATE_PREPARED, PCM_STATE_RUNNING, PCM_STATE_XRUN, PCM_STATE_DRAINING,
 	PCM_STATE_PAUSED, PCM_STATE_SUSPENDED, ALSAAudioError)
@@ -58,16 +60,41 @@ class PollDescriptor(object):
 class Loopback(object):
 	'''Loopback state and event handling'''
 
-	def __init__(self, capture, playback_args):
+	def __init__(self, capture, playback_args, run_after_stop=None, run_before_start=None):
 		self.playback_args = playback_args
 		self.playback = None
 		self.capture_started = None
+		self.last_capture_event = None
 
 		self.capture = capture
 		self.capture_pd = PollDescriptor.from_alsa_object('capture', capture)
 
+		self.run_after_stop = run_after_stop.split(' ')
+		self.run_before_start = run_before_start.split(' ')
+
 		self.waitBeforeOpen = False
-		self.queue = SimpleQueue()
+		self.queue = []
+
+		self.period_size = 0
+		self.silent_periods = 0
+
+	@staticmethod
+	def compute_energy(data):
+		values = struct.unpack(f'{len(data)//2}h', data)
+		e = 0
+		for v in values:
+			e = e + v * v
+
+		return e
+
+	@staticmethod
+	def run_command(cmd):
+		if cmd:
+			rc = subprocess.run(cmd)
+			if rc.returncode:
+				logging.warning(f'run {cmd}, return code {rc.returncode}')
+			else:
+				logging.info(f'run {cmd}, return code {rc.returncode}')
 
 	def register(self, reactor):
 		reactor.register_timeout_handler(self.timeout_handler)
@@ -77,34 +104,67 @@ class Loopback(object):
 		# start reading data
 		size, data = self.capture.read()
 		if size:
-			self.queue.put_nowait(data)
+			self.queue.append(data)
 
 	def timeout_handler(self):
 		if self.playback and self.capture_started:
-			logging.debug(f'last capture event {datetime.now() - self.capture_started}')
-			if datetime.now() - self.capture_started > timedelta(seconds=25):
-				logging.info('timeout - closing playback device')
-				self.playback.close()
-				self.playback = None
-				self.capture_started = None
+			if self.last_capture_event:
+				if datetime.now() - self.last_capture_event > timedelta(seconds=2):
+					logging.info('timeout - closing playback device')
+					self.playback.close()
+					self.playback = None
+					self.capture_started = None
+					self.run_command(self.run_after_stop)
 			return
 
 		self.waitBeforeOpen = False
 
+	def pop(self):
+		if len(self.queue):
+			return self.queue.pop()
+		else:
+			return None
+
 	def handle_capture_event(self, eventmask, name):
 		'''called when data is available for reading'''
+		self.last_capture_event = datetime.now()
 		size, data = self.capture.read()
 		if not size:
 			logging.warning(f'capture event but no data')
 			return False
 
+		energy = self.compute_energy(data)
+		logging.debug(f'energy: {energy}')
+
+		# the usecase is a USB capture device where we get perfect silence when it's idle
+		if energy == 0:
+			self.silent_periods = self.silent_periods + 1
+
+			# turn off playback after two seconds of silence
+			# 2 channels * 2 seconds * 2 bytes per sample
+			fps = self.playback_args['rate']  * 8 // (self.playback_args['periodsize'] * self.playback_args['periods'])
+
+			logging.debug(f'{self.silent_periods} of {fps} silent periods: {self.playback}')
+
+			if self.silent_periods > fps and self.playback:
+				logging.info(f'closing playback due to silence')
+				self.playback.close()
+				self.playback = None
+				self.run_command(self.run_after_stop)
+
+			if not self.playback:
+				return
+		else:
+			self.silent_periods = 0
+
 		if not self.playback:
 			if self.waitBeforeOpen:
 				return False
 			try:
-				logging.info('opening playback device')
+				self.run_command(self.run_before_start)
 				self.playback = PCM(**self.playback_args)
-				logging.info('opened playback device')
+				self.period_size = self.playback.info()['period_size']
+				logging.info(f'opened playback device with period_size {self.period_size}')
 			except ALSAAudioError as e:
 				logging.info('opening PCM playback device failed: %s', e)
 				self.waitBeforeOpen = True
@@ -113,23 +173,18 @@ class Loopback(object):
 			self.capture_started = datetime.now()
 			logging.info(f'{self.playback} capture started: {self.capture_started}')
 
-		self.queue.put_nowait(data)
+		self.queue.append(data)
 
-		if self.queue.qsize() < 2:
-			logging.info(f'buffering: {self.queue.qsize()}')
+		if len(self.queue) <= 2:
+			logging.info(f'buffering: {len(self.queue)}')
 			return False
 
 		try:
-			space = self.playback.avail()
-			while space > 0 and not self.queue.empty():
-				data = self.queue.get_nowait()
-				logging.debug(f'space: {space} size of data to write: {len(data)}')
-				written = self.playback.write(self.queue.get_nowait())
-				if not written:
-					logging.warning('overrun')
+			data = self.pop()
+			if data:
 				space = self.playback.avail()
-				if space < self.playback_args['periodsize'] * self.queue.qsize():
-					break
+				written = self.playback.write(data)
+				logging.debug(f'wrote {written} bytes while space was {space}')
 		except ALSAAudioError:
 			logging.error('underrun', exc_info=1)
 
@@ -200,7 +255,7 @@ class Reactor(object):
 				polldescriptor, handler = self.descriptors[fd]
 
 				# very chatty - log all events
-				logging.debug(f'{polldescriptor.name}: {poll_desc(ev)} ({ev})')
+				# logging.debug(f'{polldescriptor.name}: {poll_desc(ev)} ({ev})')
 
 				handler(fd, ev, polldescriptor.name)
 
@@ -234,10 +289,10 @@ if __name__ == '__main__':
 	parser.add_argument('-c', '--channels', type=int, default=2)
 	parser.add_argument('-p', '--periodsize', type=int, default=444) # must be divisible by 6 for 44k1
 	parser.add_argument('-P', '--periods', type=int, default=2)
-	parser.add_argument('-I', '--input-mixer', help='Control of the input mixer')
-	parser.add_argument('-O', '--output-mixer', help='Control of the output mixer')
-	# This needs to be specified if a virtual mixing device is used as output
-	parser.add_argument('-C', '--card-index-output', type=int, help='Index of the Sound card for the output mixer')
+	parser.add_argument('-I', '--input-mixer', help='Control of the input mixer, can contain the card index, e.g. Digital:2')
+	parser.add_argument('-O', '--output-mixer', help='Control of the output mixer, can contain the card index, e.g. PCM:1')
+	parser.add_argument('-A', '--run-after-stop', help='command to run when the capture device is idle/silent')
+	parser.add_argument('-B', '--run-before-start', help='command to run when the capture device becomes active')
 
 	args = parser.parse_args()
 
@@ -254,11 +309,6 @@ if __name__ == '__main__':
 		'periods': args.periods
 	}
 
-	capture = PCM(type=PCM_CAPTURE, mode=PCM_NONBLOCK, device=args.input, rate=args.rate,
-		channels=args.channels, periodsize=args.periodsize, periods=args.periods)
-
-	loopback = Loopback(capture, playback_args)
-
 	reactor = Reactor()
 
 	# If args.input_mixer and args.output_mixer are set, forward the capture volume to the playback volume.
@@ -266,23 +316,50 @@ if __name__ == '__main__':
 	# When a USB device (eg. an iPad) is connected to this machine, its volume events will go to the volume control
 	# of the output device
 
-	output_card = args.card_index_output
-	if output_card is None:
-		playback = PCM(**playback_args)
-		output_card = playback.info()['card_no']
-		playback.close()
-	
+	capture = None
+	playback = None
 	if args.input_mixer and args.output_mixer:
-		playback_control = Mixer(control=args.output_mixer, cardindex=output_card)
-		capture_control = Mixer(control=args.input_mixer, cardindex=capture.info()['card_no'])
+		re_mixer = re.compile(r'([a-zA-Z0-9]+):?([0-9+])?')
+
+		input_mixer_card = None
+		m = re_mixer.match(args.input_mixer)
+		if m:
+			input_mixer = m.group(1)
+			if m.group(2):
+				input_mixer_card = int(m.group(2))
+		else:
+			parser.print_usage()
+			sys.exit(1)
+
+		output_mixer_card = None
+		m = re_mixer.match(args.output_mixer)
+		if m:
+			output_mixer = m.group(1)
+			if m.group(2):
+				output_mixer_card = int(m.group(2))
+		else:
+			parser.print_usage()
+			sys.exit(1)
+
+		if input_mixer_card is None:
+			capture = PCM(type=PCM_CAPTURE, mode=PCM_NONBLOCK, device=args.input, rate=args.rate,
+				channels=args.channels, periodsize=args.periodsize, periods=args.periods)
+			input_mixer_card = capture.info()['card_no']
+
+		if output_mixer_card is None:
+			playback = PCM(**playback_args)
+			output_mixer_card = playback.info()['card_no']
+			playback.close()
+
+		playback_control = Mixer(control=output_mixer, cardindex=int(output_mixer_card))
+		capture_control = Mixer(control=input_mixer, cardindex=int(input_mixer_card))
 
 		volume_handler = VolumeForwarder(capture_control, playback_control)
 		reactor.register(PollDescriptor.from_alsa_object('capture_control', capture_control, select.POLLIN), volume_handler)
 
-
-
-	loopback.register(reactor)
-
-	loopback.start()
+	if capture and playback:
+		loopback = Loopback(capture, playback_args, args.run_after_stop, args.run_before_start)
+		loopback.register(reactor)
+		loopback.start()
 
 	reactor.run()
