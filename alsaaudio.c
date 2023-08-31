@@ -1445,6 +1445,11 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 	if (!self->handle)
 	{
 		PyErr_SetString(ALSAAudioError, "PCM device is closed");
+
+#if PY_MAJOR_VERSION >= 3
+		PyBuffer_Release(&buf);
+#endif
+
 		return NULL;
 	}
 
@@ -1452,6 +1457,10 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 	{
 		PyErr_SetString(ALSAAudioError,
 						"Data size must be a multiple of framesize");
+
+#if PY_MAJOR_VERSION >= 3
+		PyBuffer_Release(&buf);
+#endif
 		return NULL;
 	}
 
