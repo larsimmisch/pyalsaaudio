@@ -1445,6 +1445,11 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 	if (!self->handle)
 	{
 		PyErr_SetString(ALSAAudioError, "PCM device is closed");
+
+#if PY_MAJOR_VERSION >= 3
+		PyBuffer_Release(&buf);
+#endif
+
 		return NULL;
 	}
 
@@ -1452,27 +1457,43 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 	{
 		PyErr_SetString(ALSAAudioError,
 						"Data size must be a multiple of framesize");
+
+#if PY_MAJOR_VERSION >= 3
+		PyBuffer_Release(&buf);
+#endif
 		return NULL;
 	}
 
-	state = snd_pcm_state(self->handle);
-	if ((state != SND_PCM_STATE_XRUN && state != SND_PCM_STATE_SETUP) ||
-		(res = snd_pcm_prepare(self->handle)) >= 0) {
+	snd_pcm_state_t state = snd_pcm_state(self->handle);
+
+	if (state != SND_PCM_STATE_SETUP) {
+		res = snd_pcm_prepare(self->handle));
 		Py_BEGIN_ALLOW_THREADS
 		res = snd_pcm_writei(self->handle, data, datalen/self->framesize);
-		Py_END_ALLOW_THREADS
+		if (res == -EPIPE) {
+			/* EPIPE means underrun */
+			res = snd_pcm_recover(self->handle, res, 1);
+			if (res >= 0) {
+				res = snd_pcm_writei(self->handle, data, datalen/self->framesize);
+			}
+		}
 	}
+	Py_END_ALLOW_THREADS
 
 	if (res == -EAGAIN) {
 		rc = PyLong_FromLong(0);
 	}
-	else if (res < 0)
+	res = snd_pcm_prepare(self->handle);
+	if (res < 0)
 	{
 		PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
 					 self->cardname);
-	}
-	else {
-		rc = PyLong_FromLong(res);
+
+#if PY_MAJOR_VERSION >= 3
+		PyBuffer_Release(&buf);
+#endif
+
+		return NULL;
 	}
 
 #if PY_MAJOR_VERSION >= 3
