@@ -1480,6 +1480,7 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 		}
 		Py_END_ALLOW_THREADS
 	}
+	Py_END_ALLOW_THREADS
 
 	if (res == -EAGAIN) {
 		rc = PyLong_FromLong(0);
