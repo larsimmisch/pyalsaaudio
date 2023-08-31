@@ -71,6 +71,7 @@ class Loopback(object):
 
 		self.run_after_stop = run_after_stop.split(' ')
 		self.run_before_start = run_before_start.split(' ')
+		self.run_after_stop_did_run = False
 
 		self.waitBeforeOpen = False
 		self.queue = []
@@ -119,6 +120,10 @@ class Loopback(object):
 
 		self.waitBeforeOpen = False
 
+		if not self.run_after_stop_did_run and not self.playback:
+			self.run_command(self.run_after_stop)
+			self.run_after_stop_did_run = True
+
 	def pop(self):
 		if len(self.queue):
 			return self.queue.pop()
@@ -151,6 +156,7 @@ class Loopback(object):
 				self.playback.close()
 				self.playback = None
 				self.run_command(self.run_after_stop)
+				self.run_after_stop_did_run = True
 
 			if not self.playback:
 				return
@@ -259,10 +265,10 @@ class Reactor(object):
 
 				handler(fd, ev, polldescriptor.name)
 
-				if datetime.now() - last_timeout_ev > timedelta(seconds=0.25):
-					for t in self.timeout_handlers:
-						t()
-					last_timeout_ev = datetime.now()
+			if datetime.now() - last_timeout_ev > timedelta(seconds=0.25):
+				for t in self.timeout_handlers:
+					t()
+				last_timeout_ev = datetime.now()
 
 
 if __name__ == '__main__':
