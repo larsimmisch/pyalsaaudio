@@ -1465,10 +1465,11 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 	int res;
 	snd_pcm_state_t state = snd_pcm_state(self->handle);
 
-	Py_BEGIN_ALLOW_THREADS
 
 	if ((state != SND_PCM_STATE_XRUN && state != SND_PCM_STATE_SETUP) ||
 		(res = snd_pcm_prepare(self->handle)) >= 0) {
+
+		Py_BEGIN_ALLOW_THREADS
 		res = snd_pcm_writei(self->handle, data, datalen/self->framesize);
 		if (res == -EPIPE) {
 			/* EPIPE means underrun */
@@ -1477,8 +1478,8 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 				res = snd_pcm_writei(self->handle, data, datalen/self->framesize);
 			}
 		}
+		Py_END_ALLOW_THREADS
 	}
-	Py_END_ALLOW_THREADS
 
 	if (res == -EAGAIN) {
 		rc = PyLong_FromLong(0);
