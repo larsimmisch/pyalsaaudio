@@ -11,6 +11,7 @@
 import unittest
 import alsaaudio
 import warnings
+from contextlib import closing
 
 # we can't test read and write well - these are tested otherwise
 PCMMethods = [
@@ -155,6 +156,32 @@ class PCMTest(unittest.TestCase):
 				method = "%s%s" % (m, str(a))
 				self.assertEqual(len(w), 1, method + " expected a warning")
 				self.assertTrue(issubclass(w[-1].category, DeprecationWarning), method + " expected a DeprecationWarning")
+
+class PollDescriptorArgsTest(unittest.TestCase):
+	'''Test invalid args for polldescriptors_revents (takes a list of tuples of 2 integers)'''
+	def testArgsNoList(self):
+		with closing(alsaaudio.PCM()) as pcm:
+			with self.assertRaises(TypeError):
+				pcm.polldescriptors_revents('foo')
+
+	def testArgsListButNoTuples(self):
+		with closing(alsaaudio.PCM()) as pcm:
+			with self.assertRaises(TypeError):
+				pcm.polldescriptors_revents(['foo', 1])
+
+	def testArgsListButInvalidTuples(self):
+		with closing(alsaaudio.PCM()) as pcm:
+			with self.assertRaises(TypeError):
+				pcm.polldescriptors_revents([('foo', 'bar')])
+
+	def testArgsListTupleWrongLength(self):
+		with closing(alsaaudio.PCM()) as pcm:
+			with self.assertRaises(TypeError):
+				pcm.polldescriptors_revents([(1, )])
+
+			with self.assertRaises(TypeError):
+				pcm.polldescriptors_revents([(1, 2, 3)])
+
 
 if __name__ == '__main__':
 	unittest.main()
