@@ -1504,6 +1504,30 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 	return rc;
 }
 
+static PyObject *
+alsapcm_avail(alsapcm_t *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args,":avail"))
+		return NULL;
+
+	if (!self->handle)
+	{
+		PyErr_SetString(ALSAAudioError, "PCM device is closed");
+		return NULL;
+	}
+
+	long avail = snd_pcm_avail(self->handle);
+	// if (avail < 0)
+	// {
+	// 	PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(avail),
+	// 				 self->cardname);
+
+	// 	return NULL;
+	// }
+
+	return PyLong_FromLong(avail);
+}
+
 static PyObject *alsapcm_pause(alsapcm_t *self, PyObject *args)
 {
 	int enabled=1, res;
@@ -1649,6 +1673,7 @@ static PyMethodDef alsapcm_methods[] = {
 	{"getchannels", (PyCFunction)alsapcm_getchannels, METH_VARARGS},
 	{"read", (PyCFunction)alsapcm_read, METH_VARARGS},
 	{"write", (PyCFunction)alsapcm_write, METH_VARARGS},
+	{"avail", (PyCFunction)alsapcm_avail, METH_VARARGS},
 	{"pause", (PyCFunction)alsapcm_pause, METH_VARARGS},
 	{"drop", (PyCFunction)alsapcm_drop, METH_VARARGS},
 	{"drain", (PyCFunction)alsapcm_drain, METH_VARARGS},
