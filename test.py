@@ -11,6 +11,7 @@
 import unittest
 import alsaaudio
 import warnings
+from contextlib import closing
 
 # we can't test read and write well - these are tested otherwise
 PCMMethods = [
@@ -20,7 +21,7 @@ PCMMethods = [
 ]
 
 PCMDeprecatedMethods = [
-	('setchannels', (2,)), 
+	('setchannels', (2,)),
 	('setrate', (44100,)),
 	('setformat', (alsaaudio.PCM_FORMAT_S8,)),
 	('setperiodsize', (320,))
@@ -49,10 +50,10 @@ class MixerTest(unittest.TestCase):
 
 	def testMixer(self):
 		"""Open the default Mixers and the Mixers on every card"""
-		
+
 		for c in alsaaudio.card_indexes():
 			mixers = alsaaudio.mixers(cardindex=c)
-			
+
 			for m in mixers:
 				mixer = alsaaudio.Mixer(m, cardindex=c)
 				mixer.close()
@@ -73,7 +74,7 @@ class MixerTest(unittest.TestCase):
 		mixer.close()
 
 	def testMixerClose(self):
-		"""Run common Mixer methods on a closed object and verify it raises an 
+		"""Run common Mixer methods on a closed object and verify it raises an
 		error"""
 
 		mixers = alsaaudio.mixers()
@@ -133,7 +134,7 @@ class PCMTest(unittest.TestCase):
 				pcm = alsaaudio.PCM(card='default')
 			except alsaaudio.ALSAAudioError:
 				pass
-				
+
 			# Verify we got a DepreciationWarning
 			self.assertEqual(len(w), 1, "PCM(card='default') expected a warning" )
 			self.assertTrue(issubclass(w[-1].category, DeprecationWarning), "PCM(card='default') expected a DeprecationWarning")
@@ -155,6 +156,32 @@ class PCMTest(unittest.TestCase):
 				method = "%s%s" % (m, str(a))
 				self.assertEqual(len(w), 1, method + " expected a warning")
 				self.assertTrue(issubclass(w[-1].category, DeprecationWarning), method + " expected a DeprecationWarning")
+
+class PollDescriptorArgsTest(unittest.TestCase):
+	'''Test invalid args for polldescriptors_revents (takes a list of tuples of 2 integers)'''
+	def testArgsNoList(self):
+		with closing(alsaaudio.PCM()) as pcm:
+			with self.assertRaises(TypeError):
+				pcm.polldescriptors_revents('foo')
+
+	def testArgsListButNoTuples(self):
+		with closing(alsaaudio.PCM()) as pcm:
+			with self.assertRaises(TypeError):
+				pcm.polldescriptors_revents(['foo', 1])
+
+	def testArgsListButInvalidTuples(self):
+		with closing(alsaaudio.PCM()) as pcm:
+			with self.assertRaises(TypeError):
+				pcm.polldescriptors_revents([('foo', 'bar')])
+
+	def testArgsListTupleWrongLength(self):
+		with closing(alsaaudio.PCM()) as pcm:
+			with self.assertRaises(TypeError):
+				pcm.polldescriptors_revents([(1, )])
+
+			with self.assertRaises(TypeError):
+				pcm.polldescriptors_revents([(1, 2, 3)])
+
 
 if __name__ == '__main__':
 	unittest.main()

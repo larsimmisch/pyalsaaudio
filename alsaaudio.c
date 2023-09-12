@@ -196,8 +196,8 @@ get_pcmtype(PyObject *obj)
 static bool is_value_volume_unit(long unit)
 {
 	if (unit == VOLUME_UNITS_PERCENTAGE ||
-	    unit == VOLUME_UNITS_RAW ||
-	    unit == VOLUME_UNITS_DB) {
+		unit == VOLUME_UNITS_RAW ||
+		unit == VOLUME_UNITS_DB) {
 		return true;
 	}
 	return false;
@@ -1504,6 +1504,30 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 	return rc;
 }
 
+static PyObject *
+alsapcm_avail(alsapcm_t *self, PyObject *args)
+{
+	if (!PyArg_ParseTuple(args,":avail"))
+		return NULL;
+
+	if (!self->handle)
+	{
+		PyErr_SetString(ALSAAudioError, "PCM device is closed");
+		return NULL;
+	}
+
+	long avail = snd_pcm_avail(self->handle);
+	// if (avail < 0)
+	// {
+	// 	PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(avail),
+	// 				 self->cardname);
+
+	// 	return NULL;
+	// }
+
+	return PyLong_FromLong(avail);
+}
+
 static PyObject *alsapcm_pause(alsapcm_t *self, PyObject *args)
 {
 	int enabled=1, res;
@@ -1625,6 +1649,72 @@ alsapcm_polldescriptors(alsapcm_t *self, PyObject *args)
 	return result;
 }
 
+static PyObject *
+alsapcm_polldescriptors_revents(alsapcm_t *self, PyObject *args)
+{
+	PyObject *list_obj;
+
+	if (!PyArg_ParseTuple(args, "O!:polldescriptors_revents", &PyList_Type, &list_obj))
+	{
+		PyErr_SetString(PyExc_TypeError, "parameter must be a list.");
+		return NULL;
+	}
+
+	Py_ssize_t list_size = PyList_Size(list_obj);
+
+	struct pollfd *fds = (struct pollfd*)calloc(list_size, sizeof(struct pollfd));
+	if (!fds)
+	{
+		PyErr_Format(PyExc_MemoryError, "Out of memory [%s]",
+					 self->cardname);
+		return NULL;
+	}
+
+	for (int i = 0; i < list_size; i++)
+	{
+		PyObject *tuple_obj = PyList_GetItem(list_obj, i);
+		if(!PyTuple_Check(tuple_obj)) {
+			PyErr_SetString(PyExc_TypeError, "list items must be tuples.");
+			free(fds);
+			return NULL;
+		}
+
+		Py_ssize_t tuple_size = PyTuple_Size(tuple_obj);
+		if (tuple_size != 2) {
+			PyErr_SetString(PyExc_TypeError, "tuples inside list must be (fd: int, mask: int)");
+			free(fds);
+			return NULL;
+		}
+
+		PyObject* t0 = PyTuple_GetItem(tuple_obj, 0);
+		PyObject* t1 = PyTuple_GetItem(tuple_obj, 1);
+
+		if (!PyLong_Check(t0) || !PyLong_Check(t1)) {
+			PyErr_SetString(PyExc_TypeError, "tuples inside list must be (fd: int, mask: int)");
+			free(fds);
+			return NULL;
+		}
+
+		// leave fds[i].event as 0 (from calloc) for now
+		fds[i].fd = PyLong_AS_LONG(t0);
+		fds[i].revents = PyLong_AS_LONG(t1);
+	}
+
+	unsigned short revents;
+	int rc = snd_pcm_poll_descriptors_revents(self->handle, fds, (unsigned short)list_size, &revents);
+	if (rc < 0)
+	{
+		PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(rc),
+					 self->cardname);
+		free(fds);
+		return NULL;
+	}
+
+	free(fds);
+
+	return PyLong_FromLong(revents);
+}
+
 /* ALSA PCM Object Bureaucracy */
 
 static PyMethodDef alsapcm_methods[] = {
@@ -1649,11 +1739,13 @@ static PyMethodDef alsapcm_methods[] = {
 	{"getchannels", (PyCFunction)alsapcm_getchannels, METH_VARARGS},
 	{"read", (PyCFunction)alsapcm_read, METH_VARARGS},
 	{"write", (PyCFunction)alsapcm_write, METH_VARARGS},
+	{"avail", (PyCFunction)alsapcm_avail, METH_VARARGS},
 	{"pause", (PyCFunction)alsapcm_pause, METH_VARARGS},
 	{"drop", (PyCFunction)alsapcm_drop, METH_VARARGS},
 	{"drain", (PyCFunction)alsapcm_drain, METH_VARARGS},
 	{"close", (PyCFunction)alsapcm_close, METH_VARARGS},
 	{"polldescriptors", (PyCFunction)alsapcm_polldescriptors, METH_VARARGS},
+	{"polldescriptors_revents", (PyCFunction)alsapcm_polldescriptors_revents, METH_VARARGS},
 	{NULL, NULL}
 };
 
