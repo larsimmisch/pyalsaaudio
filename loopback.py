@@ -60,7 +60,9 @@ class PollDescriptor(object):
 class Loopback(object):
 	'''Loopback state and event handling'''
 
-	def __init__(self, capture, playback_args, run_after_stop=None, run_before_start=None):
+	def __init__(self, capture, playback_args, playback_control=None,
+			  capture_control=None,
+			  run_after_stop=None, run_before_start=None):
 		self.playback_args = playback_args
 		self.playback = None
 		self.capture_started = None
@@ -68,6 +70,11 @@ class Loopback(object):
 
 		self.capture = capture
 		self.capture_pd = PollDescriptor.from_alsa_object('capture', capture)
+
+		if capture_control:
+			self.capture_control = capture_control
+			self.start_volume = capture_control.getvolume(pcmtype=PCM_CAPTURE)
+			self.current_volume = self.start_volume
 
 		self.run_after_stop = run_after_stop.split(' ')
 		self.run_before_start = run_before_start.split(' ')
@@ -98,8 +105,13 @@ class Loopback(object):
 				logging.info(f'run {cmd}, return code {rc.returncode}')
 
 	def register(self, reactor):
-		reactor.register_timeout_handler(self.timeout_handler)
-		reactor.register(self.capture_pd, self)
+		if self.capture_control:
+			self.capture_control_pd = PollDescriptor.from_alsa_object('capture_control', capture_control, select.POLLIN)
+			reactor.register(self.capture_control_pd, self)
+
+		if self.capture_pd:
+			reactor.register_timeout_handler(self.timeout_handler)
+			reactor.register(self.capture_pd, self)
 
 	def start(self):
 		# start reading data
@@ -115,12 +127,16 @@ class Loopback(object):
 					self.playback.close()
 					self.playback = None
 					self.capture_started = None
+					if self.playback_control and self.start_volume:
+						self.playback_control.setvolume(self.start_volume)
 					self.run_command(self.run_after_stop)
 			return
 
 		self.waitBeforeOpen = False
 
 		if not self.run_after_stop_did_run and not self.playback:
+			if self.playback_control and self.start_volume:
+				self.playback_control.setvolume(self.start_volume)
 			self.run_command(self.run_after_stop)
 			self.run_after_stop_did_run = True
 
@@ -176,6 +192,8 @@ class Loopback(object):
 				self.waitBeforeOpen = True
 				return False
 
+			if self.playback_control and self.current_volume:
+				self.playback_control.setvolume(self.current_volume)
 			self.capture_started = datetime.now()
 			logging.info(f'{self.playback} capture started: {self.capture_started}')
 
@@ -198,7 +216,15 @@ class Loopback(object):
 
 	def __call__(self, fd, eventmask, name):
 
-		if fd == self.capture_pd.fd:
+		if fd == self.capture_control_pd:
+			self.current_volume = self.capture_control.getvolume(pcmtype=PCM_CAPTURE)[0]
+			# indicate that we've handled the event
+			self.capture_control.handleevents()
+			logging.info(f'{name} adjusting volume to {self.current_volume}')
+			if self.current_volume:
+				self.playback_control.setvolume(self.current_volume)
+			return True
+		elif fd == self.capture_pd.fd:
 			real_mask = self.capture.polldescriptors_revents([self.capture_pd.as_tuple()])
 			if real_mask:
 				return self.handle_capture_event(real_mask, name)
@@ -212,21 +238,6 @@ class Loopback(object):
 			else:
 				logging.debug('null playback event')
 				return False
-
-class VolumeForwarder(object):
-	'''Volume control event handling'''
-
-	def __init__(self, capture_control, playback_control):
-		self.playback_control = playback_control
-		self.capture_control = capture_control
-
-	def __call__(self, fd, eventmask, name):
-		volume = self.capture_control.getvolume(pcmtype=PCM_CAPTURE)
-		# indicate that we've handled the event
-		self.capture_control.handleevents()
-		logging.info(f'{name} adjusting volume to {volume}')
-		if volume:
-			self.playback_control.setvolume(volume[0])
 
 
 class Reactor(object):
@@ -360,12 +371,12 @@ if __name__ == '__main__':
 		playback_control = Mixer(control=output_mixer, cardindex=int(output_mixer_card))
 		capture_control = Mixer(control=input_mixer, cardindex=int(input_mixer_card))
 
-		volume_handler = VolumeForwarder(capture_control, playback_control)
-		reactor.register(PollDescriptor.from_alsa_object('capture_control', capture_control, select.POLLIN), volume_handler)
+		original_volume = capture_control.getvolume(pcmtype=PCM_CAPTURE)
 
-	if capture and playback:
-		loopback = Loopback(capture, playback_args, args.run_after_stop, args.run_before_start)
-		loopback.register(reactor)
-		loopback.start()
+	loopback = Loopback(capture, playback_args, playback_control, capture_control, capture_fd,
+					  args.run_after_stop, args.run_before_start)
+	loopback.register(reactor)
+	loopback.start()
+	loopback.playback_control = playback_control
 
 	reactor.run()
