@@ -1,3 +1,7 @@
+# Version 0.10.1
+- restore previous xrun behaviour, #131
+- type hints
+
 # Version 0.10.0
 - assorted improvements (#123 from @ossilator)
   - support for `periods` in the `PCM` constructor.
