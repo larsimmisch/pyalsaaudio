@@ -1,3 +1,10 @@
+# Version 0.10.1
+- restore previous xrun behaviour, #131
+- type hints
+
+# Version 0.10.0
+- assorted improvements, (#123 from @ossilator)
+
 # Version 0.9.2
 - Fix alsamixer_getvolume (#112 from @stephensp)
 
@@ -15,15 +22,15 @@
     supported formats - e.g. `{"U8": 1, "S16_LE": 2}`,
   - `getchannels()` returns a list of the supported channel numbers, e.g. `[1, 2]`,
   - `getrates()` returns supported sample rates for the device, e.g. `[48000]`,
-  - `getratebounds()` returns the device's official minimum and maximum supported 
+  - `getratebounds()` returns the device's official minimum and maximum supported
     sample rates as a tuple, e.g. `(4000, 48000)`.
-  
+
   (#82 contributed by @jdstmporter)
 
 - Prevent hang on close after capturing audio (#80 contributed by @daym)
 
 # Version 0.8.5:
-- Return an empty string/bytestring when `read()` detects an 
+- Return an empty string/bytestring when `read()` detects an
   overrun. Previously the returned data was undefined (contributed by @jcea)
 
 - Unlimited setperiod buffer size when reading frames (contributed by @jcea)

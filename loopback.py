@@ -8,7 +8,7 @@ import re
 import struct
 import subprocess
 from datetime import datetime, timedelta
-from alsaaudio import (PCM, pcms, PCM_PLAYBACK, PCM_CAPTURE, PCM_FORMAT_S16_LE, PCM_NONBLOCK, Mixer,
+from alsaaudio import (PCM, pcms, PCM_PLAYBACK, PCM_CAPTURE, PCM_NONBLOCK, Mixer,
 	PCM_STATE_OPEN, PCM_STATE_SETUP, PCM_STATE_PREPARED, PCM_STATE_RUNNING, PCM_STATE_XRUN, PCM_STATE_DRAINING,
 	PCM_STATE_PAUSED, PCM_STATE_SUSPENDED, ALSAAudioError)
 from argparse import ArgumentParser
@@ -63,6 +63,7 @@ class Loopback(object):
 	def __init__(self, capture, playback_args, run_after_stop=None, run_before_start=None):
 		self.playback_args = playback_args
 		self.playback = None
+		self.playback_control = playback_control
 		self.capture_started = None
 		self.last_capture_event = None
 
@@ -299,6 +300,7 @@ if __name__ == '__main__':
 	parser.add_argument('-O', '--output-mixer', help='Control of the output mixer, can contain the card index, e.g. PCM:1')
 	parser.add_argument('-A', '--run-after-stop', help='command to run when the capture device is idle/silent')
 	parser.add_argument('-B', '--run-before-start', help='command to run when the capture device becomes active')
+	parser.add_argument('-V', '--volume', help='Initial volume (default is leave unchanged)')
 
 	args = parser.parse_args()
 
@@ -363,9 +365,12 @@ if __name__ == '__main__':
 		volume_handler = VolumeForwarder(capture_control, playback_control)
 		reactor.register(PollDescriptor.from_alsa_object('capture_control', capture_control, select.POLLIN), volume_handler)
 
-	if capture and playback:
-		loopback = Loopback(capture, playback_args, args.run_after_stop, args.run_before_start)
-		loopback.register(reactor)
-		loopback.start()
+	if args.volume and playback_control:
+			playback_control.setvolume(int(args.volume))
+
+	loopback = Loopback(capture, playback_args, playback_control, capture_control,
+					  args.run_after_stop, args.run_before_start)
+	loopback.register(reactor)
+	loopback.start()
 
 	reactor.run()
