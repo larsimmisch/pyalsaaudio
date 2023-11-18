@@ -60,10 +60,10 @@ class PollDescriptor(object):
 class Loopback(object):
 	'''Loopback state and event handling'''
 
-	def __init__(self, capture, playback_args, run_after_stop=None, run_before_start=None):
+	def __init__(self, capture, playback_args, volume_handler, run_after_stop=None, run_before_start=None):
 		self.playback_args = playback_args
 		self.playback = None
-		self.playback_control = playback_control
+		self.volume_handler = volume_handler
 		self.capture_started = None
 		self.last_capture_event = None
 
@@ -116,12 +116,16 @@ class Loopback(object):
 					self.playback.close()
 					self.playback = None
 					self.capture_started = None
+					if self.volume_handler:
+						self.volume_handler.stop()
 					self.run_command(self.run_after_stop)
 			return
 
 		self.waitBeforeOpen = False
 
 		if not self.run_after_stop_did_run and not self.playback:
+			if self.volume_handler:
+				self.volume_handler.stop()
 			self.run_command(self.run_after_stop)
 			self.run_after_stop_did_run = True
 
@@ -156,6 +160,8 @@ class Loopback(object):
 				logging.info(f'closing playback due to silence')
 				self.playback.close()
 				self.playback = None
+				if self.volume_handler:
+					self.volume_handler.stop()
 				self.run_command(self.run_after_stop)
 				self.run_after_stop_did_run = True
 
@@ -168,6 +174,8 @@ class Loopback(object):
 			if self.waitBeforeOpen:
 				return False
 			try:
+				if self.volume_handler:
+					self.volume_handler.start()
 				self.run_command(self.run_before_start)
 				self.playback = PCM(**self.playback_args)
 				self.period_size = self.playback.info()['period_size']
@@ -220,8 +228,21 @@ class VolumeForwarder(object):
 	def __init__(self, capture_control, playback_control):
 		self.playback_control = playback_control
 		self.capture_control = capture_control
+		self.active = True
+
+	def start(self):
+		self.active = True
+		if self.volume:
+			self.volume = playback_control.setvolume(self.volume)
+
+	def stop(self):
+		self.active = False
+		self.volume = self.playback_control.getvolume(pcmtype=PCM_CAPTURE)[0]
 
 	def __call__(self, fd, eventmask, name):
+		if not self.active:
+			return
+
 		volume = self.capture_control.getvolume(pcmtype=PCM_CAPTURE)
 		# indicate that we've handled the event
 		self.capture_control.handleevents()
@@ -326,6 +347,7 @@ if __name__ == '__main__':
 
 	capture = None
 	playback = None
+	volume_handler = None
 	if args.input_mixer and args.output_mixer:
 		re_mixer = re.compile(r'([a-zA-Z0-9]+):?([0-9+])?')
 
@@ -366,10 +388,9 @@ if __name__ == '__main__':
 		reactor.register(PollDescriptor.from_alsa_object('capture_control', capture_control, select.POLLIN), volume_handler)
 
 	if args.volume and playback_control:
-			playback_control.setvolume(int(args.volume))
+		playback_control.setvolume(int(args.volume))
 
-	loopback = Loopback(capture, playback_args, playback_control, capture_control,
-					  args.run_after_stop, args.run_before_start)
+	loopback = Loopback(capture, playback_args, volume_handler, args.run_after_stop, args.run_before_start)
 	loopback.register(reactor)
 	loopback.start()
 
