@@ -3,7 +3,13 @@
 - type hints
 
 # Version 0.10.0
-- assorted improvements, (#123 from @ossilator)
+- assorted improvements (#123 from @ossilator)
+  - support for `periods` in the `PCM` constructor.
+  - new functions `PCM.state()`, `PCM.drop()` and `PCM.drain()`
+  - improved underrun/overrun handling
+  - documentation improvements/consolidation (docstrings were removed in favour of online documentation)
+  - more sampling rates
+  - bug fixes
 
 # Version 0.9.2
 - Fix alsamixer_getvolume (#112 from @stephensp)
