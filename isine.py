@@ -79,7 +79,6 @@ class SinePlayer(Thread):
         while True:
             try:
                 buffer = self.queue.get(False)
-                self.device.setperiodsize(int(len(buffer) / framesize))
                 self.device.write(buffer)
             except Empty:
                 if buffer:
