@@ -324,9 +324,12 @@ PCM objects have the following methods:
    ``(0,'')`` if no new period has become available since the last
    call to read.
 
-   In case of an overrun, this function will return a negative size: :const:`-EPIPE`.
-   This indicates that data was lost, even if the operation itself succeeded.
-   Try using a larger periodsize.
+   In case of a buffer overrun, this function will return the negative
+   size :const:`-EPIPE`, and no data is read.
+   This indicates that data was lost. To resume capturing, just call read
+   again, but note that the stream was already corrupted.
+   To avoid the problem in the future, try using a larger period size
+   and/or more periods, at the cost of higher latency.
 
 .. method:: PCM.write(data)
 
