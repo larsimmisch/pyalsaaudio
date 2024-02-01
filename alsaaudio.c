@@ -1364,12 +1364,23 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
 	buffer = PyBytes_AS_STRING(buffer_obj);
 #endif
 
+	// After drop() and drain(), we need to prepare the stream again.
+	// Note that fresh streams are already prepared by snd_pcm_hw_params().
 	state = snd_pcm_state(self->handle);
-	if ((state != SND_PCM_STATE_XRUN && state != SND_PCM_STATE_SETUP) ||
-		(res = snd_pcm_prepare(self->handle)) >= 0) {
+	if ((state != SND_PCM_STATE_SETUP) ||
+		!(res = snd_pcm_prepare(self->handle))) {
+
 		Py_BEGIN_ALLOW_THREADS
 		res = snd_pcm_readi(self->handle, buffer, self->periodsize);
 		Py_END_ALLOW_THREADS
+
+		if (res == -EPIPE) {
+			// This means buffer overrun, which we need to report.
+			// However, we recover the stream, so the next PCM.read() will work
+			// again. If recovery fails (very unlikely), report that instead.
+			if (!(res = snd_pcm_prepare(self->handle)))
+				res = -EPIPE;
+		}
 	}
 
 	if (res != -EPIPE)
