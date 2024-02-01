@@ -7,6 +7,7 @@
 from __future__ import print_function
 
 import sys
+import time
 from threading import Thread
 from multiprocessing import Queue
 
@@ -87,6 +88,7 @@ class SinePlayer(Thread):
 isine = SinePlayer()
 isine.start()
 
-def change(f):
-    isine.change(f)
-    
+time.sleep(1)
+isine.change(1000)
+time.sleep(1)
+
