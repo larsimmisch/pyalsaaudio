@@ -1385,10 +1385,10 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
 			Py_DECREF(buffer_obj);
 			return NULL;
 		}
-	}
-
-	if (res > 0 ) {
-		sizeout = res * self->framesize;
+		else
+		{
+			sizeout = res * self->framesize;
+		}
 	}
 
 	if (size != sizeout) {
