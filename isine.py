@@ -16,7 +16,7 @@ if sys.version_info[0] < 3:
 else:
     from queue import Empty
 
-from math import pi, sin
+from math import pi, sin, ceil
 import struct
 import alsaaudio
 
@@ -35,16 +35,14 @@ def generate(frequency, duration = 0.125):
     # generate a buffer with a sine wave of `frequency`
     # that is approximately `duration` seconds long
 
-    # the buffersize we approximately want
-    target_size = int(sampling_rate * channels * duration)
-
     # the length of a full sine wave at the frequency
     cycle_size = int(sampling_rate / frequency)
 
-    # number of full cycles we can fit into target_size
-    factor = int(target_size / cycle_size)
+    # number of full cycles we can fit into the duration
+    factor = int(ceil(duration * frequency))
 
-    size = max(int(cycle_size * factor), 1)
+    # total number of frames
+    size = cycle_size * factor
     
     sine = [ int(32767 * sin(2 * pi * frequency * i / sampling_rate)) \
              for i in range(size)]
