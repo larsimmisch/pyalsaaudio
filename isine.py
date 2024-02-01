@@ -54,8 +54,7 @@ def generate(frequency, duration = 0.125):
 class SinePlayer(Thread):
     
     def __init__(self, frequency = 440.0):
-        Thread.__init__(self)
-        self.setDaemon(True)
+        Thread.__init__(self, daemon=True)
         self.device = alsaaudio.PCM(channels=channels, format=format, rate=sampling_rate)
         self.queue = Queue()
         self.change(frequency)
