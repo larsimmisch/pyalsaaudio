@@ -84,7 +84,8 @@ class SinePlayer(Thread):
             except Empty:
                 pass
             if buffer:
-                self.device.write(buffer)
+                if self.device.write(buffer) < 0:
+                    print("Playback buffer underrun! Continuing nonetheless ...")
                 
 
 isine = SinePlayer()
