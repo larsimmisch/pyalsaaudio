@@ -79,10 +79,10 @@ class SinePlayer(Thread):
         while True:
             try:
                 buffer = self.queue.get(False)
-                self.device.write(buffer)
             except Empty:
-                if buffer:
-                    self.device.write(buffer)
+                pass
+            if buffer:
+                self.device.write(buffer)
                 
 
 isine = SinePlayer()
