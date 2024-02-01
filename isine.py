@@ -18,12 +18,13 @@ else:
 
 from math import pi, sin, ceil
 import struct
+import itertools
 import alsaaudio
 
 sampling_rate = 48000
 
 format = alsaaudio.PCM_FORMAT_S16_LE
-framesize = 2 # bytes per frame for the values above
+pack_format = 'h'  # short int, matching S16
 channels = 2
 
 def nearest_frequency(frequency):
@@ -47,7 +48,10 @@ def generate(frequency, duration = 0.125):
     sine = [ int(32767 * sin(2 * pi * frequency * i / sampling_rate)) \
              for i in range(size)]
              
-    return struct.pack('%dh' % size, *sine)
+    if channels > 1:
+        sine = list(itertools.chain.from_iterable(itertools.repeat(x, channels) for x in sine))
+
+    return struct.pack(str(size * channels) + pack_format, *sine)
                                                                                   
 
 class SinePlayer(Thread):
