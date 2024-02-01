@@ -59,6 +59,8 @@ if __name__ == '__main__':
 		# Read data from device
 		l, data = inp.read()
 
-		if l:
+		if l < 0:
+			print("Capture buffer overrun! Continuing nonetheless ...")
+		elif l:
 			f.write(data)
 			time.sleep(.001)

@@ -39,7 +39,8 @@ def play(device, f):
 	data = f.readframes(periodsize)
 	while data:
 		# Read data from stdin
-		device.write(data)
+		if device.write(data) < 0:
+			print("Playback buffer underrun! Continuing nonetheless ...")
 		data = f.readframes(periodsize)
 
 

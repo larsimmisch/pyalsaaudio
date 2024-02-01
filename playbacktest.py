@@ -47,7 +47,8 @@ if __name__ == '__main__':
     # Read data from stdin
     data = f.read(320)
     while data:
-        out.write(data)
+        if out.write(data) < 0:
+            print("Playback buffer underrun! Continuing nonetheless ...")
         data = f.read(320)
     out.close()
         
