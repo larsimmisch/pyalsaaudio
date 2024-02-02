@@ -1436,7 +1436,6 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 {
 	int datalen;
 	char *data;
-	PyObject *rc = NULL;
 
 #if PY_MAJOR_VERSION < 3
 	if (!PyArg_ParseTuple(args,"s#:write", &data, &datalen))
@@ -1493,7 +1492,7 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 	}
 
 	if (res == -EAGAIN) {
-		rc = PyLong_FromLong(0);
+		res = 0;
 	}
 	else if (res < 0)
 	{
@@ -1511,7 +1510,7 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 	PyBuffer_Release(&buf);
 #endif
 
-	return rc;
+	return PyLong_FromLong(res);
 }
 
 static PyObject *
