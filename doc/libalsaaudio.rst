@@ -327,6 +327,20 @@ PCM objects have the following methods:
 
    *New in 0.10*
 
+.. method:: PCM.avail()
+
+   For :const:`PCM_PLAYBACK` PCM objects, returns the number of writable
+   (that is, free) frames in the buffer.
+
+   For :const:`PCM_CAPTURE` PCM objects, returns the number of readable
+   (that is, filled) frames in the buffer.
+
+   An attempt to read/write more frames than indicated will block (in
+   :const:`PCM_NORMAL` mode) or fail and return zero (in
+   :const:`PCM_NONBLOCK` mode).
+
+   *New in 0.11*
+
 .. method:: PCM.read()
 
    In :const:`PCM_NORMAL` mode, this function blocks until a full period is
@@ -410,6 +424,15 @@ PCM objects have the following methods:
 
    The *eventmask* value is compatible with `poll.register`__ in the Python 
    :const:`select` module.
+
+.. method:: PCM.polldescriptors_revents(descriptors)
+
+   Processes the descriptor list returned by :func:`polldescriptors` after
+   using it with *select.poll*, and returns a single *eventmask* value that
+   is meaningful for deciding whether :func:`read` or :func:`write` should
+   be called.
+
+   *New in 0.11*
 
 .. method:: PCM.set_tstamp_mode([mode=PCM_TSTAMP_ENABLE])
 
