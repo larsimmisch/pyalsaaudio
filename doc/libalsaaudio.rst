@@ -338,14 +338,23 @@ PCM objects have the following methods:
    period. If less than 'period size' frames are provided, the actual
    playout will not happen until more data is written.
 
-   If the device is not in :const:`PCM_NONBLOCK` mode, this call will block if
-   the kernel buffer is full, and until enough sound has been played
-   to allow the sound data to be buffered. The call always returns the
-   size of the data provided.
+   If the data was successfully written, the call returns the size of the
+   data *in frames*.
+
+   If the device is not in :const:`PCM_NONBLOCK` mode, this call will block
+   if the kernel buffer is full, and until enough sound has been played
+   to allow the sound data to be buffered.
 
    In :const:`PCM_NONBLOCK` mode, the call will return immediately, with a
    return value of zero, if the buffer is full. In this case, the data
-   should be written at a later time.
+   should be written again at a later time.
+
+   In case of a buffer underrun, this function will return the negative
+   size :const:`-EPIPE`, and no data is written.
+   At this point, the playback was already corrupted. If you want to play
+   the data nonetheless, call write again with the same data.
+   To avoid the problem in the future, try using a larger period size
+   and/or more periods, at the cost of higher latency.
 
    Note that this call completing means only that the samples were buffered
    in the kernel, and playout will continue afterwards. Make sure that the

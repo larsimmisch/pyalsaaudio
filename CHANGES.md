@@ -1,5 +1,6 @@
 # Version 0.10.1
-- restore previous xrun behaviour, #131
+- revert to not throwing an exception on playback buffer underrun;
+  instead, return -EPIPE like `PCM.read()` does on overrun; #131
 - type hints
 
 # Version 0.10.0
