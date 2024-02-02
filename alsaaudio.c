@@ -1473,37 +1473,41 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 	}
 
 	int res;
+	// After drop() and drain(), we need to prepare the stream again.
+	// Note that fresh streams are already prepared by snd_pcm_hw_params().
 	snd_pcm_state_t state = snd_pcm_state(self->handle);
-
-
-	if ((state != SND_PCM_STATE_XRUN && state != SND_PCM_STATE_SETUP) ||
-		(res = snd_pcm_prepare(self->handle)) >= 0) {
+	if ((state != SND_PCM_STATE_SETUP) ||
+		!(res = snd_pcm_prepare(self->handle))) {
 
 		Py_BEGIN_ALLOW_THREADS
 		res = snd_pcm_writei(self->handle, data, datalen/self->framesize);
-		if (res == -EPIPE) {
-			/* EPIPE means underrun */
-			res = snd_pcm_recover(self->handle, res, 1);
-			if (res >= 0) {
-				res = snd_pcm_writei(self->handle, data, datalen/self->framesize);
-			}
-		}
 		Py_END_ALLOW_THREADS
+
+		if (res == -EPIPE) {
+			// This means buffer underrun, which we need to report.
+			// However, we recover the stream, so the next PCM.write() will work
+			// again. If recovery fails (very unlikely), report that instead.
+			if (!(res = snd_pcm_prepare(self->handle)))
+				res = -EPIPE;
+		}
 	}
 
-	if (res == -EAGAIN) {
-		res = 0;
-	}
-	else if (res < 0)
+	if (res != -EPIPE)
 	{
-		PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
-					 self->cardname);
+		if (res == -EAGAIN)
+		{
+			res = 0;
+		}
+		else if (res < 0) {
+			PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
+						 self->cardname);
 
 #if PY_MAJOR_VERSION >= 3
-		PyBuffer_Release(&buf);
+			PyBuffer_Release(&buf);
 #endif
 
-		return NULL;
+			return NULL;
+		}
 	}
 
 #if PY_MAJOR_VERSION >= 3
