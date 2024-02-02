@@ -489,7 +489,7 @@ The most common reason for problems with playback of PCM audio is that writes
 to PCM devices must *exactly* match the data rate of the device.
 
 If too little data is written to the device, it will underrun, and
-ugly clicking sounds will occur. Conversely, of too much data is
+ugly clicking sounds will occur. Conversely, if too much data is
 written to the device, the write function will either block
 (:const:`PCM_NORMAL` mode) or return zero (:const:`PCM_NONBLOCK` mode).
 
