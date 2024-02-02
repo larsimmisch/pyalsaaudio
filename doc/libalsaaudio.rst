@@ -98,8 +98,8 @@ following arguments:
 
 .. class:: PCM(type=PCM_PLAYBACK, mode=PCM_NORMAL, rate=44100, channels=2, format=PCM_FORMAT_S16_LE, periodsize=32, periods=4, device='default', cardindex=-1)
 
-   This class is used to represent a PCM device (either for playback and
-   recording). The arguments are:
+   This class is used to represent a PCM device (either for playback or
+   recording). The constructor's arguments are:
 
    * *type* - can be either :const:`PCM_CAPTURE` or :const:`PCM_PLAYBACK`
      (default).  
@@ -157,7 +157,15 @@ following arguments:
 
      **Note:** This should not be used, as it bypasses most of ALSA's configuration.
 
-   This will construct a PCM object with the given settings.
+   The defaults mentioned above are values passed by :mod:alsaaudio
+   to ALSA, not anything internal to ALSA.
+
+   **Note:** For default and non-default values alike, there is no
+   guarantee that a PCM device supports the requested configuration,
+   and ALSA may pick realizable values which it believes to be closest
+   to the request. Therefore, after creating a PCM object, it is
+   necessary to verify whether its realized configuration is acceptable.
+   The :func:info method can be used to query it.
 
    *Changed in 0.10:*
 
@@ -181,8 +189,22 @@ PCM objects have the following methods:
 
 .. method:: PCM.info()
 
-   The info function returns a dictionary containing the configuration of a PCM device. As ALSA takes into account limitations of the hardware and software devices the configuration achieved might not correspond to the values used during creation. There is therefore a need to check the realised configuration before processing the sound coming from the device or before sending sound to a device. A small subset of parameters can be set, but cannot be queried. These parameters are stored by alsaaudio and returned as they were given by the user, to distinguish them from parameters retrieved from ALSA these parameters have a name prefixed with **" (call value) "**. Yet another set of properties derives directly from the hardware and can be obtained through ALSA.
-   
+   Returns a dictionary containing the configuration of a PCM device.
+
+   A small subset of properties reflects fixed parameters given by the
+   user, stored within alsaaudio. To distinguish them from properties
+   retrieved from ALSA when the call is made, they have their name
+   prefixed with **" (call value) "**.
+
+   Descriptions of properties which can be directly set during PCM object
+   instantiation carry the prefix "PCM():", followed by the respective
+   constructor parameter. Note that due to device limitations, the values
+   may deviate from those originally requested.
+
+   Yet another set of properties cannot be set, and derives directly from
+   the hardware, possibly depending on other properties. Those properties'
+   descriptions are prefixed with "hw:" below.
+
    ===========================  =============================  ==================================================================
         Key                      Description (Reference)            Type       
    ===========================  =============================  ==================================================================
@@ -222,8 +244,9 @@ PCM objects have the following methods:
    can_sync_start               *hw: synchronized start*          boolean (True: hardware supported) 
    ===========================  =============================  ==================================================================
 
-   The italicized descriptions give a summary of the "full" description as it can be found in the  `ALSA documentation <https://www.alsa-project.org/alsa-doc>`_. "hw:": indicates that the property indicated relates to the hardware. Parameters passed to the PCM object during instantation are prefixed with "PCM():", they are described there for the keyword argument indicated after "PCM():".
-
+   The italicized descriptions give a summary of the "full" description
+   as can be found in the
+   `ALSA documentation <https://www.alsa-project.org/alsa-doc>`_.
 
 .. method:: PCM.pcmtype()
 
