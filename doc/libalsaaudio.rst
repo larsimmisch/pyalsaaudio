@@ -248,6 +248,12 @@ PCM objects have the following methods:
    as can be found in the
    `ALSA documentation <https://www.alsa-project.org/alsa-doc>`_.
 
+   *New in 0.9.1*
+
+.. method:: PCM.dumpinfo()
+
+   Dumps the PCM object's configured parameters to stdout.
+
 .. method:: PCM.pcmtype()
 
    Returns the type of PCM object. Either :const:`PCM_CAPTURE` or
@@ -305,20 +311,6 @@ PCM objects have the following methods:
 .. method:: PCM.setperiodsize(period)
 
    .. deprecated:: 0.9 Use the `periodsize` named argument to :func:`PCM`.
-
-.. method:: PCM.info()
-
-   Returns a dictionary with the PCM object's configured parameters.
-
-   Values are retrieved from the ALSA library if they are available;
-   otherwise they represent those stored by pyalsaaudio, and their keys
-   are prefixed with ' (call value) '.
-
-   *New in 0.9.1*
-
-.. method:: PCM.dumpinfo()
-
-   Dumps the PCM object's configured parameters to stdout.
 
 .. method:: PCM.state()
 
