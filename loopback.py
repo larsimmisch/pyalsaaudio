@@ -232,12 +232,13 @@ class VolumeForwarder(object):
 
 	def start(self):
 		self.active = True
-		if self.volume:
-			self.volume = playback_control.setvolume(self.volume)
+		volume = self.capture_control.getvolume(pcmtype=PCM_CAPTURE)
+		self.playback_control.setvolume(volume[0])
 
 	def stop(self):
 		self.active = False
-		self.volume = self.playback_control.getvolume(pcmtype=PCM_CAPTURE)[0]
+		if self.default_volume:
+			playback_control.setvolume(self.default_volume)
 
 	def __call__(self, fd, eventmask, name):
 		if not self.active:
@@ -321,7 +322,7 @@ if __name__ == '__main__':
 	parser.add_argument('-O', '--output-mixer', help='Control of the output mixer, can contain the card index, e.g. PCM:1')
 	parser.add_argument('-A', '--run-after-stop', help='command to run when the capture device is idle/silent')
 	parser.add_argument('-B', '--run-before-start', help='command to run when the capture device becomes active')
-	parser.add_argument('-V', '--volume', help='Initial volume (default is leave unchanged)')
+	parser.add_argument('-V', '--volume', type=int, help='Initial volume (default is leave unchanged)')
 
 	args = parser.parse_args()
 
@@ -386,9 +387,12 @@ if __name__ == '__main__':
 
 		volume_handler = VolumeForwarder(capture_control, playback_control)
 		reactor.register(PollDescriptor.from_alsa_object('capture_control', capture_control, select.POLLIN), volume_handler)
+		if args.volume:
+			volume_handler.default_volume = args.volume
+
 
 	if args.volume and playback_control:
-		playback_control.setvolume(int(args.volume))
+		playback_control.setvolume(args.volume)
 
 	loopback = Loopback(capture, playback_args, volume_handler, args.run_after_stop, args.run_before_start)
 	loopback.register(reactor)
