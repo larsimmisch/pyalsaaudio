@@ -1495,8 +1495,7 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 	if (res == -EAGAIN) {
 		rc = PyLong_FromLong(0);
 	}
-	res = snd_pcm_prepare(self->handle);
-	if (res < 0)
+	else if (res < 0)
 	{
 		PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
 					 self->cardname);
