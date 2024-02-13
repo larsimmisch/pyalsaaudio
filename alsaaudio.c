@@ -403,7 +403,7 @@ static int alsapcm_setup(alsapcm_t *self)
 	snd_pcm_hw_params_get_period_size(hwparams, &self->periodsize, &dir);
 	snd_pcm_hw_params_get_periods(hwparams, &self->periods, &dir);
 
-	self->framesize = self->channels * snd_pcm_hw_params_get_sbits(hwparams)/8;
+	self->framesize = self->channels * snd_pcm_format_physical_width(self->format)/8;
 
 	return res;
 }
