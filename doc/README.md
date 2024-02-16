@@ -26,7 +26,7 @@ Don't forget to update the documentation.
 The documentation is published through the `gh-pages` branch.
 
 To publish the documentation, you need to clone the `gh-pages` branch of this repository into
-`doc/gh-pages`. In `doc`, do: 
+`doc/gh-pages`. In `doc`, do:
 
     git clone -b gh-pages git@github.com:larsimmisch/pyalsaaudio.git gh-pages
 

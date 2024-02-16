@@ -44,18 +44,18 @@ def generate(frequency, duration = 0.125):
 
     # total number of frames
     size = cycle_size * factor
-    
+
     sine = [ int(32767 * sin(2 * pi * frequency * i / sampling_rate)) \
              for i in range(size)]
-             
+
     if channels > 1:
         sine = list(itertools.chain.from_iterable(itertools.repeat(x, channels) for x in sine))
 
     return struct.pack(str(size * channels) + pack_format, *sine)
-                                                                                  
+
 
 class SinePlayer(Thread):
-    
+
     def __init__(self, frequency = 440.0):
         Thread.__init__(self, daemon=True)
         self.device = alsaaudio.PCM(channels=channels, format=format, rate=sampling_rate)
@@ -75,7 +75,7 @@ class SinePlayer(Thread):
 
         buf = generate(f)
         self.queue.put(buf)
-                        
+
     def run(self):
         buffer = None
         while True:
@@ -86,7 +86,7 @@ class SinePlayer(Thread):
             if buffer:
                 if self.device.write(buffer) < 0:
                     print("Playback buffer underrun! Continuing nonetheless ...")
-                
+
 
 isine = SinePlayer()
 isine.start()

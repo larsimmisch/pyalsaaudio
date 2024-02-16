@@ -6,7 +6,7 @@ In order to use PCM devices it is useful to be familiar with some concepts and
 terminology.
 
 Sample
-   PCM audio, whether it is input or output, consists of *samples*. 
+   PCM audio, whether it is input or output, consists of *samples*.
    A single sample represents the amplitude of one channel of sound
    at a certain point in time. A lot of individual samples are
    necessary to represent actual sound; for CD audio, 44100 samples
@@ -22,8 +22,8 @@ Sample
    loudest signal that can be reproduced.
 
 Frame
-   A frame consists of exactly one sample per channel. If there is only one 
-   channel (Mono sound) a frame is simply a single sample. If the sound is 
+   A frame consists of exactly one sample per channel. If there is only one
+   channel (Mono sound) a frame is simply a single sample. If the sound is
    stereo, each frame consists of two samples, etc.
 
 Frame size
@@ -33,7 +33,7 @@ Frame size
    is 48 bytes.
 
 Rate
-   PCM sound consists of a flow of sound frames. The sound rate controls how 
+   PCM sound consists of a flow of sound frames. The sound rate controls how
    often the current frame is replaced. For example, a rate of 8000 Hz
    means that a new frame is played or captured 8000 times per second.
 

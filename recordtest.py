@@ -40,7 +40,7 @@ if __name__ == '__main__':
 
 	f = open(args[0], 'wb')
 
-	# Open the device in nonblocking capture mode in mono, with a sampling rate of 44100 Hz 
+	# Open the device in nonblocking capture mode in mono, with a sampling rate of 44100 Hz
 	# and 16 bit little endian samples
 	# The period size controls the internal number of frames per period.
 	# The significance of this parameter is documented in the ALSA api.
@@ -49,8 +49,8 @@ if __name__ == '__main__':
 	# This means that the reads below will return either 320 bytes of data
 	# or 0 bytes of data. The latter is possible because we are in nonblocking
 	# mode.
-	inp = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NONBLOCK, 
-		channels=1, rate=44100, format=alsaaudio.PCM_FORMAT_S16_LE, 
+	inp = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NONBLOCK,
+		channels=1, rate=44100, format=alsaaudio.PCM_FORMAT_S16_LE,
 		periodsize=160, device=device)
 
 	loops = 1000000
