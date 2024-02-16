@@ -81,7 +81,7 @@ and need the ALSA headers for compilation.  Verify that you have
 
 Naturally you also need to use a kernel with proper ALSA support. This is the
 default in Linux kernel 2.6 and later. If you are using kernel version 2.4 you
-may need to install the ALSA patches yourself - although most distributions 
+may need to install the ALSA patches yourself - although most distributions
 ship with ALSA kernels.
 
 To install, execute the following:  ---   ::

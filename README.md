@@ -2,7 +2,7 @@
 
 For documentation, see http://larsimmisch.github.io/pyalsaaudio/
 
-> Author: Casper Wilstrup (cwi@aves.dk)  
+> Author: Casper Wilstrup (cwi@aves.dk)
 > Maintainer: Lars Immisch (lars@ibp.de)
 
 This package contains wrappers for accessing the
@@ -45,12 +45,12 @@ First, get the sources and change to the source directory:
   $ git clone https://github.com/larsimmisch/pyalsaaudio.git
   $ cd pyalsaaudio
 ```
-  
+
 Then, build:
 ```
   $ python setup.py build
 ```
-  
+
 And install:
 ```
   $ sudo python setup.py install

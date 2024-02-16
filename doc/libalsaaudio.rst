@@ -17,7 +17,7 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
    Arguments are:
 
    * *pcmtype* - can be either :const:`PCM_CAPTURE` or :const:`PCM_PLAYBACK`
-     (default).  
+     (default).
 
    **Note:**
 
@@ -102,12 +102,12 @@ following arguments:
    recording). The constructor's arguments are:
 
    * *type* - can be either :const:`PCM_CAPTURE` or :const:`PCM_PLAYBACK`
-     (default).  
+     (default).
    * *mode* - can be either :const:`PCM_NONBLOCK`, or :const:`PCM_NORMAL`
-     (default). 
+     (default).
    * *rate* - the sampling rate in Hz. Typical values are ``8000`` (mainly used for telephony), ``16000``, ``44100`` (default), ``48000`` and ``96000``.
    * *channels* - the number of channels. The default value is 2 (stereo).
-   * *format* - the data format. This controls how the PCM device interprets data for playback, and how data is encoded in captures. 
+   * *format* - the data format. This controls how the PCM device interprets data for playback, and how data is encoded in captures.
      The default value is :const:`PCM_FORMAT_S16_LE`.
 
    =========================  ===============
@@ -206,19 +206,19 @@ PCM objects have the following methods:
    descriptions are prefixed with "hw:" below.
 
    ===========================  =============================  ==================================================================
-        Key                      Description (Reference)            Type       
+        Key                      Description (Reference)            Type
    ===========================  =============================  ==================================================================
    name                         PCM():device                      string
    card_no                      *index of card*                   integer  (negative indicates device not associable with a card)
-   device_no                    *index of PCM device*             integer 
-   subdevice_no                 *index of PCM subdevice*          integer 
+   device_no                    *index of PCM device*             integer
+   subdevice_no                 *index of PCM subdevice*          integer
    state                        *name of PCM state*               string
    access_type                  *name of PCM access type*         string
    (call value) type            PCM():type                        integer
    (call value) type_name       PCM():type                        string
    (call value) mode            PCM():mode                        integer
    (call value) mode_name       PCM():mode                        string
-   format                       PCM():format                      integer 
+   format                       PCM():format                      integer
    format_name                  PCM():format                      string
    format_description           PCM():format                      string
    subformat_name               *name of PCM subformat*           string
@@ -241,7 +241,7 @@ PCM objects have the following methods:
    can_mmap_sample_resolution   *hw: sample-resol. mmap*          boolean (True: hardware supported)
    can_pause                    *hw: pause*                       boolean (True: hardware supported)
    can_resume                   *hw: resume*                      boolean (True: hardware supported)
-   can_sync_start               *hw: synchronized start*          boolean (True: hardware supported) 
+   can_sync_start               *hw: synchronized start*          boolean (True: hardware supported)
    ===========================  =============================  ==================================================================
 
    The italicized descriptions give a summary of the "full" description
@@ -346,7 +346,7 @@ PCM objects have the following methods:
    In :const:`PCM_NORMAL` mode, this function blocks until a full period is
    available, and then returns a tuple (length,data) where *length* is
    the number of frames of captured data, and *data* is the captured
-   sound frames as a string. The length of the returned data will be 
+   sound frames as a string. The length of the returned data will be
    periodsize\*framesize bytes.
 
    In :const:`PCM_NONBLOCK` mode, the call will not block, but will return
@@ -422,7 +422,7 @@ PCM objects have the following methods:
    Returns a list of tuples of *(file descriptor, eventmask)* that can be
    used to wait for changes on the PCM with *select.poll*.
 
-   The *eventmask* value is compatible with `poll.register`__ in the Python 
+   The *eventmask* value is compatible with `poll.register`__ in the Python
    :const:`select` module.
 
 .. method:: PCM.polldescriptors_revents(descriptors)
@@ -485,7 +485,7 @@ PCM objects have the following methods:
 
 **A few hints on using PCM devices for playback**
 
-The most common reason for problems with playback of PCM audio is that writes 
+The most common reason for problems with playback of PCM audio is that writes
 to PCM devices must *exactly* match the data rate of the device.
 
 If too little data is written to the device, it will underrun, and
@@ -523,7 +523,7 @@ Mixer objects provides access to the ALSA mixer API.
    Arguments are:
 
    * *control* - specifies which control to manipulate using this mixer
-     object. The list of available controls can be found with the 
+     object. The list of available controls can be found with the
      :mod:`alsaaudio`.\ :func:`mixers` function.  The default value is
      ``'Master'`` - other common controls may be ``'Master Mono'``, ``'PCM'``,
      ``'Line'``, etc.
@@ -533,7 +533,7 @@ Mixer objects provides access to the ALSA mixer API.
    * *cardindex* - specifies which card should be used. If this argument
      is given, the device name is constructed like this: 'hw:*cardindex*' and
      the `device` keyword argument is ignored. ``0`` is the
-     first sound card. 
+     first sound card.
 
    * *device* - the name of the device on which the mixer resides. The default
      value is ``'default'``.
@@ -570,7 +570,7 @@ Mixer objects have the following methods:
    'Joined Mute'           This mixer can mute all channels at the same time
    'Playback Mute'         This mixer can mute the playback output
    'Joined Playback Mute'  Mute playback for all channels at the same time}
-   'Capture Mute'          Mute sound capture 
+   'Capture Mute'          Mute sound capture
    'Joined Capture Mute'   Mute sound capture for all channels at a time}
    'Capture Exclusive'     Not quite sure what this is
    ======================  ================
@@ -709,7 +709,7 @@ Mixer objects have the following methods:
    Returns a list of tuples of *(file descriptor, eventmask)* that can be
    used to wait for changes on the mixer with *select.poll*.
 
-   The *eventmask* value is compatible with `poll.register`__ in the Python 
+   The *eventmask* value is compatible with `poll.register`__ in the Python
    :const:`select` module.
 
 .. method:: Mixer.handleevents()
@@ -757,7 +757,7 @@ The following example are provided:
 * `playbacktest.py`
 * `mixertest.py`
 
-All examples (except `mixertest.py`) accept the commandline option 
+All examples (except `mixertest.py`) accept the commandline option
 *-c <cardname>*.
 
 To determine a valid card name, use the commandline ALSA player::
@@ -772,12 +772,12 @@ or::
    >>> alsaaudio.pcms()
 
 mixertest.py accepts the commandline options *-d <device>* and
-*-c <cardindex>*. 
+*-c <cardindex>*.
 
 playwav.py
 ~~~~~~~~~~
 
-**playwav.py** plays a wav file. 
+**playwav.py** plays a wav file.
 
 To test PCM playback (on your default soundcard), run::
 
@@ -825,7 +825,7 @@ The output might look like this::
      'Mix'
      'Mix Mono'
 
-With a single argument - the *control*, it will display the settings of 
+With a single argument - the *control*, it will display the settings of
 that control; for example::
 
   $ ./mixertest.py Master
@@ -834,7 +834,7 @@ that control; for example::
   Channel 0 volume: 61%
   Channel 1 volume: 61%
 
-With two arguments, the *control* and a *parameter*, it will set the 
+With two arguments, the *control* and a *parameter*, it will set the
 parameter on the mixer::
 
   $ ./mixertest.py Master mute
