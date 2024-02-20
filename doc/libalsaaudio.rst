@@ -205,44 +205,49 @@ PCM objects have the following methods:
    the hardware, possibly depending on other properties. Those properties'
    descriptions are prefixed with "hw:" below.
 
-   ===========================  =============================  ==================================================================
-        Key                      Description (Reference)            Type
-   ===========================  =============================  ==================================================================
-   name                         PCM():device                      string
-   card_no                      *index of card*                   integer  (negative indicates device not associable with a card)
-   device_no                    *index of PCM device*             integer
-   subdevice_no                 *index of PCM subdevice*          integer
-   state                        *name of PCM state*               string
-   access_type                  *name of PCM access type*         string
-   (call value) type            PCM():type                        integer
-   (call value) type_name       PCM():type                        string
-   (call value) mode            PCM():mode                        integer
-   (call value) mode_name       PCM():mode                        string
-   format                       PCM():format                      integer
-   format_name                  PCM():format                      string
-   format_description           PCM():format                      string
-   subformat_name               *name of PCM subformat*           string
-   subformat_description        *description of subformat*        string
-   channels                     PCM():channels                    integer
-   rate                         PCM():rate                        integer (Hz)
-   period_time                  *period duration*                 integer (:math:`\mu s`)
-   period_size                  PCM():period_size                 integer (frames)
-   buffer_time                  *buffer time*                     integer (:math:`\mu s`) (negative indicates error)
-   buffer_size                  *buffer size*                     integer (frames) (negative indicates error)
-   get_periods                  *approx. periods in buffer*       integer (negative indicates error)
-   rate_numden                  *numerator, denominator*          tuple (integer (Hz), integer (Hz))
-   significant_bits             *significant bits in sample*      integer (negative indicates error)
-   is_batch                     *hw: double buffering*            boolean (True: hardware supported)
-   is_block_transfer            *hw: block transfer*              boolean (True: hardware supported)
-   is_double                    *hw: double buffering*            boolean (True: hardware supported)
-   is_half_duplex               *hw: half-duplex*                 boolean (True: hardware supported)
-   is_joint_duplex              *hw: joint-duplex*                boolean (True: hardware supported)
-   can_overrange                *hw: overrange detection*         boolean (True: hardware supported)
-   can_mmap_sample_resolution   *hw: sample-resol. mmap*          boolean (True: hardware supported)
-   can_pause                    *hw: pause*                       boolean (True: hardware supported)
-   can_resume                   *hw: resume*                      boolean (True: hardware supported)
-   can_sync_start               *hw: synchronized start*          boolean (True: hardware supported)
-   ===========================  =============================  ==================================================================
+   ===========================  ====================================  ==================================================================
+        Key                      Description (Reference)               Type
+   ===========================  ====================================  ==================================================================
+   name                         PCM():device                          string
+   card_no                      *index of card*                       integer  (negative indicates device not associable with a card)
+   device_no                    *index of PCM device*                 integer
+   subdevice_no                 *index of PCM subdevice*              integer
+   state                        *name of PCM state*                   string
+   access_type                  *name of PCM access type*             string
+   (call value) type            PCM():type                            integer
+   (call value) type_name       PCM():type                            string
+   (call value) mode            PCM():mode                            integer
+   (call value) mode_name       PCM():mode                            string
+   format                       PCM():format                          integer
+   format_name                  PCM():format                          string
+   format_description           PCM():format                          string
+   subformat_name               *name of PCM subformat*               string
+   subformat_description        *description of subformat*            string
+   channels                     PCM():channels                        integer
+   rate                         PCM():rate                            integer (Hz)
+   period_time                  *period duration*                     integer (:math:`\mu s`)
+   period_size                  PCM():period_size                     integer (frames)
+   buffer_time                  *buffer time*                         integer (:math:`\mu s`) (negative indicates error)
+   buffer_size                  *buffer size*                         integer (frames) (negative indicates error)
+   get_periods                  *approx. periods in buffer*           integer (negative indicates error)
+   rate_numden                  *numerator, denominator*              tuple (integer (Hz), integer (Hz))
+   significant_bits             *significant bits in sample* [#tss]_  integer (negative indicates error)
+   nominal_bits                 *nominal bits in sample* [#tss]_      integer (negative indicates error)
+   physical_bits                *sample width in bits* [#tss]_        integer (negative indicates error)
+   is_batch                     *hw: double buffering*                boolean (True: hardware supported)
+   is_block_transfer            *hw: block transfer*                  boolean (True: hardware supported)
+   is_double                    *hw: double buffering*                boolean (True: hardware supported)
+   is_half_duplex               *hw: half-duplex*                     boolean (True: hardware supported)
+   is_joint_duplex              *hw: joint-duplex*                    boolean (True: hardware supported)
+   can_overrange                *hw: overrange detection*             boolean (True: hardware supported)
+   can_mmap_sample_resolution   *hw: sample-resol. mmap*              boolean (True: hardware supported)
+   can_pause                    *hw: pause*                           boolean (True: hardware supported)
+   can_resume                   *hw: resume*                          boolean (True: hardware supported)
+   can_sync_start               *hw: synchronized start*              boolean (True: hardware supported)
+   ===========================  ====================================  ==================================================================
+.. [#tss] More information in the :ref:`terminology section for sample size <term-sample-size>`
+
+..
 
    The italicized descriptions give a summary of the "full" description
    as can be found in the
