@@ -85,6 +85,21 @@ Period size
    each write should contain exactly 32 frames of sound data, and each
    read will return either 32 frames of data or nothing at all.
 
+.. _term-sample-size:
+
+Sample size
+   Each sample takes *physical_bits* of space. *nominal_bits* tells
+   how many least significant bits are used. This is the bit depth
+   in the format name and sometimes called just *sample bits* or
+   *format width*. *significant_bits* tells how many most significant
+   bits of the *nominal_bits* are used by the sample. This can be thought
+   of as the *sample resolution*. This is visualized as follows::
+
+    MSB |00000000 XXXXXXXX XXXXXXXX 00000000| LSB
+                  |--significant--|
+                  |---------nominal---------|
+        |-------------physical--------------|
+
 Once you understand these concepts, you will be ready to use the PCM API. Read
 on.
 
