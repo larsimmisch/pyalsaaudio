@@ -1171,6 +1171,37 @@ alsapcm_getchannels(alsapcm_t *self,PyObject *args)
 }
 
 static PyObject *
+alsapcm_setchannels(alsapcm_t *self, PyObject *args)
+{
+	int channels, saved;
+	int res;
+
+	if (!PyArg_ParseTuple(args,"i:setchannels", &channels))
+		return NULL;
+
+	if (!self->handle) {
+		PyErr_SetString(ALSAAudioError, "PCM device is closed");
+		return NULL;
+	}
+
+	PyErr_WarnEx(PyExc_DeprecationWarning,
+				 "This function is deprecated. "
+				 "Please use the named parameter `channels` to `PCM()` instead", 1);
+
+	saved = self->channels;
+	self->channels = channels;
+	res = alsapcm_setup(self);
+	if (res < 0)
+	{
+		self->channels = saved;
+		PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
+					 self->cardname);
+		return NULL;
+	}
+	return PyLong_FromLong(self->channels);
+}
+
+static PyObject *
 alsapcm_pcmtype(alsapcm_t *self, PyObject *args)
 {
 	if (!PyArg_ParseTuple(args,":pcmtype"))
@@ -1210,37 +1241,6 @@ alsapcm_cardname(alsapcm_t *self, PyObject *args)
 	}
 
 	return PyUnicode_FromString(self->cardname);
-}
-
-static PyObject *
-alsapcm_setchannels(alsapcm_t *self, PyObject *args)
-{
-	int channels, saved;
-	int res;
-
-	if (!PyArg_ParseTuple(args,"i:setchannels", &channels))
-		return NULL;
-
-	if (!self->handle) {
-		PyErr_SetString(ALSAAudioError, "PCM device is closed");
-		return NULL;
-	}
-
-	PyErr_WarnEx(PyExc_DeprecationWarning,
-				 "This function is deprecated. "
-				 "Please use the named parameter `channels` to `PCM()` instead", 1);
-
-	saved = self->channels;
-	self->channels = channels;
-	res = alsapcm_setup(self);
-	if (res < 0)
-	{
-		self->channels = saved;
-		PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
-					 self->cardname);
-		return NULL;
-	}
-	return PyLong_FromLong(self->channels);
 }
 
 static PyObject *
@@ -1750,6 +1750,7 @@ static PyMethodDef alsapcm_methods[] = {
 	{"pcmtype", (PyCFunction)alsapcm_pcmtype, METH_VARARGS},
 	{"pcmmode", (PyCFunction)alsapcm_pcmmode, METH_VARARGS},
 	{"cardname", (PyCFunction)alsapcm_cardname, METH_VARARGS},
+	{"getchannels", (PyCFunction)alsapcm_getchannels, METH_VARARGS},
 	{"setchannels", (PyCFunction)alsapcm_setchannels, METH_VARARGS},
 	{"setrate", (PyCFunction)alsapcm_setrate, METH_VARARGS},
 	{"setformat", (PyCFunction)alsapcm_setformat, METH_VARARGS},
@@ -1765,7 +1766,6 @@ static PyMethodDef alsapcm_methods[] = {
 	{"getformats", (PyCFunction)alsapcm_getformats, METH_VARARGS},
 	{"getratebounds", (PyCFunction)alsapcm_getratemaxmin, METH_VARARGS},
 	{"getrates", (PyCFunction)alsapcm_getrates, METH_VARARGS},
-	{"getchannels", (PyCFunction)alsapcm_getchannels, METH_VARARGS},
 	{"read", (PyCFunction)alsapcm_read, METH_VARARGS},
 	{"write", (PyCFunction)alsapcm_write, METH_VARARGS},
 	{"avail", (PyCFunction)alsapcm_avail, METH_VARARGS},
