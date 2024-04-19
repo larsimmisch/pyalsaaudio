@@ -91,12 +91,10 @@ class Loopback(object):
 		self.run_before_start = None
 		if run_before_start:
 			self.run_before_start = run_before_start.split(' ')
-		self.run_after_stop_did_run = False
 
 		self.state = None
 		self.last_state_change = None
 		self.silence_start = None
-		self.reactor = None
 
 	@staticmethod
 	def compute_energy(data):
@@ -117,8 +115,6 @@ class Loopback(object):
 				logging.info(f'run {cmd}, return code {rc.returncode}')
 
 	def register(self, reactor):
-		self.reactor = reactor
-
 		reactor.register_idle_handler(self.idle_handler)
 		reactor.register(self.capture_pd, self)
 
