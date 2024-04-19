@@ -7,11 +7,19 @@ import logging
 import re
 import struct
 import subprocess
+from enum import Enum, auto
 from datetime import datetime, timedelta
 from alsaaudio import (PCM, pcms, PCM_PLAYBACK, PCM_CAPTURE, PCM_NONBLOCK, Mixer,
 	PCM_STATE_OPEN, PCM_STATE_SETUP, PCM_STATE_PREPARED, PCM_STATE_RUNNING, PCM_STATE_XRUN, PCM_STATE_DRAINING,
 	PCM_STATE_PAUSED, PCM_STATE_SUSPENDED, ALSAAudioError)
 from argparse import ArgumentParser
+
+# wake up at least after *idle_timer_period* seconds
+idle_timer_period = 0.25
+# grace period for opening the device in seconds
+open_grace_period = 0.5
+# close the device after *idle_close_timeout* seconds silence
+idle_close_timeout = 2.0
 
 poll_names = {
 	select.POLLIN: 'POLLIN',
@@ -57,6 +65,11 @@ class PollDescriptor(object):
 
 		return cls(name, fd, mask)
 
+class LoopbackState(Enum):
+	LISTENING = auto()
+	PLAYING = auto()
+	DEVICE_BUSY = auto()
+
 class Loopback(object):
 	'''Loopback state and event handling'''
 
@@ -64,7 +77,6 @@ class Loopback(object):
 		self.playback_args = playback_args
 		self.playback = None
 		self.volume_handler = volume_handler
-		self.capture_started = None
 		self.last_capture_event = None
 
 		self.capture = capture
@@ -79,11 +91,12 @@ class Loopback(object):
 			self.run_before_start = run_before_start.split(' ')
 		self.run_after_stop_did_run = False
 
-		self.waitBeforeOpen = False
+		self.state = None
+		self.last_state_change = None
+
 		self.queue = []
 
-		self.period_size = 0
-		self.silent_periods = 0
+		self.silence_start = None
 
 	@staticmethod
 	def compute_energy(data):
@@ -104,35 +117,67 @@ class Loopback(object):
 				logging.info(f'run {cmd}, return code {rc.returncode}')
 
 	def register(self, reactor):
-		reactor.register_timeout_handler(self.timeout_handler)
+		reactor.register_idle_handler(self.idle_handler)
 		reactor.register(self.capture_pd, self)
 
 	def start(self):
+		assert self.state == None, "start must only be called once"
 		# start reading data
 		size, data = self.capture.read()
 		if size:
 			self.queue.append(data)
 
-	def timeout_handler(self):
-		if self.playback and self.capture_started:
-			if self.last_capture_event:
-				if datetime.now() - self.last_capture_event > timedelta(seconds=2):
-					logging.info('timeout - closing playback device')
-					self.playback.close()
-					self.playback = None
-					self.capture_started = None
+		self.state = LoopbackState.LISTENING
+
+	def set_state(self, new_state: LoopbackState) -> LoopbackState:
+		'''Implement the state of the Loopback as an old-school state machine'''
+
+		if self.state == new_state:
+			return self.state
+
+		logging.info(f'{self.state} -> {new_state}')
+		self.last_state_change = datetime.now()
+
+		if new_state == LoopbackState.LISTENING:
+			if self.state == LoopbackState.PLAYING:
+				self.playback.close()
+				self.playback = None
+				self.last_capture_event = None
+				if self.volume_handler:
+					self.volume_handler.stop()
+				self.run_command(self.run_after_stop)
+			elif self.state == LoopbackState.DEVICE_BUSY:
+				pass
+		elif new_state == LoopbackState.PLAYING:
+			if self.state == LoopbackState.LISTENING:
+				try:
+					self.run_command(self.run_before_start)
+					self.playback = PCM(**self.playback_args)
 					if self.volume_handler:
-						self.volume_handler.stop()
-					self.run_command(self.run_after_stop)
+						self.volume_handler.start()
+
+					period_size = self.playback.info()['period_size']
+					logging.info(f'opened playback device with period_size {period_size}')
+				except ALSAAudioError as e:
+					logging.info('opening PCM playback device failed: %s', e)
+					self.state = LoopbackState.DEVICE_BUSY
+					return self.state
+			elif self.state == LoopbackState.DEVICE_BUSY:
+				# Only try to reopen the device after the grace period
+				if datetime.now() - self.last_state_change > timedelta(seconds=open_grace_period):
+					return self.set_state(LoopbackState.PLAYING)
+		elif new_state == LoopbackState.DEVICE_BUSY:
+			logging.error(f'{new_state} is internal and cannot be set directly')
+
+		self.state = new_state
+		return self.state
+
+	def idle_handler(self):
+		if self.state == LoopbackState.PLAYING:
+			if datetime.now() - self.last_capture_event > timedelta(seconds=idle_close_timeout):
+				logging.info('timeout - closing playback device')
+				self.set_state(LoopbackState.LISTENING)
 			return
-
-		self.waitBeforeOpen = False
-
-		if not self.run_after_stop_did_run and not self.playback:
-			if self.volume_handler:
-				self.volume_handler.stop()
-			self.run_command(self.run_after_stop)
-			self.run_after_stop_did_run = True
 
 	def pop(self):
 		if len(self.queue):
@@ -148,50 +193,23 @@ class Loopback(object):
 			logging.warning(f'capture event but no data')
 			return False
 
+		# the usecase is a USB capture device where we get perfect silence when it's idle
+		# compute the energy and go back to LISTENING if nothing is captured
 		energy = self.compute_energy(data)
 		logging.debug(f'energy: {energy}')
-
-		# the usecase is a USB capture device where we get perfect silence when it's idle
 		if energy == 0:
-			self.silent_periods = self.silent_periods + 1
+			if self.silence_start is None:
+				self.silence_start = datetime.now()
 
-			# turn off playback after two seconds of silence
-			# 2 channels * 2 seconds * 2 bytes per sample
-			fps = self.playback_args['rate']  * 8 // (self.playback_args['periodsize'] * self.playback_args['periods'])
-
-			logging.debug(f'{self.silent_periods} of {fps} silent periods: {self.playback}')
-
-			if self.silent_periods > fps and self.playback:
-				logging.info(f'closing playback due to silence')
-				self.playback.close()
-				self.playback = None
-				if self.volume_handler:
-					self.volume_handler.stop()
-				self.run_command(self.run_after_stop)
-				self.run_after_stop_did_run = True
-
-			if not self.playback:
-				return
+			# turn off playback after idle_close_timeout when there was only silence
+			if datetime.now() - self.silence_start > timedelta(seconds=idle_close_timeout):
+				self.set_state(LoopbackState.LISTENING)
+				return False
 		else:
-			self.silent_periods = 0
+			self.silence_start = None
 
-		if not self.playback:
-			if self.waitBeforeOpen:
-				return False
-			try:
-				if self.volume_handler:
-					self.volume_handler.start()
-				self.run_command(self.run_before_start)
-				self.playback = PCM(**self.playback_args)
-				self.period_size = self.playback.info()['period_size']
-				logging.info(f'opened playback device with period_size {self.period_size}')
-			except ALSAAudioError as e:
-				logging.info('opening PCM playback device failed: %s', e)
-				self.waitBeforeOpen = True
-				return False
-
-			self.capture_started = datetime.now()
-			logging.info(f'{self.playback} capture started: {self.capture_started}')
+		if self.set_state(LoopbackState.PLAYING) != LoopbackState.PLAYING:
+			return False
 
 		self.queue.append(data)
 
@@ -263,7 +281,7 @@ class Reactor(object):
 	def __init__(self):
 		self.poll = select.poll()
 		self.descriptors = {}
-		self.timeout_handlers = set()
+		self.idle_handlers = set()
 
 	def register(self, polldescriptor, callable):
 		logging.debug(f'registered {polldescriptor.name}: {poll_desc(polldescriptor.mask)}')
@@ -274,17 +292,17 @@ class Reactor(object):
 		self.poll.unregister(polldescriptor.fd)
 		del self.descriptors[polldescriptor.fd]
 
-	def register_timeout_handler(self, callable):
-		self.timeout_handlers.add(callable)
+	def register_idle_handler(self, callable):
+		self.idle_handlers.add(callable)
 
-	def unregister_timeout_handler(self, callable):
-		self.timeout_handlers.remove(callable)
+	def unregister_idle_handler(self, callable):
+		self.idle_handlers.remove(callable)
 
 	def run(self):
 		last_timeout_ev = datetime.now()
 		while True:
 			# poll for a bit, then send a timeout to registered handlers
-			events = self.poll.poll(0.25)
+			events = self.poll.poll(idle_timer_period)
 			for fd, ev in events:
 				polldescriptor, handler = self.descriptors[fd]
 
@@ -293,8 +311,8 @@ class Reactor(object):
 
 				handler(fd, ev, polldescriptor.name)
 
-			if datetime.now() - last_timeout_ev > timedelta(seconds=0.25):
-				for t in self.timeout_handlers:
+			if datetime.now() - last_timeout_ev > timedelta(seconds=idle_timer_period):
+				for t in self.idle_handlers:
 					t()
 				last_timeout_ev = datetime.now()
 
