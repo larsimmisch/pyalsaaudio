@@ -73,13 +73,15 @@ class LoopbackState(Enum):
 class Loopback(object):
 	'''Loopback state and event handling'''
 
-	def __init__(self, capture, playback_args, volume_handler, run_after_stop=None, run_before_start=None):
+	def __init__(self, capture, capture_args, playback_args, volume_handler, run_after_stop=None, run_before_start=None):
 		self.playback_args = playback_args
 		self.playback = None
+
 		self.volume_handler = volume_handler
 		self.last_capture_event = None
 
 		self.capture = capture
+		self.capture_args = capture_args
 		self.capture_pd = PollDescriptor.from_alsa_object('capture', capture)
 
 		self.run_after_stop = None
@@ -93,10 +95,11 @@ class Loopback(object):
 
 		self.state = None
 		self.last_state_change = None
+		self.silence_start = None
+		self.reactor = None
 
 		self.queue = []
 
-		self.silence_start = None
 
 	@staticmethod
 	def compute_energy(data):
@@ -117,6 +120,8 @@ class Loopback(object):
 				logging.info(f'run {cmd}, return code {rc.returncode}')
 
 	def register(self, reactor):
+		self.reactor = reactor
+
 		reactor.register_idle_handler(self.idle_handler)
 		reactor.register(self.capture_pd, self)
 
@@ -186,6 +191,18 @@ class Loopback(object):
 			return None
 
 	def handle_capture_event(self, eventmask, name):
+
+		if eventmask & select.POLLERR == select.POLLERR:
+			logging.warning(f'POLLERR for capture - reopening capture device: {state_names[self.capture.state()]}')
+
+			self.reactor.unregister(self.capture_pd)
+			self.capture.close()
+
+			self.capture = PCM(**self.capture_args)
+			self.capture_pd = PollDescriptor.from_alsa_object('capture', self.capture)
+			self.reactor.register(self.capture_pd, self)
+			return True
+
 		'''called when data is available for reading'''
 		self.last_capture_event = datetime.now()
 		size, data = self.capture.read()
@@ -221,8 +238,10 @@ class Loopback(object):
 			data = self.pop()
 			if data:
 				space = self.playback.avail()
-				written = self.playback.write(data)
-				logging.debug(f'wrote {written} bytes while space was {space}')
+				logging.debug(f'space: {space}')
+				if space > 0:
+					written = self.playback.write(data)
+					logging.debug(f'wrote {written} bytes while space was {space}')
 		except ALSAAudioError:
 			logging.error('underrun', exc_info=1)
 
@@ -233,7 +252,7 @@ class Loopback(object):
 		if fd == self.capture_pd.fd:
 			real_mask = self.capture.polldescriptors_revents([self.capture_pd.as_tuple()])
 			if real_mask:
-				return self.handle_capture_event(real_mask, name)
+				return self.handle_capture_event(eventmask, name)
 			else:
 				logging.debug('null capture event')
 				return False
@@ -307,7 +326,7 @@ class Reactor(object):
 				polldescriptor, handler = self.descriptors[fd]
 
 				# very chatty - log all events
-				# logging.debug(f'{polldescriptor.name}: {poll_desc(ev)} ({ev})')
+				logging.debug(f'{polldescriptor.name}: {poll_desc(ev)} ({ev})')
 
 				handler(fd, ev, polldescriptor.name)
 
@@ -362,6 +381,16 @@ if __name__ == '__main__':
 		'periods': args.periods
 	}
 
+	capture_args = {
+		'type': PCM_CAPTURE,
+		'mode': PCM_NONBLOCK,
+		'device': args.input,
+		'rate': args.rate,
+		'channels': args.channels,
+		'periodsize': args.periodsize,
+		'periods': args.periods
+	}
+
 	reactor = Reactor()
 
 	# If args.input_mixer and args.output_mixer are set, forward the capture volume to the playback volume.
@@ -396,8 +425,7 @@ if __name__ == '__main__':
 			sys.exit(1)
 
 		if input_mixer_card is None:
-			capture = PCM(type=PCM_CAPTURE, mode=PCM_NONBLOCK, device=args.input, rate=args.rate,
-				channels=args.channels, periodsize=args.periodsize, periods=args.periods)
+			capture = PCM(**capture_args)
 			input_mixer_card = capture.info()['card_no']
 
 		if output_mixer_card is None:
@@ -414,7 +442,7 @@ if __name__ == '__main__':
 	if args.volume and playback_control:
 		playback_control.setvolume(int(args.volume))
 
-	loopback = Loopback(capture, playback_args, volume_handler, args.run_after_stop, args.run_before_start)
+	loopback = Loopback(capture, capture_args, playback_args, volume_handler, args.run_after_stop, args.run_before_start)
 	loopback.register(reactor)
 	loopback.start()
 
