@@ -70,8 +70,13 @@ class Loopback(object):
 		self.capture = capture
 		self.capture_pd = PollDescriptor.from_alsa_object('capture', capture)
 
-		self.run_after_stop = run_after_stop.split(' ')
-		self.run_before_start = run_before_start.split(' ')
+		self.run_after_stop = None
+		if run_after_stop:
+			self.run_after_stop = run_after_stop.split(' ')
+
+		self.run_before_start = None
+		if run_before_start:
+			self.run_before_start = run_before_start.split(' ')
 		self.run_after_stop_did_run = False
 
 		self.waitBeforeOpen = False
