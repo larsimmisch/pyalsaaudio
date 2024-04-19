@@ -74,7 +74,7 @@ class LoopbackState(Enum):
 class Loopback(object):
 	'''Loopback state and event handling'''
 
-	def __init__(self, capture, capture_args, playback_args, volume_handler, run_after_stop=None, run_before_start=None):
+	def __init__(self, capture, playback_args, volume_handler, run_after_stop=None, run_before_start=None):
 		self.playback_args = playback_args
 		self.playback = None
 
@@ -82,7 +82,6 @@ class Loopback(object):
 		self.last_capture_event = None
 
 		self.capture = capture
-		self.capture_args = capture_args
 		self.capture_pd = PollDescriptor.from_alsa_object('capture', capture)
 
 		self.run_after_stop = None
@@ -134,7 +133,7 @@ class Loopback(object):
 		self.state = LoopbackState.LISTENING
 
 	def set_state(self, new_state: LoopbackState) -> LoopbackState:
-		'''Implement the state of the Loopback as an old-school state machine'''
+		'''Implement the Loopback state as a state machine'''
 
 		if self.state == new_state:
 			return self.state
@@ -157,11 +156,10 @@ class Loopback(object):
 				try:
 					self.run_command(self.run_before_start)
 					self.playback = PCM(**self.playback_args)
-					if self.volume_handler:
-						self.volume_handler.start()
-
 					period_size = self.playback.info()['period_size']
 					logging.info(f'opened playback device with period_size {period_size}')
+					if self.volume_handler:
+						self.volume_handler.start()
 				except ALSAAudioError as e:
 					logging.warning('opening PCM playback device failed: %s', e)
 					self.state = LoopbackState.DEVICE_BUSY
@@ -192,15 +190,8 @@ class Loopback(object):
 	def handle_capture_event(self, eventmask, name):
 
 		if eventmask & select.POLLERR == select.POLLERR:
-			logging.warning(f'POLLERR for capture - reopening capture device: {state_names[self.capture.state()]}')
-
-			self.reactor.unregister(self.capture_pd)
+			logging.warning(f'POLLERR for capture device: {state_names[self.capture.state()]}')
 			self.capture.drop()
-			self.capture.close()
-
-			self.capture = PCM(**self.capture_args)
-			self.capture_pd = PollDescriptor.from_alsa_object('capture', self.capture)
-			self.reactor.register(self.capture_pd, self)
 
 		'''called when data is available for reading'''
 		self.last_capture_event = datetime.now()
@@ -269,11 +260,13 @@ class VolumeForwarder(object):
 	def start(self):
 		self.active = True
 		if self.volume:
+			logging.info(f'start volume is {self.volume}')
 			self.volume = playback_control.setvolume(self.volume)
 
 	def stop(self):
 		self.active = False
 		self.volume = self.playback_control.getvolume(pcmtype=PCM_CAPTURE)[0]
+		logging.info(f'stop volume is {self.volume}')
 
 	def __call__(self, fd, eventmask, name):
 		if not self.active:
@@ -435,7 +428,7 @@ if __name__ == '__main__':
 	if args.volume and playback_control:
 		playback_control.setvolume(int(args.volume))
 
-	loopback = Loopback(capture, capture_args, playback_args, volume_handler, args.run_after_stop, args.run_before_start)
+	loopback = Loopback(capture, playback_args, volume_handler, args.run_after_stop, args.run_before_start)
 	loopback.register(reactor)
 	loopback.start()
 
