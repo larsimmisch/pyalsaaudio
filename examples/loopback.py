@@ -7,6 +7,7 @@ import logging
 import re
 import struct
 import subprocess
+import errno
 from enum import Enum, auto
 from datetime import datetime, timedelta
 from alsaaudio import (PCM, pcms, PCM_PLAYBACK, PCM_CAPTURE, PCM_NONBLOCK, Mixer,
@@ -98,9 +99,6 @@ class Loopback(object):
 		self.silence_start = None
 		self.reactor = None
 
-		self.queue = []
-
-
 	@staticmethod
 	def compute_energy(data):
 		values = struct.unpack(f'{len(data)//2}h', data)
@@ -130,7 +128,8 @@ class Loopback(object):
 		# start reading data
 		size, data = self.capture.read()
 		if size:
-			self.queue.append(data)
+			logging.warning(f'initial data discarded ({size} bytes)')
+		#	self.queue.append(data)
 
 		self.state = LoopbackState.LISTENING
 
@@ -164,7 +163,7 @@ class Loopback(object):
 					period_size = self.playback.info()['period_size']
 					logging.info(f'opened playback device with period_size {period_size}')
 				except ALSAAudioError as e:
-					logging.info('opening PCM playback device failed: %s', e)
+					logging.warning('opening PCM playback device failed: %s', e)
 					self.state = LoopbackState.DEVICE_BUSY
 					return self.state
 			elif self.state == LoopbackState.DEVICE_BUSY:
@@ -196,12 +195,12 @@ class Loopback(object):
 			logging.warning(f'POLLERR for capture - reopening capture device: {state_names[self.capture.state()]}')
 
 			self.reactor.unregister(self.capture_pd)
+			self.capture.drop()
 			self.capture.close()
 
 			self.capture = PCM(**self.capture_args)
 			self.capture_pd = PollDescriptor.from_alsa_object('capture', self.capture)
 			self.reactor.register(self.capture_pd, self)
-			return True
 
 		'''called when data is available for reading'''
 		self.last_capture_event = datetime.now()
@@ -213,7 +212,6 @@ class Loopback(object):
 		# the usecase is a USB capture device where we get perfect silence when it's idle
 		# compute the energy and go back to LISTENING if nothing is captured
 		energy = self.compute_energy(data)
-		logging.debug(f'energy: {energy}')
 		if energy == 0:
 			if self.silence_start is None:
 				self.silence_start = datetime.now()
@@ -228,22 +226,17 @@ class Loopback(object):
 		if self.set_state(LoopbackState.PLAYING) != LoopbackState.PLAYING:
 			return False
 
-		self.queue.append(data)
-
-		if len(self.queue) <= 2:
-			logging.info(f'buffering: {len(self.queue)}')
-			return False
-
-		try:
-			data = self.pop()
-			if data:
-				space = self.playback.avail()
-				logging.debug(f'space: {space}')
-				if space > 0:
-					written = self.playback.write(data)
-					logging.debug(f'wrote {written} bytes while space was {space}')
-		except ALSAAudioError:
-			logging.error('underrun', exc_info=1)
+		if data:
+			space = self.playback.avail()
+			if space > 0:
+				written = self.playback.write(data)
+				if written == -errno.EPIPE:
+					logging.warning('playback underrun')
+					self.playback.write(data)
+				silence = ''
+				if energy == 0:
+					silence = '(silence)'
+				logging.debug(f'wrote {written} bytes while space was {space} {silence}')
 
 		return True
 
@@ -326,7 +319,7 @@ class Reactor(object):
 				polldescriptor, handler = self.descriptors[fd]
 
 				# very chatty - log all events
-				logging.debug(f'{polldescriptor.name}: {poll_desc(ev)} ({ev})')
+				# logging.debug(f'{polldescriptor.name}: {poll_desc(ev)} ({ev})')
 
 				handler(fd, ev, polldescriptor.name)
 
