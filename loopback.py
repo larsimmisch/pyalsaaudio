@@ -229,6 +229,7 @@ class VolumeForwarder(object):
 		self.playback_control = playback_control
 		self.capture_control = capture_control
 		self.active = True
+		self.volume = None
 
 	def start(self):
 		self.active = True
