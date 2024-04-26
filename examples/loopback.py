@@ -124,7 +124,6 @@ class Loopback(object):
 		size, data = self.capture.read()
 		if size:
 			logging.warning(f'initial data discarded ({size} bytes)')
-		#	self.queue.append(data)
 
 		self.state = LoopbackState.LISTENING
 
@@ -186,8 +185,12 @@ class Loopback(object):
 	def handle_capture_event(self, eventmask, name):
 
 		if eventmask & select.POLLERR == select.POLLERR:
+			# This is typically an underrun caused by the external command being run synchronously
+   			# (on the same thread)
 			logging.warning(f'POLLERR for capture device: {state_names[self.capture.state()]}')
 			self.capture.drop()
+			self.capture.read()
+			return False
 
 		'''called when data is available for reading'''
 		self.last_capture_event = datetime.now()
