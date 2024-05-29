@@ -1,7 +1,17 @@
-# Version 0.10.1
-- revert to not throwing an exception on playback buffer underrun;
-  instead, return -EPIPE like `PCM.read()` does on overrun; #131
-- type hints
+# Version 0.11.0
+- Fixed `Mixer.getvolume()` returning outdated value (#126)
+- Fixed PCM crashing with some sample formats due to buffer size
+  miscalculation
+- Fixed `PCM.read()` ignoring overruns (regression in 0.10.0)
+- Reverted to `PCM.write()` not throwing an exception on playback buffer
+  underrun; instead, return -EPIPE like `PCM.read()` does on overrun (#130)
+- Added `PCM.avail()` and `PCM.polldescriptors_revents()` functions
+- Added `nominal_bits` and `physical_bits` entries to `PCM.info()`'s
+  return value
+- Added Python type hint file, and adjusted documentation accordingly (#58)
+- Improvements to the examples, in particular isine.py (#42)
+
+Contributions by @ossilator and @viinikv.
 
 # Version 0.10.0
 - assorted improvements (#123 from @ossilator)
