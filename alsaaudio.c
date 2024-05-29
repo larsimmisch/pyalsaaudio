@@ -203,6 +203,12 @@ static bool is_value_volume_unit(long unit)
 	return false;
 }
 
+const char * const alsacard_list_doc = R"(.. function:: cards() -> list[str]
+
+   List the available ALSA cards by name. This function is only moderately
+   useful. If you want to see a list of available PCM devices, use :func:`pcms`
+   instead.)";
+
 static PyObject *
 alsacard_list(PyObject *self, PyObject *args)
 {
@@ -3079,7 +3085,7 @@ static PyTypeObject ALSAMixerType = {
 static PyMethodDef alsaaudio_methods[] = {
 	{ "card_indexes", (PyCFunction)alsacard_list_indexes, METH_VARARGS},
 	{ "card_name", (PyCFunction)alsacard_name, METH_VARARGS},
-	{ "cards", (PyCFunction)alsacard_list, METH_VARARGS},
+	{ "cards", (PyCFunction)alsacard_list, METH_VARARGS, alsacard_list_doc },
 	{ "pcms", (PyCFunction)alsapcm_list, METH_VARARGS|METH_KEYWORDS},
 	{ "mixers", (PyCFunction)alsamixer_list, METH_VARARGS|METH_KEYWORDS},
 	{ 0, 0 },

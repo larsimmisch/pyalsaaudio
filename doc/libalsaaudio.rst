@@ -34,12 +34,6 @@ The :mod:`alsaaudio` module defines functions and classes for using ALSA.
 
    *New in 0.8*
 
-.. function:: cards() -> list[str]
-
-   List the available ALSA cards by name. This function is only moderately
-   useful. If you want to see a list of available PCM devices, use :func:`pcms`
-   instead.
-
 ..
    Omitted by intention due to being superseded by cards():
 
