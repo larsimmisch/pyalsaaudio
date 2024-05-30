@@ -1,17 +1,16 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Introduction &#8212; alsaaudio documentation 0.10.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+    <title>Introduction &#8212; alsaaudio documentation 0.11.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=cb25574f" />
+    <script src="_static/documentation_options.js?v=f3b36f1a"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="PCM Terminology and Concepts" href="terminology.html" />
@@ -33,7 +32,7 @@
           <div class="body" role="main">
             
   <section id="introduction">
-<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h1>
+<h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h1>
 <dl class="field-list simple">
 <dt class="field-odd">Author<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Casper Wilstrup &lt;<a class="reference external" href="mailto:cwi&#37;&#52;&#48;aves&#46;dk">cwi<span>&#64;</span>aves<span>&#46;</span>dk</a>&gt;</p>
@@ -56,7 +55,7 @@ bugs in this API, and those should be reported to the ALSA team - not me.</p>
 </aside>
 </section>
 <section id="what-is-alsa">
-<h1>What is ALSA<a class="headerlink" href="#what-is-alsa" title="Permalink to this heading">¶</a></h1>
+<h1>What is ALSA<a class="headerlink" href="#what-is-alsa" title="Link to this heading">¶</a></h1>
 <p>The Advanced Linux Sound Architecture (ALSA) provides audio and MIDI
 functionality to the Linux operating system.</p>
 <p>Logically ALSA consists of these components:</p>
@@ -72,7 +71,7 @@ all ALSA capable applications.</p></li>
 <p>More information about ALSA may be found on the project homepage
 <a class="reference external" href="http://www.alsa-project.org">http://www.alsa-project.org</a></p>
 <section id="alsa-and-python">
-<h2>ALSA and Python<a class="headerlink" href="#alsa-and-python" title="Permalink to this heading">¶</a></h2>
+<h2>ALSA and Python<a class="headerlink" href="#alsa-and-python" title="Link to this heading">¶</a></h2>
 <p>The older Linux sound API (OSS) – which is now deprecated – is well supported
 by the standard Python library, through the ossaudiodev module. No native ALSA
 support exists in the standard library.</p>
@@ -89,7 +88,7 @@ appreciated.</p>
 </section>
 </section>
 <section id="installation">
-<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h1>
+<h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h1>
 <p>Note: the wrappers link with the alsasound library (from the alsa-lib package)
 and need the ALSA headers for compilation.  Verify that you have
 /usr/lib/libasound.so and /usr/include/alsa (or similar paths) before building.</p>
@@ -108,7 +107,7 @@ ship with ALSA kernels.</p>
 </div>
 </section>
 <section id="testing">
-<h1>Testing<a class="headerlink" href="#testing" title="Permalink to this heading">¶</a></h1>
+<h1>Testing<a class="headerlink" href="#testing" title="Link to this heading">¶</a></h1>
 <p>Make sure that <code class="code docutils literal notranslate"><span class="pre">aplay</span></code> plays a file through the soundcard you want, then
 try:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python playwav.py &lt;filename.wav&gt;
@@ -143,30 +142,19 @@ a real problem.</p>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">alsaaudio documentation</a></h1>
-
-
-
-
-
-
-
-
-<h3>Navigation</h3>
-<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#what-is-alsa">What is ALSA</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#alsa-and-python">ALSA and Python</a></li>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Introduction</a></li>
+<li><a class="reference internal" href="#what-is-alsa">What is ALSA</a><ul>
+<li><a class="reference internal" href="#alsa-and-python">ALSA and Python</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="#installation">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#testing">Testing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="terminology.html">PCM Terminology and Concepts</a></li>
-<li class="toctree-l1"><a class="reference internal" href="libalsaaudio.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">alsaaudio</span></code></a></li>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#testing">Testing</a></li>
 </ul>
 
-<div class="relations">
+  </div><div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
@@ -175,7 +163,14 @@ a real problem.</p>
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pyalsaaudio.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -183,16 +178,8 @@ a real problem.</p>
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
-
-
-
-
-
-
-
-
         </div>
       </div>
       <div class="clearer"></div>
@@ -201,8 +188,8 @@ a real problem.</p>
       &copy;2017, Lars Immisch & Casper Wilstrup.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="_sources/pyalsaaudio.rst.txt"
