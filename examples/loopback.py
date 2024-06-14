@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- mode: python; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4 -*-
+# -*- mode: python; indent-tabs-mode: t; c-basic-offset: 4; tab-width: 4; python-indent: 4 -*-
 
 import sys
 import select
@@ -42,6 +42,10 @@ state_names = {
 	PCM_STATE_PAUSED: 'PCM_STATE_PAUSED',
 	PCM_STATE_SUSPENDED: 'PCM_STATE_SUSPENDED'
 }
+
+type NamedProcess = tuple[str, subprocess.Popen]
+
+cmd_process : NamedProcess = None
 
 def poll_desc(mask):
 	return '|'.join([poll_names[bit] for bit, name in poll_names.items() if mask & bit])
@@ -108,20 +112,30 @@ class Loopback(object):
 	@staticmethod
 	def run_command(cmd):
 		if cmd:
-			rc = subprocess.run(cmd)
-			if rc.returncode:
-				logging.warning(f'run {cmd}, return code {rc.returncode}')
-			else:
-				logging.info(f'run {cmd}, return code {rc.returncode}')
+			global cmd_process
+			cmd_process = (cmd, subprocess.Popen(cmd))
+
+	@staticmethod
+	def check_command_idle_handler():
+		# an idle handler to watch the process created above
+		if cmd_process:
+			rc = cmd_process[1].poll()
+			if rc:
+				if rc.returncode:
+					logging.warning(f'run {cmd_process[0]}, return code {rc.returncode}')
+				else:
+					logging.info(f'run {cmd_process[0]}, return code {rc.returncode}')
+				cmd_process = None
 
 	def register(self, reactor):
+		reactor.register_idle_handler(self.check_command_idle_handler)
 		reactor.register_idle_handler(self.idle_handler)
 		reactor.register(self.capture_pd, self)
 
 	def start(self):
 		assert self.state == None, "start must only be called once"
 		# start reading data
-		size, data = self.capture.read()
+		size, _ = self.capture.read()
 		if size:
 			logging.warning(f'initial data discarded ({size} bytes)')
 
@@ -187,10 +201,10 @@ class Loopback(object):
 		if eventmask & select.POLLERR == select.POLLERR:
 			# This is typically an underrun caused by the external command being run synchronously
    			# (on the same thread)
-			logging.warning(f'POLLERR for capture device: {state_names[self.capture.state()]}')
-			self.capture.drop()
-			self.capture.read()
-			return False
+			state = self.capture.state()
+			if state == PCM_STATE_XRUN:
+				self.capture.drop()
+				logging.warning(f'POLLERR for capture device: {state_names[state]}')
 
 		'''called when data is available for reading'''
 		self.last_capture_event = datetime.now()
@@ -208,12 +222,15 @@ class Loopback(object):
 
 			# turn off playback after idle_close_timeout when there was only silence
 			if datetime.now() - self.silence_start > timedelta(seconds=idle_close_timeout):
+				logging.debug('silence')
 				self.set_state(LoopbackState.LISTENING)
 				return False
 		else:
 			self.silence_start = None
 
-		if self.set_state(LoopbackState.PLAYING) != LoopbackState.PLAYING:
+		loop_state = self.set_state(LoopbackState.PLAYING)
+		if loop_state != LoopbackState.PLAYING:
+			logging.warning(f'setting state PLAYING failed: {str(loop_state)}')
 			return False
 
 		if data:
@@ -235,7 +252,7 @@ class Loopback(object):
 		if fd == self.capture_pd.fd:
 			real_mask = self.capture.polldescriptors_revents([self.capture_pd.as_tuple()])
 			if real_mask:
-				return self.handle_capture_event(eventmask, name)
+				return self.handle_capture_event(real_mask, name)
 			else:
 				logging.debug('null capture event')
 				return False

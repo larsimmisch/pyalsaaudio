@@ -106,6 +106,9 @@ typedef struct {
 
 	snd_pcm_t *handle;
 
+	// Debug logging
+	int state;
+
 	// Configurable parameters
 	unsigned int channels;
 	unsigned int rate;
@@ -360,6 +363,40 @@ alsapcm_list(PyObject *self, PyObject *args, PyObject *kwds)
 	return result;
 }
 
+const char* state_name(int state) {
+	switch (state) {
+		case SND_PCM_STATE_OPEN:
+			return "SND_PCM_STATE_OPEN";
+		case SND_PCM_STATE_SETUP:
+			return "SND_PCM_STATE_SETUP";
+		case SND_PCM_STATE_PREPARED:
+			return "SND_PCM_STATE_PREPARED";
+		case SND_PCM_STATE_RUNNING:
+			return "SND_PCM_STATE_RUNNING";
+		case SND_PCM_STATE_XRUN:
+			return "SND_PCM_STATE_XRUN";
+		case SND_PCM_STATE_DISCONNECTED:
+			return "SND_PCM_STATE_DISCONNECTED";
+		case SND_PCM_STATE_DRAINING:
+			return "SND_PCM_STATE_DRAINING";
+		case SND_PCM_STATE_PAUSED:
+			return "SND_PCM_STATE_PAUSED";
+		case SND_PCM_STATE_SUSPENDED:
+			return "SND_PCM_STATE_SUSPENDED";
+		default:
+			return "invalid PCM state";
+	}
+}
+
+void print_state(alsapcm_t *self)
+{
+	int state = snd_pcm_state(self->handle);
+	if (state != self->state) {
+		printf("[%s %s] %s->%s\n", self->cardname, self->pcmtype == SND_PCM_STREAM_CAPTURE ? "capture" : "playback", state_name(self->state), state_name(state));
+		self->state = state;
+	}
+}
+
 static int alsapcm_setup(alsapcm_t *self)
 {
 	int res,dir;
@@ -404,6 +441,8 @@ static int alsapcm_setup(alsapcm_t *self)
 	snd_pcm_hw_params_get_periods(hwparams, &self->periods, &dir);
 
 	self->framesize = self->channels * snd_pcm_format_physical_width(self->format)/8;
+
+	self->state = snd_pcm_state(self->handle);
 
 	return res;
 }
@@ -1347,7 +1386,6 @@ static PyObject *
 alsapcm_read(alsapcm_t *self, PyObject *args)
 {
 	snd_pcm_state_t state;
-	int res;
 	int size = self->framesize * self->periodsize;
 	int sizeout = 0;
 	PyObject *buffer_obj, *tuple_obj, *res_obj;
@@ -1380,11 +1418,19 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
 	buffer = PyBytes_AS_STRING(buffer_obj);
 #endif
 
+	int res = 0;
+
+	print_state(self);
+
 	// After drop() and drain(), we need to prepare the stream again.
 	// Note that fresh streams are already prepared by snd_pcm_hw_params().
 	state = snd_pcm_state(self->handle);
-	if ((state != SND_PCM_STATE_SETUP) ||
-		!(res = snd_pcm_prepare(self->handle))) {
+	if (state == SND_PCM_STATE_SETUP) {
+		res = snd_pcm_prepare(self->handle);
+		printf("[%s] called snd_pcm_prepare: %d\n", self->cardname, res);
+	}
+
+	if (res == 0) {
 
 		Py_BEGIN_ALLOW_THREADS
 		res = snd_pcm_readi(self->handle, buffer, self->periodsize);
@@ -1488,6 +1534,8 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 		return NULL;
 	}
 
+	print_state(self);
+
 	int res;
 	// After drop() and drain(), we need to prepare the stream again.
 	// Note that fresh streams are already prepared by snd_pcm_hw_params().
@@ -1577,6 +1625,9 @@ static PyObject *alsapcm_pause(alsapcm_t *self, PyObject *args)
 
 		return NULL;
 	}
+
+	print_state(self);
+
 	return PyLong_FromLong(res);
 }
 
@@ -1598,6 +1649,8 @@ static PyObject *alsapcm_drop(alsapcm_t *self)
 
 		return NULL;
 	}
+
+	print_state(self);
 
 	return PyLong_FromLong(res);
 }
@@ -1622,6 +1675,8 @@ static PyObject *alsapcm_drain(alsapcm_t *self)
 
 		return NULL;
 	}
+
+	print_state(self);
 
 	return PyLong_FromLong(res);
 }
