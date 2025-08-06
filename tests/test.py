@@ -13,14 +13,16 @@ import alsaaudio
 import warnings
 from contextlib import closing
 
+MethodsType = list[tuple[str, tuple[int, ...] | None]]
+
 # we can't test read and write well - these are tested otherwise
-PCMMethods = [
+PCMMethods: MethodsType = [
 	('pcmtype', None),
 	('pcmmode', None),
 	('cardname', None)
 ]
 
-PCMDeprecatedMethods = [
+PCMDeprecatedMethods: MethodsType = [
 	('setchannels', (2,)),
 	('setrate', (44100,)),
 	('setformat', (alsaaudio.PCM_FORMAT_S8,)),
@@ -30,20 +32,21 @@ PCMDeprecatedMethods = [
 # A clever test would look at the Mixer capabilities and selectively run the
 # omitted tests, but I am too tired for that.
 
-MixerMethods = [('cardname', None),
-				('mixer', None),
-				('mixerid', None),
-				('switchcap', None),
-				('volumecap', None),
-				('getvolume', None),
-				('getrange', None),
-				('getenum', None),
-#				('getmute', None),
-#				('getrec', None),
-#				('setvolume', (60,)),
-#				('setmute', (0,))
-#				('setrec', (0')),
-				]
+MixerMethods: MethodsType = [
+	('cardname', None),
+	('mixer', None),
+	('mixerid', None),
+	('switchcap', None),
+	('volumecap', None),
+	('getvolume', None),
+	('getrange', None),
+	('getenum', None),
+#	('getmute', None),
+#	('getrec', None),
+#	('setvolume', (60,)),
+#	('setmute', (0,))
+#	('setrec', (0')),
+]
 
 class MixerTest(unittest.TestCase):
 	"""Test Mixer objects"""
@@ -162,25 +165,25 @@ class PollDescriptorArgsTest(unittest.TestCase):
 	def testArgsNoList(self):
 		with closing(alsaaudio.PCM()) as pcm:
 			with self.assertRaises(TypeError):
-				pcm.polldescriptors_revents('foo')
+				pcm.polldescriptors_revents('foo') # pyright: ignore[reportArgumentType]
 
 	def testArgsListButNoTuples(self):
 		with closing(alsaaudio.PCM()) as pcm:
 			with self.assertRaises(TypeError):
-				pcm.polldescriptors_revents(['foo', 1])
+				pcm.polldescriptors_revents(['foo', 1])  # pyright: ignore[reportArgumentType]
 
 	def testArgsListButInvalidTuples(self):
 		with closing(alsaaudio.PCM()) as pcm:
 			with self.assertRaises(TypeError):
-				pcm.polldescriptors_revents([('foo', 'bar')])
+				pcm.polldescriptors_revents([('foo', 'bar')]) # pyright: ignore[reportArgumentType]
 
 	def testArgsListTupleWrongLength(self):
 		with closing(alsaaudio.PCM()) as pcm:
 			with self.assertRaises(TypeError):
-				pcm.polldescriptors_revents([(1, )])
+				pcm.polldescriptors_revents([(1, )]) # pyright: ignore[reportArgumentType]
 
 			with self.assertRaises(TypeError):
-				pcm.polldescriptors_revents([(1, 2, 3)])
+				pcm.polldescriptors_revents([(1, 2, 3)]) # pyright: ignore[reportArgumentType]
 
 
 if __name__ == '__main__':
