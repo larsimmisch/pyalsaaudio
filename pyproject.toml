@@ -45,3 +45,8 @@ build-backend = "setuptools.build_meta"
 ext-modules = [
 	{ name = "alsaaudio", sources = ["src/alsaaudio.c"], libraries = ["asound"] }
 ]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.403",
+]
