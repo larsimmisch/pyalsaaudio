@@ -48,5 +48,6 @@ ext-modules = [
 
 [dependency-groups]
 dev = [
+    "mypy>=1.17.1",
     "pyright>=1.1.403",
 ]
