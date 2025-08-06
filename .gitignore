@@ -10,5 +10,5 @@ build/
 dist/
 .vscode/
 /__pycache__/
-/pyalsaaudio.egg-info/
+*.egg-info/
 *.raw

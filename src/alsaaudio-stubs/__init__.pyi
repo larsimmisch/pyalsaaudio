@@ -1,5 +1,3 @@
-from typing import list
-
 PCM_PLAYBACK: int
 PCM_CAPTURE: int
 

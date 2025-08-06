@@ -1,0 +1,47 @@
+[project]
+name = "pyalsaaudio"
+version = "0.11.0"
+description = "ALSA bindings"
+readme.text = """
+This package contains wrappers for accessing the ALSA API from Python.
+It is fairly complete for PCM devices and Mixer access.
+"""
+readme.content-type = "text/plain"
+license="PSF-2.0"
+license-files=["LICENSE"]
+classifiers = [
+	"Development Status :: 4 - Beta",
+	"Intended Audience :: Developers",
+	"Operating System :: POSIX :: Linux",
+	"Programming Language :: Python :: 2",
+	"Programming Language :: Python :: 3",
+	"Topic :: Multimedia :: Sound/Audio",
+	"Topic :: Multimedia :: Sound/Audio :: Mixers",
+	"Topic :: Multimedia :: Sound/Audio :: Players",
+	"Topic :: Multimedia :: Sound/Audio :: Capture/Recording",
+]
+
+[[project.authors]]
+name = "Casper Wilstrup"
+email = "cwi@aves.dk"
+
+[[project.maintainers]]
+name = "Lars Immisch"
+email = "lars@ibp.de"
+
+[project.urls]
+homepage = "http://larsimmisch.github.io/pyalsaaudio/"
+source = "https://github.com/larsimmisch/pyalsaaudio"
+documentation = "https://larsimmisch.github.io/pyalsaaudio/"
+issues = "https://github.com/larsimmisch/pyalsaaudio/issues"
+
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.setuptools]
+ext-modules = [
+	{ name = "alsaaudio", sources = ["src/alsaaudio.c"], libraries = ["asound"] }
+]
