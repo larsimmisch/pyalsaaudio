@@ -1,4 +1,4 @@
-from typing import Final
+from typing import Final, final
 
 PCM_PLAYBACK: Final[int]
 PCM_CAPTURE: Final[int]
@@ -59,17 +59,18 @@ PCM_STATE_DISCONNECTED: Final[int]
 
 MIXER_CHANNEL_ALL: Final[int]
 
-MIXER_SCHN_UNKNOWN: Final[int]
-MIXER_SCHN_FRONT_LEFT: Final[int]
-MIXER_SCHN_FRONT_RIGHT: Final[int]
-MIXER_SCHN_REAR_LEFT: Final[int]
-MIXER_SCHN_REAR_RIGHT: Final[int]
-MIXER_SCHN_FRONT_CENTER: Final[int]
-MIXER_SCHN_WOOFER: Final[int]
-MIXER_SCHN_SIDE_LEFT: Final[int]
-MIXER_SCHN_SIDE_RIGHT: Final[int]
-MIXER_SCHN_REAR_CENTER: Final[int]
-MIXER_SCHN_MONO: Final[int]
+# NOTE: Omit for now - use case unknown (see alsaaudio.c)
+#MIXER_SCHN_UNKNOWN: Final[int]
+#MIXER_SCHN_FRONT_LEFT: Final[int]
+#MIXER_SCHN_FRONT_RIGHT: Final[int]
+#MIXER_SCHN_REAR_LEFT: Final[int]
+#MIXER_SCHN_REAR_RIGHT: Final[int]
+#MIXER_SCHN_FRONT_CENTER: Final[int]
+#MIXER_SCHN_WOOFER: Final[int]
+#MIXER_SCHN_SIDE_LEFT: Final[int]
+#MIXER_SCHN_SIDE_RIGHT: Final[int]
+#MIXER_SCHN_REAR_CENTER: Final[int]
+#MIXER_SCHN_MONO: Final[int]
 
 VOLUME_UNITS_PERCENTAGE: Final[int]
 VOLUME_UNITS_RAW: Final[int]
@@ -83,6 +84,7 @@ def asoundlib_version() -> str: ...
 def card_indexes() -> list[int]: ...
 def card_name(index: int): ...
 
+@final
 class PCM:
 	def __init__(self, type: int = PCM_PLAYBACK, mode: int = PCM_NORMAL, rate: int = 44100, channels: int = 2,
 		format: int = PCM_FORMAT_S16_LE, periodsize: int = 32, periods: int = 4,
@@ -116,6 +118,7 @@ class PCM:
 	def polldescriptors(self) -> list[tuple[int, int]]: ...
 	def polldescriptors_revents(self, descriptors: list[tuple[int, int]]) -> int: ...
 
+@final
 class Mixer:
 	def __init__(self, control: str = 'Master', id: int = 0, cardindex: int = -1, device: str = 'default') -> None: ...
 	def cardname(self) -> str: ...
