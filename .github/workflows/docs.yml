@@ -1,0 +1,13 @@
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish_docs:
+    name: Publish latest documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      # TODO: run makefile in docs directory, then commit built assets to gh-pages branch
