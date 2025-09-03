@@ -56,15 +56,10 @@ ext-modules = [
 ]
 
 
-[tool.cibuildwheel.linux]
-# Use uv and build
+[tool.cibuildwheel]
+platform = "linux"
 build-frontend = "build[uv]"
-
-# NOTE: ensure to use the correct package manager depending on the manylinux
-# image used. For AlmaLinux based images, use `yum`, for Debian based images
-# use `apt`. `cibuildwheel` v3.1.4 defaults to manylinux_2_28, which is
-# based on AlmaLinux 8.
-before-all = "yum install -y alsa-lib-devel"
+before-all = "ci/setup_cibuildwheel.sh"
 
 
 [dependency-groups]
