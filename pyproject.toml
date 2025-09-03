@@ -37,7 +37,7 @@ issues = "https://github.com/larsimmisch/pyalsaaudio/issues"
 
 
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=80.0"]
 build-backend = "setuptools.build_meta"
 
 
