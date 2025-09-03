@@ -8,6 +8,7 @@ doc/_build/
 gh-pages/
 build/
 dist/
+wheelhouse/
 .vscode/
 /__pycache__/
 *.egg-info/
