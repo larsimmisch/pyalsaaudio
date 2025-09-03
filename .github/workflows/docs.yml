@@ -5,9 +5,25 @@ on:
       - main
 
 jobs:
-  publish_docs:
+  build:
     name: Publish latest documentation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      # TODO: run makefile in docs directory, then commit built assets to gh-pages branch
+      - name: Build HTML documentation
+        run: make -C doc html
+      - name: Upload artifacts
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: doc/html
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
