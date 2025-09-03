@@ -3,7 +3,7 @@
 on:
   workflow_dispatch:
   push:
-    tags:
+    tags: "*"
 
 jobs:
   build_wheels:
