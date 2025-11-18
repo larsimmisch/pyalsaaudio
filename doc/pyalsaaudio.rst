@@ -77,7 +77,7 @@ Note: the wrappers link with the alsasound library (from the alsa-lib package)
 and need the ALSA headers for compilation.  Verify that you have
 /usr/lib/libasound.so and /usr/include/alsa (or similar paths) before building.
 
-*On Debian (and probably Ubuntu), install libasound2-dev.*
+*On Debian/Ubuntu, install libasound2-dev.*
 
 Naturally you also need to use a kernel with proper ALSA support. This is the
 default in Linux kernel 2.6 and later. If you are using kernel version 2.4 you
