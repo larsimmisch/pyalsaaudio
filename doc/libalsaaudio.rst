@@ -807,6 +807,9 @@ Play back the recording with::
 
    $ python playbacktest.py <filename>
 
+playbacktest.py accepts the commandline option
+ *-d <device>*.
+
 mixertest.py
 ~~~~~~~~~~~~
 
