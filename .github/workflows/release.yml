@@ -53,6 +53,3 @@ jobs:
           path: dist
           merge-multiple: true
       - uses: pypa/gh-action-pypi-publish@release/v1
-        # TODO: delete below once workflow is proved functional
-        with:
-          repository-url: https://test.pypi.org/legacy/
