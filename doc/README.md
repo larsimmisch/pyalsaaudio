@@ -1,27 +1,17 @@
 # Make a new release
 
-Update the version in setup.py
+Create and push a tag naming the version (i.e. 0.11.1):
 
-    pyalsa_version = '0.9.0'
+    git tag 0.11.1
+    git push origin 0.11.1
 
-Commit and push the update.
-
-Create and push a tag naming the version (i.e. 0.9.0):
-
-    git tag 0.9.0
-    git push origin 0.9.0
-
-Create the package:
-
-    python3 setup.py sdist
-
-Upload the package
-
-    twine upload dist/*
-
-Don't forget to update the documentation.
+This should trigger a build via a github actions and publish pre-built binaries to pypi.org 
 
 # Publish the documentation
+
+All commits to main should trigger a rebuild of the documentation.
+
+## Historical background
 
 The documentation is published through the `gh-pages` branch.
 

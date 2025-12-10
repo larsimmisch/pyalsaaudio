@@ -86,11 +86,7 @@ ship with ALSA kernels.
 
 To install, execute the following:  ---   ::
 
-   $ python setup.py build
-
-And then as root:  ---   ::
-
-   # python setup.py install
+   $ pip install .
 
 
 *******

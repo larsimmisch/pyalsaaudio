@@ -46,14 +46,9 @@ First, get the sources and change to the source directory:
   $ cd pyalsaaudio
 ```
 
-Then, build:
+Then, build and install:
 ```
-  $ python setup.py build
-```
-
-And install:
-```
-  $ sudo python setup.py install
+  $ pip install .
 ```
 
 # Using the API
