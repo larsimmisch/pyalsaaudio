@@ -49,10 +49,13 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 
-[tool.setuptools]
-ext-modules = [
-	{ name = "alsaaudio", sources = ["src/alsaaudio.c"], libraries = ["asound"] }
-]
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["alsaaudio"]
+
+
+[tool.setuptools.package-data]
+alsaaudio = ["__init__.pyi", "py.typed"]
 
 
 [tool.cibuildwheel]

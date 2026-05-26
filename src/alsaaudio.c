@@ -3113,7 +3113,7 @@ static struct PyModuleDef alsaaudio_module = {
 #if PY_MAJOR_VERSION < 3
 void initalsaaudio(void)
 #else
-PyObject *PyInit_alsaaudio(void)
+PyObject *PyInit__alsaaudio(void)
 #endif
 {
 	PyObject *m;
