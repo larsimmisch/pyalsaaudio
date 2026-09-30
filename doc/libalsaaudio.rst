@@ -10,14 +10,14 @@
 
 The :mod:`alsaaudio` module defines functions and classes for using ALSA.
 
-.. function:: pcms(pcmtype: int = PCM_PLAYBACK) ->list[str]
+.. function:: pcms(pcmtype: int | str | None = PCM_PLAYBACK) -> list[str]
 
    List available PCM devices by name.
 
    Arguments are:
 
    * *pcmtype* - can be either :const:`PCM_CAPTURE` or :const:`PCM_PLAYBACK`
-     (default).
+     (default), the strings ``'capture'`` or ``'playback'``, or ``None``.
 
    **Note:**
 
@@ -96,7 +96,7 @@ PCM objects in :mod:`alsaaudio` can play or capture (record) PCM
 sound through speakers or a microphone. The PCM constructor takes the
 following arguments:
 
-.. class:: PCM(type: int = PCM_PLAYBACK, mode: int = PCM_NORMAL, rate: int = 44100, channels: int = 2,
+.. class:: PCM(type: int | str | None = PCM_PLAYBACK, mode: int = PCM_NORMAL, rate: int = 44100, channels: int = 2,
                format: int = PCM_FORMAT_S16_LE, periodsize: int = 32, periods: int = 4,
                device: str = 'default', cardindex: int = -1) -> PCM
 
@@ -104,7 +104,7 @@ following arguments:
    recording). The constructor's arguments are:
 
    * *type* - can be either :const:`PCM_CAPTURE` or :const:`PCM_PLAYBACK`
-     (default).
+     (default), the strings ``'capture'`` or ``'playback'``, or ``None``.
    * *mode* - can be either :const:`PCM_NONBLOCK`, or :const:`PCM_NORMAL`
      (default).
    * *rate* - the sampling rate in Hz. Typical values are ``8000`` (mainly used for telephony), ``16000``, ``44100`` (default), ``48000`` and ``96000``.
@@ -565,7 +565,7 @@ Mixer objects have the following methods:
 
    Return the ID of the ALSA mixer controlled by this object.
 
-.. method:: Mixer.switchcap() -> int
+.. method:: Mixer.switchcap() -> list[str]
 
    Returns a list of the switches which are defined by this specific mixer.
    Possible values in this list are:
@@ -585,7 +585,7 @@ Mixer objects have the following methods:
    To manipulate these switches use the :meth:`setrec` or
    :meth:`setmute` methods
 
-.. method:: Mixer.volumecap() -> int
+.. method:: Mixer.volumecap() -> list[str]
 
    Returns a list of the volume control capabilities of this
    mixer. Possible values in the list are:
@@ -601,7 +601,7 @@ Mixer objects have the following methods:
    'Joined Capture Volume'   Manipulate sound capture volume for all channels at a time
    ========================  ================
 
-.. method:: Mixer.getenum() -> tuple[str, list[str]]
+.. method:: Mixer.getenum() -> tuple[()] | tuple[str, list[str]]
 
    For enumerated controls, return the currently selected item and  the list of
    items available.
@@ -633,34 +633,36 @@ Mixer objects have the following methods:
    *index* is an index into the list of available enumerated items returned
    by :func:`getenum`.
 
-.. method:: Mixer.getrange(pcmtype: int = PCM_PLAYBACK, units: int = VOLUME_UNITS_RAW) -> tuple[int, int]
+.. method:: Mixer.getrange(pcmtype: int | str | None = None, units: int = VOLUME_UNITS_RAW) -> list[int]
 
    Return the volume range of the ALSA mixer controlled by this object.
-   The value is a tuple of integers whose meaning is determined by the
+   The value is a list of two integers whose meaning is determined by the
    *units* argument.
 
    The optional *pcmtype* argument can be either :const:`PCM_PLAYBACK` or
-   :const:`PCM_CAPTURE`, which is relevant if the mixer can control both
+   :const:`PCM_CAPTURE`, the strings ``'playback'`` or ``'capture'``, or
+   ``None``. This is relevant if the mixer can control both
    playback and capture volume.  The default value is :const:`PCM_PLAYBACK`
    if the mixer has playback channels, otherwise it is :const:`PCM_CAPTURE`.
 
    The optional *units* argument can be one of :const:`VOLUME_UNITS_PERCENTAGE`,
    :const:`VOLUME_UNITS_RAW`, or :const:`VOLUME_UNITS_DB`.
 
-.. method:: Mixer.getvolume(pcmtype: int = PCM_PLAYBACK, units: int = VOLUME_UNITS_PERCENTAGE) -> int
+.. method:: Mixer.getvolume(pcmtype: int | str | None = None, units: int = VOLUME_UNITS_PERCENTAGE) -> list[int]
 
    Returns a list with the current volume settings for each channel. The list
    elements are integers whose meaning is determined by the *units* argument.
 
    The optional *pcmtype* argument can be either :const:`PCM_PLAYBACK` or
-   :const:`PCM_CAPTURE`, which is relevant if the mixer can control both
+   :const:`PCM_CAPTURE`, the strings ``'playback'`` or ``'capture'``, or
+   ``None``. This is relevant if the mixer can control both
    playback and capture volume. The default value is :const:`PCM_PLAYBACK`
    if the mixer has playback channels, otherwise it is :const:`PCM_CAPTURE`.
 
    The optional *units* argument can be one of :const:`VOLUME_UNITS_PERCENTAGE`,
    :const:`VOLUME_UNITS_RAW`, or :const:`VOLUME_UNITS_DB`.
 
-.. method:: Mixer.setvolume(volume: int, pcmtype: int = PCM_PLAYBACK, units: int = VOLUME_UNITS_PERCENTAGE, channel: (int | None) = None) -> None
+.. method:: Mixer.setvolume(volume: int, channel: int = MIXER_CHANNEL_ALL, pcmtype: int | str | None = None, units: int = VOLUME_UNITS_PERCENTAGE) -> None
 
    Change the current volume settings for this mixer. The *volume* argument
    is an integer whose meaning is determined by the *units* argument.
@@ -670,7 +672,8 @@ Mixer objects have the following methods:
    volume for the channels independently.
 
    The optional *pcmtype* argument can be either :const:`PCM_PLAYBACK` or
-   :const:`PCM_CAPTURE`, which is relevant if the mixer can control both
+   :const:`PCM_CAPTURE`, the strings ``'playback'`` or ``'capture'``, or
+   ``None``. This is relevant if the mixer can control both
    playback and capture volume. The default value is :const:`PCM_PLAYBACK`
    if the mixer has playback channels, otherwise it is :const:`PCM_CAPTURE`.
 
@@ -684,7 +687,7 @@ Mixer objects have the following methods:
 
    This method will fail if the mixer has no playback switch capabilities.
 
-.. method:: Mixer.setmute(mute: bool, channel: (int | None) = None) -> None
+.. method:: Mixer.setmute(mute: int, channel: int = MIXER_CHANNEL_ALL) -> None
 
    Sets the mute flag to a new value. The *mute* argument is either 0 for not
    muted, or 1 for muted.
@@ -701,7 +704,7 @@ Mixer objects have the following methods:
 
    This method will fail if the mixer has no capture switch capabilities.
 
-.. method:: Mixer.setrec(capture: int, channel: (int | None) = None) -> None
+.. method:: Mixer.setrec(capture: int, channel: int = MIXER_CHANNEL_ALL) -> None
 
    Sets the capture mute flag to a new value. The *capture* argument
    is either 0 for no capture, or 1 for capture.
