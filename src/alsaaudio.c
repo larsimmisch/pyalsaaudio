@@ -543,14 +543,20 @@ alsapcm_dumpinfo(alsapcm_t *self, PyObject *args)
 	int dir;
 	snd_pcm_uframes_t frames;
 	snd_pcm_hw_params_t *hwparams;
-	snd_pcm_hw_params_alloca(&hwparams);
-	snd_pcm_hw_params_current(self->handle,hwparams);
+	int res;
 
 	if (!PyArg_ParseTuple(args,":dumpinfo"))
 		return NULL;
 
 	if (!self->handle) {
 		PyErr_SetString(ALSAAudioError, "PCM device is closed");
+		return NULL;
+	}
+
+	snd_pcm_hw_params_alloca(&hwparams);
+	res = snd_pcm_hw_params_current(self->handle, hwparams);
+	if (res < 0) {
+		PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res), self->cardname);
 		return NULL;
 	}
 

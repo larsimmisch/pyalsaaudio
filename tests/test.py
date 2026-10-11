@@ -128,6 +128,14 @@ class PCMTest(unittest.TestCase):
 			else:
 				self.assertRaises(alsaaudio.ALSAAudioError, f, pcm, *a)
 
+	def testPCMDumpInfoAfterClose(self):
+		# A closed PCM must raise instead of aborting libasound.
+		pcm = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE,
+			mode=alsaaudio.PCM_NONBLOCK, device="null")
+		pcm.close()
+		with self.assertRaisesRegex(alsaaudio.ALSAAudioError, "closed"):
+			pcm.dumpinfo()
+
 	def testPCMDeprecated(self):
 		with warnings.catch_warnings(record=True) as w:
 			# Cause all warnings to always be triggered.
