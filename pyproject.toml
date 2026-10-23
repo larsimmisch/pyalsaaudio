@@ -45,8 +45,9 @@ issues = "https://github.com/larsimmisch/pyalsaaudio/issues"
 
 
 [build-system]
+build-backend = "_binary_wheel_backend"
+backend-path = ["."]
 requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
 
 
 [tool.setuptools]

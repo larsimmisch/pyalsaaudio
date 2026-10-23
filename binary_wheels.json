@@ -1,0 +1,28 @@
+{
+  "source_commit": "bf1e6dbcd315cdcbc65b505b4b5a5df7412883e6",
+  "source_backend": "setuptools.build_meta",
+  "source_backend_path": [],
+  "minimum_glibc": [
+    2,
+    39
+  ],
+  "source_project": "128aaa90206dcbcee20bb26e20b3c1ba5bbadc777ef3d1c2c815028fb39c4c62",
+  "delivery_paths": [
+    "_binary_wheel_backend.py",
+    "binary_wheels.json",
+    "README.binary-wheels.md",
+    "pyproject.toml",
+    "MANIFEST.in"
+  ],
+  "delivery_source_hashes": {
+    "_binary_wheel_backend.py": "fc4697ea1ee586c2ae3df2397be14ef13246f7b7b8f42485057e36c0852fe37a",
+    "README.binary-wheels.md": "05617ca74a60f542d4f2a146f8e5308158d123ba97856b6b3e0deebd3a5b1595",
+    "pyproject.toml": "9381a2b4c302a3054e67a222ade9962d6d5c3f9306a3513acd17051100e264e4",
+    "MANIFEST.in": "3483e5c608e99e8a4b77ea6ae95da49cbde2f7b243c167c8bbbcca6a410b3d38"
+  },
+  "artifact": {
+    "filename": "pyalsaaudio-0.11.0-cp315-cp315t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_39_x86_64.whl",
+    "url": "https://github.com/StableKite/pyalsaaudio/releases/download/cp315t-linux-r68-20261024/pyalsaaudio-0.11.0-cp315-cp315t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_39_x86_64.whl",
+    "sha256": "d6007e87a20d84b14690ac8239bd289a9d6bc95743e7ecbc5a6cf657509eb784"
+  }
+}
