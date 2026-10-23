@@ -1,2 +1,5 @@
 graft doc/
 graft examples/
+
+# Include the PEP 517 delivery adapter in source distributions.
+include _binary_wheel_backend.py binary_wheels.json README.binary-wheels.md
