@@ -30,6 +30,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+/* On older CPython the GIL provides these object critical sections. */
+#if PY_VERSION_HEX < 0x030D0000
+#define Py_BEGIN_CRITICAL_SECTION(op) {
+#define Py_END_CRITICAL_SECTION() }
+#endif
+
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof *(a))
 static const snd_pcm_format_t ALSAFormats[] = {
 	SND_PCM_FORMAT_S8,
@@ -105,6 +111,9 @@ typedef struct {
 	char *cardname;
 
 	snd_pcm_t *handle;
+	PyThread_type_lock io_lock;
+	size_t active_calls;
+	int closing;
 
 	// Configurable parameters
 	unsigned int channels;
@@ -147,6 +156,32 @@ typedef struct {
 
 static PyTypeObject ALSAPCMType;
 static PyObject *ALSAAudioError;
+
+/* The object lock protects fields and active-call leases. It may be suspended
+ * when a native I/O call detaches. The independent I/O lock then protects the
+ * PCM format/buffer agreement without holding a lock across Python callbacks. */
+static void alsapcm_lock_io(alsapcm_t *self)
+{
+	Py_BEGIN_ALLOW_THREADS
+	PyThread_acquire_lock(self->io_lock, WAIT_LOCK);
+	Py_END_ALLOW_THREADS
+}
+
+static void alsapcm_finish_close(alsapcm_t *self, int drain)
+{
+	snd_pcm_t *handle;
+
+	if (!self->closing || self->active_calls || !self->handle)
+		return;
+	handle = self->handle;
+	self->handle = NULL;
+	if (drain && self->pcmtype == SND_PCM_STREAM_PLAYBACK) {
+		Py_BEGIN_ALLOW_THREADS
+		snd_pcm_drain(handle);
+		Py_END_ALLOW_THREADS
+	}
+	snd_pcm_close(handle);
+}
 
 static long
 get_pcmtype(PyObject *obj)
@@ -473,6 +508,15 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 		return NULL;
 
 	self->handle = 0;
+	self->cardname = NULL;
+	self->active_calls = 0;
+	self->closing = 0;
+	self->io_lock = PyThread_allocate_lock();
+	if (!self->io_lock) {
+		PyErr_NoMemory();
+		Py_DECREF(self);
+		return NULL;
+	}
 	self->pcmtype = pcmtype;
 	self->pcmmode = pcmmode;
 	self->channels = channels;
@@ -490,6 +534,11 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 	if (res >= 0) {
 		self->cardname = strdup(device);
+		if (!self->cardname) {
+			PyErr_NoMemory();
+			Py_DECREF(self);
+			return NULL;
+		}
 	}
 	else {
 		if (self->handle)
@@ -498,6 +547,7 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 			self->handle = 0;
 		}
 		PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res), device);
+		Py_DECREF(self);
 		return NULL;
 	}
 	return (PyObject *)self;
@@ -505,8 +555,10 @@ alsapcm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 static void alsapcm_dealloc(alsapcm_t *self)
 {
-	if (self->handle)
-		snd_pcm_close(self->handle);
+	self->closing = 1;
+	alsapcm_finish_close(self, 0);
+	if (self->io_lock)
+		PyThread_free_lock(self->io_lock);
 	free(self->cardname);
 	PyObject_Del(self);
 }
@@ -517,17 +569,9 @@ alsapcm_close(alsapcm_t *self, PyObject *args)
 	if (!PyArg_ParseTuple(args,":close"))
 		return NULL;
 
-	if (self->handle)
-	{
-		if (self->pcmtype == SND_PCM_STREAM_PLAYBACK) {
-			Py_BEGIN_ALLOW_THREADS
-			snd_pcm_drain(self->handle);
-			Py_END_ALLOW_THREADS
-		}
-		snd_pcm_close(self->handle);
-
-		self->handle = 0;
-	}
+	/* In-flight methods own leases. Their final exit closes the real handle;
+	 * no method can free a handle still used by another detached native call. */
+	self->closing = 1;
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -1184,16 +1228,22 @@ alsapcm_setchannels(alsapcm_t *self, PyObject *args)
 		return NULL;
 	}
 
-	PyErr_WarnEx(PyExc_DeprecationWarning,
+	if (PyErr_WarnEx(PyExc_DeprecationWarning,
 				 "This function is deprecated. "
-				 "Please use the named parameter `channels` to `PCM()` instead", 1);
+				 "Please use the named parameter `channels` to `PCM()` instead", 1) < 0)
+		return NULL;
 
+	alsapcm_lock_io(self);
 	saved = self->channels;
 	self->channels = channels;
 	res = alsapcm_setup(self);
 	if (res < 0)
 	{
 		self->channels = saved;
+	}
+	PyThread_release_lock(self->io_lock);
+	if (res < 0)
+	{
 		PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
 					 self->cardname);
 		return NULL;
@@ -1258,16 +1308,22 @@ alsapcm_setrate(alsapcm_t *self, PyObject *args)
 		return NULL;
 	}
 
-	PyErr_WarnEx(PyExc_DeprecationWarning,
+	if (PyErr_WarnEx(PyExc_DeprecationWarning,
 				 "This function is deprecated. "
-				 "Please use the named parameter `rate` to `PCM()` instead", 1);
+				 "Please use the named parameter `rate` to `PCM()` instead", 1) < 0)
+		return NULL;
 
+	alsapcm_lock_io(self);
 	saved = self->rate;
 	self->rate = rate;
 	res = alsapcm_setup(self);
 	if (res < 0)
 	{
 		self->rate = saved;
+	}
+	PyThread_release_lock(self->io_lock);
+	if (res < 0)
+	{
 		PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
 					 self->cardname);
 		return NULL;
@@ -1290,16 +1346,22 @@ alsapcm_setformat(alsapcm_t *self, PyObject *args)
 		return NULL;
 	}
 
-	PyErr_WarnEx(PyExc_DeprecationWarning,
+	if (PyErr_WarnEx(PyExc_DeprecationWarning,
 				 "This function is deprecated. "
-				 "Please use the named parameter `format` to `PCM()` instead", 1);
+				 "Please use the named parameter `format` to `PCM()` instead", 1) < 0)
+		return NULL;
 
+	alsapcm_lock_io(self);
 	saved = self->format;
 	self->format = format;
 	res = alsapcm_setup(self);
 	if (res < 0)
 	{
 		self->format = saved;
+	}
+	PyThread_release_lock(self->io_lock);
+	if (res < 0)
+	{
 		PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
 					 self->cardname);
 		return NULL;
@@ -1322,16 +1384,22 @@ alsapcm_setperiodsize(alsapcm_t *self, PyObject *args)
 		return NULL;
 	}
 
-	PyErr_WarnEx(PyExc_DeprecationWarning,
+	if (PyErr_WarnEx(PyExc_DeprecationWarning,
 				 "This function is deprecated. "
-				 "Please use the named parameter `periodsize` to `PCM()` instead", 1);
+				 "Please use the named parameter `periodsize` to `PCM()` instead", 1) < 0)
+		return NULL;
 
+	alsapcm_lock_io(self);
 	saved = self->periodsize;
 	self->periodsize = periodsize;
 	res = alsapcm_setup(self);
 	if (res < 0)
 	{
 		self->periodsize = saved;
+	}
+	PyThread_release_lock(self->io_lock);
+	if (res < 0)
+	{
 		PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
 					 self->cardname);
 
@@ -1347,9 +1415,11 @@ static PyObject *
 alsapcm_read(alsapcm_t *self, PyObject *args)
 {
 	snd_pcm_state_t state;
-	int res;
-	int size = self->framesize * self->periodsize;
-	int sizeout = 0;
+	snd_pcm_sframes_t res;
+	snd_pcm_t *handle;
+	snd_pcm_uframes_t frames;
+	int frame_size;
+	Py_ssize_t size, sizeout = 0;
 	PyObject *buffer_obj, *tuple_obj, *res_obj;
 	char *buffer;
 
@@ -1368,36 +1438,56 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
 		return NULL;
 	}
 
+	alsapcm_lock_io(self);
+	handle = self->handle;
+	frames = self->periodsize;
+	frame_size = self->framesize;
+	if (frame_size <= 0 || frames > (snd_pcm_uframes_t)(PY_SSIZE_T_MAX / frame_size)) {
+		PyThread_release_lock(self->io_lock);
+		PyErr_SetString(PyExc_OverflowError, "PCM read buffer size is out of range");
+		return NULL;
+	}
+	size = (Py_ssize_t)frames * frame_size;
+
 #if PY_MAJOR_VERSION < 3
 	buffer_obj = PyString_FromStringAndSize(NULL, size);
-	if (!buffer_obj)
+	if (!buffer_obj) {
+		PyThread_release_lock(self->io_lock);
 		return NULL;
+	}
 	buffer = PyString_AS_STRING(buffer_obj);
 #else
 	buffer_obj = PyBytes_FromStringAndSize(NULL, size);
-	if (!buffer_obj)
+	if (!buffer_obj) {
+		PyThread_release_lock(self->io_lock);
 		return NULL;
+	}
 	buffer = PyBytes_AS_STRING(buffer_obj);
 #endif
 
+	/* Native capture plugins can report frames without filling every byte.
+	 * Initialize our fresh allocation before the SDK writes its real data. */
+	memset(buffer, 0, size);
+
 	// After drop() and drain(), we need to prepare the stream again.
 	// Note that fresh streams are already prepared by snd_pcm_hw_params().
-	state = snd_pcm_state(self->handle);
+	state = snd_pcm_state(handle);
 	if ((state != SND_PCM_STATE_SETUP) ||
-		!(res = snd_pcm_prepare(self->handle))) {
+		!(res = snd_pcm_prepare(handle))) {
 
 		Py_BEGIN_ALLOW_THREADS
-		res = snd_pcm_readi(self->handle, buffer, self->periodsize);
+		res = snd_pcm_readi(handle, buffer, frames);
 		Py_END_ALLOW_THREADS
 
 		if (res == -EPIPE) {
 			// This means buffer overrun, which we need to report.
 			// However, we recover the stream, so the next PCM.read() will work
 			// again. If recovery fails (very unlikely), report that instead.
-			if (!(res = snd_pcm_prepare(self->handle)))
+			if (!(res = snd_pcm_prepare(handle)))
 				res = -EPIPE;
 		}
 	}
+	PyThread_release_lock(self->io_lock);
 
 	if (res != -EPIPE)
 	{
@@ -1414,7 +1504,7 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
 		}
 		else
 		{
-			sizeout = res * self->framesize;
+			sizeout = res * frame_size;
 		}
 	}
 
@@ -1450,8 +1540,15 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
 
 static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 {
+#if PY_MAJOR_VERSION < 3
 	int datalen;
+#else
+	Py_ssize_t datalen;
+#endif
 	char *data;
+	snd_pcm_t *handle;
+	snd_pcm_uframes_t frames;
+	snd_pcm_sframes_t res;
 
 #if PY_MAJOR_VERSION < 3
 	if (!PyArg_ParseTuple(args,"s#:write", &data, &datalen))
@@ -1477,8 +1574,11 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 		return NULL;
 	}
 
-	if (datalen % self->framesize)
+	alsapcm_lock_io(self);
+	handle = self->handle;
+	if (self->framesize <= 0 || datalen < 0 || datalen % self->framesize)
 	{
+		PyThread_release_lock(self->io_lock);
 		PyErr_SetString(ALSAAudioError,
 						"Data size must be a multiple of framesize");
 
@@ -1488,25 +1588,26 @@ static PyObject *alsapcm_write(alsapcm_t *self, PyObject *args)
 		return NULL;
 	}
 
-	int res;
+	frames = datalen / self->framesize;
 	// After drop() and drain(), we need to prepare the stream again.
 	// Note that fresh streams are already prepared by snd_pcm_hw_params().
-	snd_pcm_state_t state = snd_pcm_state(self->handle);
+	snd_pcm_state_t state = snd_pcm_state(handle);
 	if ((state != SND_PCM_STATE_SETUP) ||
-		!(res = snd_pcm_prepare(self->handle))) {
+		!(res = snd_pcm_prepare(handle))) {
 
 		Py_BEGIN_ALLOW_THREADS
-		res = snd_pcm_writei(self->handle, data, datalen/self->framesize);
+		res = snd_pcm_writei(handle, data, frames);
 		Py_END_ALLOW_THREADS
 
 		if (res == -EPIPE) {
 			// This means buffer underrun, which we need to report.
 			// However, we recover the stream, so the next PCM.write() will work
 			// again. If recovery fails (very unlikely), report that instead.
-			if (!(res = snd_pcm_prepare(self->handle)))
+			if (!(res = snd_pcm_prepare(handle)))
 				res = -EPIPE;
 		}
 	}
+	PyThread_release_lock(self->io_lock);
 
 	if (res != -EPIPE)
 	{
@@ -1560,6 +1661,7 @@ alsapcm_avail(alsapcm_t *self, PyObject *args)
 static PyObject *alsapcm_pause(alsapcm_t *self, PyObject *args)
 {
 	int enabled=1, res;
+	snd_pcm_t *handle;
 
 	if (!PyArg_ParseTuple(args,"|i:pause", &enabled))
 		return NULL;
@@ -1569,7 +1671,10 @@ static PyObject *alsapcm_pause(alsapcm_t *self, PyObject *args)
 		return NULL;
 	}
 
-	res = snd_pcm_pause(self->handle, enabled);
+	handle = self->handle;
+	Py_BEGIN_ALLOW_THREADS
+	res = snd_pcm_pause(handle, enabled);
+	Py_END_ALLOW_THREADS
 	if (res < 0)
 	{
 		PyErr_Format(ALSAAudioError, "%s [%s]", snd_strerror(res),
@@ -1583,13 +1688,17 @@ static PyObject *alsapcm_pause(alsapcm_t *self, PyObject *args)
 static PyObject *alsapcm_drop(alsapcm_t *self)
 {
 	int res;
+	snd_pcm_t *handle;
 
 	if (!self->handle) {
 		PyErr_SetString(ALSAAudioError, "PCM device is closed");
 		return NULL;
 	}
 
-	res = snd_pcm_drop(self->handle);
+	handle = self->handle;
+	Py_BEGIN_ALLOW_THREADS
+	res = snd_pcm_drop(handle);
+	Py_END_ALLOW_THREADS
 
 	if (res < 0)
 	{
@@ -1605,15 +1714,19 @@ static PyObject *alsapcm_drop(alsapcm_t *self)
 static PyObject *alsapcm_drain(alsapcm_t *self)
 {
 	int res;
+	snd_pcm_t *handle;
 
 	if (!self->handle) {
 		PyErr_SetString(ALSAAudioError, "PCM device is closed");
 		return NULL;
 	}
 
+	alsapcm_lock_io(self);
+	handle = self->handle;
 	Py_BEGIN_ALLOW_THREADS
-	res = snd_pcm_drain(self->handle);
+	res = snd_pcm_drain(handle);
 	Py_END_ALLOW_THREADS
+	PyThread_release_lock(self->io_lock);
 
 	if (res < 0)
 	{
@@ -1746,35 +1859,86 @@ alsapcm_polldescriptors_revents(alsapcm_t *self, PyObject *args)
 
 /* ALSA PCM Object Bureaucracy */
 
+/* Each call pins the native handle even when CPython suspends its object lock
+ * for I/O or a reentrant Python callback. Closing never invalidates a borrowed
+ * handle; the last in-flight call performs the real close exactly once. */
+#define PCM_GUARD(name, call, allow_closed) \
+static PyObject *name##_guarded(alsapcm_t *self, PyObject *args) \
+{ \
+	PyObject *result = NULL; \
+	(void)args; \
+	Py_BEGIN_CRITICAL_SECTION(self); \
+	if (!self->closing || (allow_closed)) { \
+		self->active_calls++; \
+		result = (call); \
+		self->active_calls--; \
+		alsapcm_finish_close(self, 1); \
+	} else { \
+		PyErr_SetString(ALSAAudioError, "PCM device is closed"); \
+	} \
+	Py_END_CRITICAL_SECTION(); \
+	return result; \
+}
+
+PCM_GUARD(alsapcm_pcmtype, alsapcm_pcmtype(self, args), 0)
+PCM_GUARD(alsapcm_pcmmode, alsapcm_pcmmode(self, args), 0)
+PCM_GUARD(alsapcm_cardname, alsapcm_cardname(self, args), 0)
+PCM_GUARD(alsapcm_getchannels, alsapcm_getchannels(self, args), 0)
+PCM_GUARD(alsapcm_setchannels, alsapcm_setchannels(self, args), 0)
+PCM_GUARD(alsapcm_setrate, alsapcm_setrate(self, args), 0)
+PCM_GUARD(alsapcm_setformat, alsapcm_setformat(self, args), 0)
+PCM_GUARD(alsapcm_setperiodsize, alsapcm_setperiodsize(self, args), 0)
+PCM_GUARD(alsapcm_htimestamp, alsapcm_htimestamp(self, args), 0)
+PCM_GUARD(alsapcm_set_tstamp_type, alsapcm_set_tstamp_type(self, args), 0)
+PCM_GUARD(alsapcm_set_tstamp_mode, alsapcm_set_tstamp_mode(self, args), 0)
+PCM_GUARD(alsapcm_get_tstamp_type, alsapcm_get_tstamp_type(self, args), 0)
+PCM_GUARD(alsapcm_get_tstamp_mode, alsapcm_get_tstamp_mode(self, args), 0)
+PCM_GUARD(alsapcm_dumpinfo, alsapcm_dumpinfo(self, args), 0)
+PCM_GUARD(alsapcm_info, alsapcm_info(self, args), 0)
+PCM_GUARD(alsapcm_state, alsapcm_state(self, args), 0)
+PCM_GUARD(alsapcm_getformats, alsapcm_getformats(self, args), 0)
+PCM_GUARD(alsapcm_getratemaxmin, alsapcm_getratemaxmin(self, args), 0)
+PCM_GUARD(alsapcm_getrates, alsapcm_getrates(self, args), 0)
+PCM_GUARD(alsapcm_read, alsapcm_read(self, args), 0)
+PCM_GUARD(alsapcm_write, alsapcm_write(self, args), 0)
+PCM_GUARD(alsapcm_avail, alsapcm_avail(self, args), 0)
+PCM_GUARD(alsapcm_pause, alsapcm_pause(self, args), 0)
+PCM_GUARD(alsapcm_drop, alsapcm_drop(self), 0)
+PCM_GUARD(alsapcm_drain, alsapcm_drain(self), 0)
+PCM_GUARD(alsapcm_close, alsapcm_close(self, args), 1)
+PCM_GUARD(alsapcm_polldescriptors, alsapcm_polldescriptors(self, args), 0)
+PCM_GUARD(alsapcm_polldescriptors_revents, alsapcm_polldescriptors_revents(self, args), 0)
+#undef PCM_GUARD
+
 static PyMethodDef alsapcm_methods[] = {
-	{"pcmtype", (PyCFunction)alsapcm_pcmtype, METH_VARARGS},
-	{"pcmmode", (PyCFunction)alsapcm_pcmmode, METH_VARARGS},
-	{"cardname", (PyCFunction)alsapcm_cardname, METH_VARARGS},
-	{"getchannels", (PyCFunction)alsapcm_getchannels, METH_VARARGS},
-	{"setchannels", (PyCFunction)alsapcm_setchannels, METH_VARARGS},
-	{"setrate", (PyCFunction)alsapcm_setrate, METH_VARARGS},
-	{"setformat", (PyCFunction)alsapcm_setformat, METH_VARARGS},
-	{"setperiodsize", (PyCFunction)alsapcm_setperiodsize, METH_VARARGS},
-	{"htimestamp", (PyCFunction) alsapcm_htimestamp, METH_VARARGS},
-	{"set_tstamp_type", (PyCFunction) alsapcm_set_tstamp_type, METH_VARARGS},
-	{"set_tstamp_mode", (PyCFunction) alsapcm_set_tstamp_mode, METH_VARARGS},
-	{"get_tstamp_type", (PyCFunction) alsapcm_get_tstamp_type, METH_VARARGS},
-	{"get_tstamp_mode", (PyCFunction) alsapcm_get_tstamp_mode, METH_VARARGS},
-	{"dumpinfo", (PyCFunction)alsapcm_dumpinfo, METH_VARARGS},
-	{"info", (PyCFunction)alsapcm_info, METH_VARARGS},
-	{"state", (PyCFunction)alsapcm_state, METH_VARARGS},
-	{"getformats", (PyCFunction)alsapcm_getformats, METH_VARARGS},
-	{"getratebounds", (PyCFunction)alsapcm_getratemaxmin, METH_VARARGS},
-	{"getrates", (PyCFunction)alsapcm_getrates, METH_VARARGS},
-	{"read", (PyCFunction)alsapcm_read, METH_VARARGS},
-	{"write", (PyCFunction)alsapcm_write, METH_VARARGS},
-	{"avail", (PyCFunction)alsapcm_avail, METH_VARARGS},
-	{"pause", (PyCFunction)alsapcm_pause, METH_VARARGS},
-	{"drop", (PyCFunction)alsapcm_drop, METH_VARARGS},
-	{"drain", (PyCFunction)alsapcm_drain, METH_VARARGS},
-	{"close", (PyCFunction)alsapcm_close, METH_VARARGS},
-	{"polldescriptors", (PyCFunction)alsapcm_polldescriptors, METH_VARARGS},
-	{"polldescriptors_revents", (PyCFunction)alsapcm_polldescriptors_revents, METH_VARARGS},
+	{"pcmtype", (PyCFunction)alsapcm_pcmtype_guarded, METH_VARARGS},
+	{"pcmmode", (PyCFunction)alsapcm_pcmmode_guarded, METH_VARARGS},
+	{"cardname", (PyCFunction)alsapcm_cardname_guarded, METH_VARARGS},
+	{"getchannels", (PyCFunction)alsapcm_getchannels_guarded, METH_VARARGS},
+	{"setchannels", (PyCFunction)alsapcm_setchannels_guarded, METH_VARARGS},
+	{"setrate", (PyCFunction)alsapcm_setrate_guarded, METH_VARARGS},
+	{"setformat", (PyCFunction)alsapcm_setformat_guarded, METH_VARARGS},
+	{"setperiodsize", (PyCFunction)alsapcm_setperiodsize_guarded, METH_VARARGS},
+	{"htimestamp", (PyCFunction) alsapcm_htimestamp_guarded, METH_VARARGS},
+	{"set_tstamp_type", (PyCFunction) alsapcm_set_tstamp_type_guarded, METH_VARARGS},
+	{"set_tstamp_mode", (PyCFunction) alsapcm_set_tstamp_mode_guarded, METH_VARARGS},
+	{"get_tstamp_type", (PyCFunction) alsapcm_get_tstamp_type_guarded, METH_VARARGS},
+	{"get_tstamp_mode", (PyCFunction) alsapcm_get_tstamp_mode_guarded, METH_VARARGS},
+	{"dumpinfo", (PyCFunction)alsapcm_dumpinfo_guarded, METH_VARARGS},
+	{"info", (PyCFunction)alsapcm_info_guarded, METH_VARARGS},
+	{"state", (PyCFunction)alsapcm_state_guarded, METH_VARARGS},
+	{"getformats", (PyCFunction)alsapcm_getformats_guarded, METH_VARARGS},
+	{"getratebounds", (PyCFunction)alsapcm_getratemaxmin_guarded, METH_VARARGS},
+	{"getrates", (PyCFunction)alsapcm_getrates_guarded, METH_VARARGS},
+	{"read", (PyCFunction)alsapcm_read_guarded, METH_VARARGS},
+	{"write", (PyCFunction)alsapcm_write_guarded, METH_VARARGS},
+	{"avail", (PyCFunction)alsapcm_avail_guarded, METH_VARARGS},
+	{"pause", (PyCFunction)alsapcm_pause_guarded, METH_VARARGS},
+	{"drop", (PyCFunction)alsapcm_drop_guarded, METH_VARARGS},
+	{"drain", (PyCFunction)alsapcm_drain_guarded, METH_VARARGS},
+	{"close", (PyCFunction)alsapcm_close_guarded, METH_VARARGS},
+	{"polldescriptors", (PyCFunction)alsapcm_polldescriptors_guarded, METH_VARARGS},
+	{"polldescriptors_revents", (PyCFunction)alsapcm_polldescriptors_revents_guarded, METH_VARARGS},
 	{NULL, NULL}
 };
 
@@ -3133,6 +3297,7 @@ PyObject *PyInit_alsaaudio(void)
 	m = PyModule_Create(&alsaaudio_module);
 	if (!m)
 		return NULL;
+
 
 #endif
 
