@@ -1,6 +1,6 @@
 [project]
 name = "pyalsaaudio"
-version = "0.11.0"
+version = "0.11.0+stablekite.1"
 description = "ALSA bindings"
 readme.text = """
 This package contains wrappers for accessing the ALSA API from Python.
@@ -51,7 +51,7 @@ requires = ["setuptools"]
 
 
 [tool.setuptools]
-packages = ["alsaaudio-stubs"]
+packages = ["alsaaudio-stubs", "pyalsaaudio_runtime"]
 package-dir = {"" = "src"}
 ext-modules = [
 	{ name = "alsaaudio", sources = ["src/alsaaudio.c"], libraries = ["asound"] }
@@ -59,6 +59,7 @@ ext-modules = [
 
 [tool.setuptools.package-data]
 "alsaaudio-stubs" = ["*.pyi"]
+"pyalsaaudio_runtime" = ["alsa-config/**/*.conf", "alsa-config/*.conf", "COPYING.alsa-lib", "SOURCES.alsa-lib.txt", "CONFIGURATION_SHA256.json"]
 
 
 [tool.cibuildwheel]

@@ -1,0 +1,11 @@
+# Preserve the exact upstream configuration bytes and delivery hashes on both OSes.
+src/pyalsaaudio_runtime/** text eol=lf
+# Preserve upstream vendor bytes, including their original trailing whitespace.
+src/pyalsaaudio_runtime/alsa-config/** -whitespace
+src/pyalsaaudio_runtime/COPYING.alsa-lib -whitespace
+_binary_wheel_backend.py text eol=lf
+binary_wheels.json text eol=lf
+pyproject.toml text eol=lf
+MANIFEST.in text eol=lf
+README.binary-wheels.md text eol=lf
+.gitattributes text eol=lf

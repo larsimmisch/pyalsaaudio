@@ -1,0 +1,23 @@
+ALSA configuration files in this package are unmodified ALSA 1.2.14 resources.
+The dynamically linked native SDK is distributed under LGPL-2.1-or-later.
+See COPYING.alsa-lib in this directory for its complete license.
+
+Original corresponding source:
+https://www.alsa-project.org/files/pub/lib/alsa-lib-1.2.14.tar.bz2
+SHA256 be9c88a0b3604367dd74167a2b754a35e142f670292ae47a2fdef27a2ee97a32
+Release Git commit 81d70a27136840fa8fb1bec6eb8e04fc1475a380
+
+Modified native source, including the complete history and minimal config patch:
+https://github.com/StableKite/alsa-lib/tree/8e9b59bada613c224c0c9d450400819df6411c55
+
+Build the original release archive with src/conf.c from that exact commit.
+Configure a private prefix with --enable-shared --disable-static
+--enable-symbolic-functions; run make -j1, make -j1 check and make -j1 install.
+All original test assertions are retained. Full -Bsymbolic is deliberately
+excluded because it breaks the public snd_config data ABI.
+
+The 3.15t extension is linked against these exact headers/libraries and repaired
+with auditwheel --lib-sdir _runtime. Its real libasound and the untouched
+alsa-config tree are installed together in pyalsaaudio_runtime. Standard system
+and per-user configuration hooks and explicit ALSA environment preferences are
+preserved. No process environment override is required to use the wheel.
