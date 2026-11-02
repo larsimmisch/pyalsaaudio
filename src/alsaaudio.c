@@ -1465,6 +1465,10 @@ alsapcm_read(alsapcm_t *self, PyObject *args)
 	buffer = PyBytes_AS_STRING(buffer_obj);
 #endif
 
+	/* Native capture plugins can report frames without filling every byte.
+	 * Initialize our fresh allocation before the SDK writes its real data. */
+	memset(buffer, 0, size);
+
 	// After drop() and drain(), we need to prepare the stream again.
 	// Note that fresh streams are already prepared by snd_pcm_hw_params().
 	state = snd_pcm_state(handle);
