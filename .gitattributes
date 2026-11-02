@@ -13,3 +13,4 @@ pyrightconfig.strict.json text eol=lf
 ci/check_cp315t_portable.py text eol=lf
 .github/workflows/cp315t-portable.yml text eol=lf
 .github/workflows/release.yml text eol=lf
+tests/test_pcm_lifetime.py text eol=lf

@@ -25,7 +25,7 @@
     "README.binary-wheels.md": "4bfbb13c1984011a08d2247b5356a5ca368a55c21551b9869602f94619ebed16",
     "pyproject.toml": "c0c78a219598696178b5c9923a097703e06963cebb0bf6e043ac800d2800f647",
     "MANIFEST.in": "013534c222073517537d07a3f63d3f4b168d8dac9a98d27759c3656800c149f0",
-    ".gitattributes": "3b5c73a7a6d200ec3703c321468fe7f3cbbcb5e4a5289c53807dd6c59b6818eb",
+    ".gitattributes": "ccd2c34906f956859f56d5d59f0e0d80755dce7c77ccf6a15154434c61e1ae65",
     "pyrightconfig.strict.json": "48d89791c8d1d73c2bd3c1570e1d48708ca181fdb4add3dad454c8c3e7abaaa2",
     "ci/check_cp315t_portable.py": "7fdc2392e693d6bff4d7261d4a1e24c45d82721db27e8ddb21cee0ce555134e0",
     ".github/workflows/cp315t-portable.yml": "a8b00d2989bf135025a4ffb8fcd5eda26be7594934d78fbde487a8ae58f91eb8",
