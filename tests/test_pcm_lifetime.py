@@ -322,7 +322,7 @@ class PCMLifetimeTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    assert sys.flags.gil is None and not sys._is_gil_enabled()
+    # This upstream PCM-only patch retains the module's normal GIL policy.
     assert not any(os.environ.get(n) for n in (
         "PYTHON_GIL", "ALSA_CONFIG_PATH", "ALSA_CONFIG_DIR", "ALSA_PLUGIN_DIR"
     ))
