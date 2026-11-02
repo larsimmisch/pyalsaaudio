@@ -3,7 +3,7 @@
 on:
   workflow_dispatch:
   push:
-    tags: "*"
+    tags: ["*", "!cp315t-*"]
 
 jobs:
   build_wheels:

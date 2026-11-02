@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import ctypes
+import ctypes.util
 import os
 from pathlib import Path
 from queue import SimpleQueue
@@ -164,8 +165,12 @@ class PCMLifetimeTest(unittest.TestCase):
         # The original bundled defaults are loaded first and are retained.
         root = Path(alsa.__file__).parent / "pyalsaaudio_runtime"
         libraries = list(root.glob("libasound*.so*"))
-        self.assertEqual(len(libraries), 1)
-        library = ctypes.CDLL(str(libraries[0]))
+        self.assertLessEqual(len(libraries), 1)
+        # The original source backend links the platform's development SDK.
+        # Exercise that real library as well as the bundled binary path.
+        native = str(libraries[0]) if libraries else ctypes.util.find_library("asound")
+        self.assertIsNotNone(native, "the real linked ALSA library was not found")
+        library = ctypes.CDLL(native)
         library.snd_config_update.argtypes = []
         library.snd_config_update.restype = ctypes.c_int
         self.assertGreaterEqual(library.snd_config_update(), 0)

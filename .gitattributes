@@ -9,3 +9,7 @@ pyproject.toml text eol=lf
 MANIFEST.in text eol=lf
 README.binary-wheels.md text eol=lf
 .gitattributes text eol=lf
+pyrightconfig.strict.json text eol=lf
+ci/check_cp315t_portable.py text eol=lf
+.github/workflows/cp315t-portable.yml text eol=lf
+.github/workflows/release.yml text eol=lf

@@ -1,0 +1,6 @@
+{
+  "include": ["_binary_wheel_backend.py", "src", "ci/check_cp315t_portable.py"],
+  "typeCheckingMode": "strict",
+  "pythonVersion": "3.15",
+  "pythonPlatform": "Linux"
+}
